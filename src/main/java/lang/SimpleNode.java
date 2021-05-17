@@ -1,3 +1,5 @@
+package lang;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
@@ -6,26 +8,17 @@ import java.util.TreeSet;
 class SimpleNode implements Node{
 
 	final Set<SimpleNode>[] transitions;
-	final SortedSet<Identifier> identifiers;
+	//final SortedSet<Identifier> identifiers;
+	final boolean terminating;
 
-	SimpleNode() {
+	SimpleNode(boolean terminating) {
 		this.transitions = new Set[256];
-		this.identifiers = new TreeSet<>();
-	}
-
-	SimpleNode(String id){
-		this();
-		addIdentifier(id);
-	}
-
-	SimpleNode(Set<Identifier> identifiers){
-		this();
-		this.identifiers.addAll(identifiers);
+		this.terminating = terminating;
 	}
 
 	@Override
-	public SortedSet<Identifier> identifiers(){
-		return identifiers;
+	public boolean terminating(){
+		return terminating;
 	}
 
 	@Override
@@ -57,7 +50,4 @@ class SimpleNode implements Node{
 		return (Set<SimpleNode>)Node.super.next(filter);
 	}
 
-	void addIdentifier(String id){
-		identifiers.add(new Identifier(id, true));
-	}
 }

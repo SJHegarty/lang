@@ -1,3 +1,5 @@
+package lang;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -5,24 +7,29 @@ public class MetaNode implements Node{
 	private final Set<SimpleNode> nodes = new HashSet<>();
 
 	MetaNode(SimpleNode src){
-		this(Set.of(src));
+		this(new HashSet<>(Set.of(src)));
 	}
 
 	MetaNode(Set<SimpleNode> nodes){
+		if(nodes.isEmpty()){
+			throw new IllegalArgumentException();
+		}
 		var queue = new ArrayDeque<>(nodes);
 		while(!queue.isEmpty()){
 			var node = queue.poll();
-			if(nodes.add(node)){
+			if(this.nodes.add(node)){
 				queue.addAll(node.transitions(FSA.LAMBDA));
 			}
 		}
 	}
 
+	Set<SimpleNode> nodes(){
+		return nodes;
+	}
+
 	@Override
-	public SortedSet<Identifier> identifiers() {
-		return nodes.stream()
-			.flatMap(n -> n.identifiers().stream())
-			.collect(Collectors.toCollection(TreeSet::new));
+	public boolean terminating() {
+		return nodes().stream().anyMatch(Node::terminating);
 	}
 
 	public MetaNode transition(char c) {
