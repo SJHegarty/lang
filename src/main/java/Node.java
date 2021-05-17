@@ -18,13 +18,17 @@ interface Node{
 
 	SortedSet<Identifier> identifiers();
 
-	Set<Node> transitions(char c);
+	Set<? extends Node> transitions(char c);
 
-	default Set<Node> next(){
+	default Set<? extends Node> next(){
 		return next(c -> true);
 	}
 
-	default Set<Node> next(CharPredicate filter) {
+	default Set<? extends Node> next(char c){
+		return next(ch -> ch == c);
+	}
+
+	default Set<? extends Node> next(CharPredicate filter) {
 		return IntStream.range(0, FSA.TABLE_SIZE)
 			.filter(i -> filter.test((char)i))
 			.mapToObj(i -> transitions((char)i))
@@ -33,7 +37,7 @@ interface Node{
 					var rv = new HashSet<Node>();
 					rv.addAll(s0);
 					rv.addAll(s1);
-					return rv;
+					return (Set)rv;
 				}
 			)
 			.orElseGet(Set::of);

@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -7,12 +8,12 @@ class FSA {
 	public static final char LAMBDA = '^';
 	public static final int TABLE_SIZE = 0x100;
 
-	final Node entryPoint;
+	final SimpleNode entryPoint;
 
 	private FSA(){
 		this(new SimpleNode());
 	}
-	private FSA(Node entryPoint){
+	private FSA(SimpleNode entryPoint){
 		this.entryPoint = entryPoint;
 	}
 
@@ -27,8 +28,6 @@ class FSA {
 		}
 	}
 
-
-
 	private static FSA concatenate(FSA...elements){
 
 		var rv = new FSA(elements[0].entryPoint);
@@ -37,11 +36,11 @@ class FSA {
 			var node = elements[i - 1];
 			var next = elements[i];
 
-			Set<Node> terminating = node.nodes().stream()
+			Set<SimpleNode> terminating = node.nodes().stream()
 				.filter(Node::terminating)
 				.collect(Collectors.toSet());
 
-			for(Node t: terminating){
+			for(var t: terminating){
 				t.transitions(LAMBDA).add(next.entryPoint);
 			}
 		}
@@ -63,7 +62,7 @@ class FSA {
 		complete();
 		final var deterministic = dfa();
 		final var nodes = deterministic.nodes();
-		final Map<Node, Node> map = nodes.stream()
+		final Map<SimpleNode, SimpleNode> map = nodes.stream()
 			.collect(
 				Collectors.toMap(
 					n -> n,
@@ -123,15 +122,46 @@ class FSA {
 	}
 
 	private FSA dfa(){
-		class MetaNode{
+		record Lookup(MetaNode meta, SimpleNode built){}
+		var lookup = new HashMap<MetaNode, Lookup>();
 
+		Function<MetaNode, Lookup> deAliaser = meta -> {
+			var rv = lookup.get(meta);
+			if(rv == null){
+				rv = new Lookup(meta, new SimpleNode());
+				rv.built.identifiers().addAll(meta.identifiers());
+				lookup.put(meta, rv);
+			}
+			return rv;
+		};
+		var root = deAliaser.apply(new MetaNode(entryPoint));
+		var rv = new FSA(root.built);
+		var queue = new ArrayDeque<MetaNode>();
+		var explored = new HashSet<MetaNode>();
+		queue.add(root.meta);
+
+		while(!queue.isEmpty()){
+			var meta = queue.poll();
+			if(explored.add(meta)) {
+				var simple = deAliaser.apply(meta).built;
+				for (char c = 0; c < TABLE_SIZE; c++) {
+					if (c != LAMBDA) {
+						var next = meta.transition(c);
+						queue.add(next);
+						simple.next(c).add(
+							deAliaser.apply(next).built
+						);
+					}
+				}
+			}
 		}
-		throw new UnsupportedOperationException("NYI");
+
+		return rv;
 	}
 
-	Set<Node> nodes(){
-		final var rv = new HashSet<Node>();
-		final var queue = new ArrayDeque<Node>();
+	Set<SimpleNode> nodes(){
+		final var rv = new HashSet<SimpleNode>();
+		final var queue = new ArrayDeque<SimpleNode>();
 
 		rv.add(entryPoint);
 		queue.add(entryPoint);

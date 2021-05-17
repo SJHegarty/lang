@@ -5,7 +5,7 @@ import java.util.TreeSet;
 
 class SimpleNode implements Node{
 
-	final Set<Node>[] transitions;
+	final Set<SimpleNode>[] transitions;
 	final SortedSet<Identifier> identifiers;
 
 	SimpleNode() {
@@ -29,17 +29,32 @@ class SimpleNode implements Node{
 	}
 
 	@Override
-	public Set<Node> transitions(char c){
+	public Set<SimpleNode> transitions(char c){
 		if(transitions[c] == null){
 			return new MaskingSet<>(
 				() -> {
-					var rv = new HashSet<Node>();
+					var rv = new HashSet<SimpleNode>();
 					transitions[c] = rv;
 					return rv;
 				}
 			);
 		};
 		return transitions[c];
+	}
+
+	@Override
+	public Set<SimpleNode> next(){
+		return (Set<SimpleNode>)Node.super.next();
+	}
+
+	@Override
+	public Set<SimpleNode> next(char c){
+		return (Set<SimpleNode>)Node.super.next(c);
+	}
+
+	@Override
+	public Set<SimpleNode> next(CharPredicate filter){
+		return (Set<SimpleNode>)Node.super.next(filter);
 	}
 
 	void addIdentifier(String id){
