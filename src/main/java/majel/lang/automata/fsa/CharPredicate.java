@@ -1,4 +1,4 @@
-package lang;
+package majel.lang.automata.fsa;
 
 @FunctionalInterface
 interface CharPredicate {

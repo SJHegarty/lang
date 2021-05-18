@@ -1,4 +1,4 @@
-package lang;
+package majel.lang.automata.fsa;
 
 import java.util.Collection;
 import java.util.Iterator;

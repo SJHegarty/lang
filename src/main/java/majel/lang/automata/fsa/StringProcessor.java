@@ -1,6 +1,4 @@
-package lang;
-
-import java.util.SortedSet;
+package majel.lang.automata.fsa;
 
 public class StringProcessor{
 	private final FSA automaton;

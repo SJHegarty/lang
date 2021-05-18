@@ -1,26 +1,27 @@
-package lang;
+package majel.lang.automata.fsa;
 
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static lang.CharPredicate.*;
+import static majel.lang.automata.fsa.CharPredicate.*;
 
-class FSA {
+public class FSA {
 
 	public static void main(String...args){
 	//	testOr();
 		System.err.println();
-		testAnd();
+		testOr();
 	}
 
 	public static void testOr(){
 		var lower = new FSA(CharPredicate.inclusiveRange('a', 'z'), "lower");
 		var upper = new FSA(c -> c >= 'A' && c <= 'Z', "upper");
-		var alpha = FSA.or(lower, upper);
+		var alpha = FSA.concatenate("test", lower, upper);
 
 		var examples = new String[]{
 			"a",
@@ -28,7 +29,8 @@ class FSA {
 			"1",
 			"b",
 			"Z",
-			"Za"
+			"Za",
+			"aZ"
 		};
 
 		var machines = new FSA[]{
@@ -43,7 +45,8 @@ class FSA {
 			System.err.println(m);
 			var processor = new StringProcessor(m);
 			for (String s : examples) {
-				System.err.println(s + " " + processor.process(s));
+				var res = processor.process(s);
+				System.err.println(s + " " + res.terminating() + " " + res.labels());
 			}
 			System.err.println();
 		}
@@ -106,46 +109,35 @@ class FSA {
 		}
 	}
 
-	private static FSA concatenate(FSA...elements){
+	private static FSA concatenate(String label, FSA...elements){
+		elements = elements.clone();
 
-		var rv = new FSA(elements[0].entryPoint);
+		final int limit = elements.length - 1;
 
-		for(int i = 1; i < elements.length; i++){
-			var node = elements[i - 1];
-			var next = elements[i];
+		elements[limit] = elements[limit].process(
+			n -> n.terminating() ? new SimpleNode(label, true) : new SimpleNode(false)
+		);
 
-			Set<SimpleNode> terminating = node.nodes().stream()
-				.filter(Node::terminating)
-				.collect(Collectors.toSet());
-
-			for(var t: terminating){
-				t.transitions(LAMBDA).add(next.entryPoint);
-			}
+		for(int i = limit - 1; i >= 0; i--){
+			var next = elements[i + 1].entryPoint;
+			elements[i] = elements[i].process(
+				n -> {
+					var rv = new SimpleNode(false);
+					if(n.terminating()){
+						rv.transitions(LAMBDA).add(next);
+					}
+					return rv;
+				}
+			);
 		}
-		return rv;
+		return new FSA(elements[0].entryPoint);
 	}
 
-	private static FSA or(FSA...elements){
-		var rv = new FSA();
-		var l = rv.entryPoint.transitions(LAMBDA);
-
-		for(var e: elements){
-			l.add(e.entryPoint);
-		}
-
-		return rv;
-	}
-
-	private FSA negate(){
-		complete();
-		final var deterministic = dfa();
-		final var nodes = deterministic.nodes();
+	private FSA process(UnaryOperator<SimpleNode> nodeProcessor){
+		final var nodes = nodes();
 		final Map<SimpleNode, SimpleNode> map = nodes.stream()
 			.collect(
-				Collectors.toMap(
-					n -> n,
-					n -> new SimpleNode(n.labels(), !n.terminating())
-				)
+				Collectors.toMap(n -> n, nodeProcessor)
 			);
 
 		for(var src: nodes){
@@ -161,7 +153,30 @@ class FSA {
 			}
 		}
 
-		return new FSA(map.get(deterministic.entryPoint));
+		return new FSA(map.get(entryPoint));
+
+	}
+	private Set<SimpleNode> terminating() {
+		return nodes().stream()
+			.filter(Node::terminating)
+			.collect(Collectors.toSet());
+	}
+
+	public static FSA or(FSA... elements){
+		var rv = new FSA();
+		var l = rv.entryPoint.transitions(LAMBDA);
+
+		for(var e: elements){
+			l.add(e.entryPoint);
+		}
+
+		return rv;
+	}
+
+	private FSA negate(){
+		return dfa().process(
+			n -> new SimpleNode(n.labels(), !n.terminating())
+		);
 	}
 
 	private static FSA and(FSA...elements){
@@ -170,8 +185,8 @@ class FSA {
 		}
 		var not = or(
 			Stream.of(elements)
-				.map(lang.FSA::negate)
-				.toArray(lang.FSA[]::new)
+				.map(FSA::negate)
+				.toArray(FSA[]::new)
 		);
 		not.complete();
 		return not.negate();
@@ -195,7 +210,7 @@ class FSA {
 		nodeOp.accept(sink);
 	}
 
-	FSA dfa(){
+	public FSA dfa(){
 		complete();
 		record Lookup(MetaNode meta, SimpleNode built){}
 		var lookup = new HashMap<MetaNode, Lookup>();
