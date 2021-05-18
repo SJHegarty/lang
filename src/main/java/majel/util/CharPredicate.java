@@ -1,6 +1,7 @@
-package majel.lang.automata.fsa;
+package majel.util;
 
 @FunctionalInterface
+public
 interface CharPredicate {
 	static CharPredicate inclusiveRange(char c0, char cN){
 		return c -> c >= c0 && c <= cN;

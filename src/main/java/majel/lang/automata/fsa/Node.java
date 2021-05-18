@@ -1,5 +1,7 @@
 package majel.lang.automata.fsa;
 
+import majel.util.CharPredicate;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;

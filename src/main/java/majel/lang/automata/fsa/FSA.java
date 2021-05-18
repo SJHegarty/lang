@@ -1,5 +1,7 @@
 package majel.lang.automata.fsa;
 
+import majel.util.CharPredicate;
+
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -8,7 +10,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static majel.lang.automata.fsa.CharPredicate.*;
+import static majel.util.CharPredicate.*;
 
 public class FSA {
 
@@ -191,14 +193,20 @@ public class FSA {
 		return rv;
 	}
 
+	public FSA optional(){
+		var rv = clone();
+		rv.entryPoint
+			.transitions(LAMBDA)
+			.add(new SimpleNode(true));
+
+		return rv;
+	}
+
 	public FSA kleene(){
 		var rv = clone();
 		rv.terminating().forEach(
 			n -> n.transitions(LAMBDA).add(rv.entryPoint)
 		);
-		rv.entryPoint
-			.transitions(LAMBDA)
-			.add(new SimpleNode(true));
 
 		return rv;
 	}
@@ -215,7 +223,7 @@ public class FSA {
 		);
 	}
 
-	private static FSA and(FSA...elements){
+	public static FSA and(FSA...elements){
 		for(var e: elements){
 			e.complete();
 		}

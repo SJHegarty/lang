@@ -1,5 +1,7 @@
 package majel.lang.automata.fsa;
 
+import majel.util.CharPredicate;
+
 import java.util.*;
 
 class SimpleNode implements Node{
