@@ -38,7 +38,8 @@ public class FSA {
 			lower.negate(),
 			upper,
 			upper.negate(),
-			alpha
+			alpha,
+			FSA.literal("aZ", "yo")
 		};
 
 		for(var m: machines) {
@@ -99,7 +100,9 @@ public class FSA {
 		this.entryPoint = entryPoint;
 	}
 
-	private FSA(CharPredicate predicate, String label) {
+
+
+	public FSA(CharPredicate predicate, String label) {
 		this();
 		final var node = new SimpleNode(label, true);
 		for (char c = 0; c < TABLE_SIZE; c++) {
@@ -109,7 +112,22 @@ public class FSA {
 		}
 	}
 
-	private static FSA concatenate(String label, FSA...elements){
+	public static FSA literal(String value, String label){
+		var rv = new FSA();
+		var node = rv.entryPoint;
+		final int limit = label.length() - 1;
+		for(int i = 0; i < limit; i++){
+			var next = new SimpleNode(false);
+			node.transitions(value.charAt(i)).add(next);
+			node = next;
+		}
+		node.transitions(value.charAt(limit))
+			.add(new SimpleNode(label, true));
+
+		return rv;
+	}
+
+	public static FSA concatenate(String label, FSA...elements){
 		elements = elements.clone();
 
 		final int limit = elements.length - 1;
