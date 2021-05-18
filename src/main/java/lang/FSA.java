@@ -18,8 +18,8 @@ class FSA {
 	}
 
 	public static void testOr(){
-		var lower = new FSA(CharPredicate.inclusiveRange('a', 'z'));
-		var upper = new FSA(c -> c >= 'A' && c <= 'Z');
+		var lower = new FSA(CharPredicate.inclusiveRange('a', 'z'), "lower");
+		var upper = new FSA(c -> c >= 'A' && c <= 'Z', "upper");
 		var alpha = FSA.or(lower, upper);
 
 		var examples = new String[]{
@@ -50,8 +50,8 @@ class FSA {
 	}
 
 	public static void testAnd(){
-		var lower = new FSA(inclusiveRange('a', (char)('a' + 20)));
-		var upper = new FSA(inclusiveRange((char)('z' - 20), 'z'));
+		var lower = new FSA(inclusiveRange('a', (char)('a' + 20)), "lower");
+		var upper = new FSA(inclusiveRange((char)('z' - 20), 'z'), "upper");
 		var neglw = lower.negate();
 		var negup = upper.negate();
 		var orneg = FSA.or(neglw, negup);
@@ -77,7 +77,7 @@ class FSA {
 			var processor = new StringProcessor(m);
 			for (String s : examples) {
 				var res = processor.process(s);
-				System.err.println(s + " " + res.terminating());
+				System.err.println(s + " " + res.terminating() + " " + res.labels());
 			}
 			System.err.println();
 		}
@@ -91,13 +91,14 @@ class FSA {
 	private FSA(){
 		this(new SimpleNode(false));
 	}
+
 	private FSA(SimpleNode entryPoint){
 		this.entryPoint = entryPoint;
 	}
 
-	private FSA(CharPredicate predicate) {
+	private FSA(CharPredicate predicate, String label) {
 		this();
-		final var node = new SimpleNode(true);
+		final var node = new SimpleNode(label, true);
 		for (char c = 0; c < TABLE_SIZE; c++) {
 			if(predicate.test(c)){
 				entryPoint.transitions(c).add(node);;
@@ -143,7 +144,7 @@ class FSA {
 			.collect(
 				Collectors.toMap(
 					n -> n,
-					n -> new SimpleNode(!n.terminating)
+					n -> new SimpleNode(n.labels(), !n.terminating())
 				)
 			);
 
@@ -202,7 +203,7 @@ class FSA {
 		Function<MetaNode, Lookup> deAliaser = meta -> {
 			var rv = lookup.get(meta);
 			if(rv == null){
-				rv = new Lookup(meta, new SimpleNode(meta.terminating()));
+				rv = new Lookup(meta, new SimpleNode(meta.labels(), meta.terminating()));
 				lookup.put(meta, rv);
 			}
 			return rv;

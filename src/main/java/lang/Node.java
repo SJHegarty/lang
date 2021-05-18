@@ -35,4 +35,5 @@ interface Node{
 	}
 
 	boolean terminating();
+	SortedSet<String> labels();
 }

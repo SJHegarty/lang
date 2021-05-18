@@ -1,19 +1,29 @@
 package lang;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 class SimpleNode implements Node{
 
-	final Set<SimpleNode>[] transitions;
-	//final SortedSet<Identifier> identifiers;
-	final boolean terminating;
+	private final Set<SimpleNode>[] transitions;
+	private final SortedSet<String> labels;
+	private final boolean terminating;
 
-	SimpleNode(boolean terminating) {
+	public SimpleNode(boolean terminating) {
 		this.transitions = new Set[256];
 		this.terminating = terminating;
+		this.labels = new TreeSet<>();
+	}
+
+	public SimpleNode(String label, boolean terminating){
+		this(terminating);
+		if(label != null){
+			labels.add(label);
+		}
+	}
+
+	public SimpleNode(SortedSet<String> labels, boolean terminating){
+		this(terminating);
+		this.labels.addAll(labels);
 	}
 
 	@Override
@@ -48,6 +58,11 @@ class SimpleNode implements Node{
 	@Override
 	public Set<SimpleNode> next(CharPredicate filter){
 		return (Set<SimpleNode>)Node.super.next(filter);
+	}
+
+	@Override
+	public SortedSet<String> labels(){
+		return Collections.unmodifiableSortedSet(labels);
 	}
 
 }

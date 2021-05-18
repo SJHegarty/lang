@@ -32,6 +32,13 @@ public class MetaNode implements Node{
 		return nodes().stream().anyMatch(Node::terminating);
 	}
 
+	@Override
+	public SortedSet<String> labels() {
+		return nodes.stream()
+			.flatMap(n -> n.labels().stream())
+			.collect(Collectors.toCollection(TreeSet::new));
+	}
+
 	public MetaNode transition(char c) {
 		if (c == FSA.LAMBDA) {
 			throw new UnsupportedOperationException();
