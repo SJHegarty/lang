@@ -112,10 +112,10 @@ public class FSA {
 		}
 	}
 
-	public static FSA literal(String value, String label){
+	public static FSA literal(String label, String value){
 		var rv = new FSA();
 		var node = rv.entryPoint;
-		final int limit = label.length() - 1;
+		final int limit = value.length() - 1;
 		for(int i = 0; i < limit; i++){
 			var next = new SimpleNode(false);
 			node.transitions(value.charAt(i)).add(next);
@@ -191,7 +191,25 @@ public class FSA {
 		return rv;
 	}
 
-	private FSA negate(){
+	public FSA kleene(){
+		var rv = clone();
+		rv.terminating().forEach(
+			n -> n.transitions(LAMBDA).add(rv.entryPoint)
+		);
+		rv.entryPoint
+			.transitions(LAMBDA)
+			.add(new SimpleNode(true));
+
+		return rv;
+	}
+
+	protected FSA clone(){
+		return process(
+			n -> new SimpleNode(n.labels(), n.terminating())
+		);
+	}
+
+	public FSA negate(){
 		return dfa().process(
 			n -> new SimpleNode(n.labels(), !n.terminating())
 		);

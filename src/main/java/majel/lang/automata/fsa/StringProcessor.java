@@ -3,7 +3,7 @@ package majel.lang.automata.fsa;
 public class StringProcessor{
 	private final FSA automaton;
 
-	StringProcessor(FSA automaton){
+	public StringProcessor(FSA automaton){
 		this.automaton = automaton.dfa();
 	}
 

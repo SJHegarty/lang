@@ -1,18 +1,37 @@
 package majel.lang.descent.lithp;
 
 import majel.lang.automata.fsa.FSA;
+import majel.lang.automata.fsa.StringProcessor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
 
 public class Lithp{
 	public static void main(String...args){
 		var expressions = new TreeSet<>(
 			List.of(
-				new Expression("test", "'a'")
+				new Expression("test", "*('abacus''...')"),
+				new Expression("dunna dunna dunna dunna", "'batman'"),
+				new Expression("gone hungry", "!'batman'")
 			)
 		);
+		var lithp = new Lithp(expressions);
+		var samples = new String[]{
+			"'a'",
+			"",
+			"abacus...",
+			"abacus...abacus...",
+			"batman",
+			"'bZ'"
+		};
+		for(var s: samples){
+			var result = lithp.parser.process(s);
+			System.err.println(result.terminating() + " " + result.labels() + " " + s);
+		}
 	}
 
 	record Expression(String label, String expression) implements Comparable<Expression>{
@@ -22,18 +41,19 @@ public class Lithp{
 		}
 	}
 
-	final FSA parser;
+	final StringProcessor parser;
 
 	public Lithp(SortedSet<Expression> expressions){
-		parser = FSA.or(
-			expressions.stream()
-				.map(Lithp::parse)
-				.toArray(FSA[]::new)
-		)
-		.dfa();
+		parser = new StringProcessor(
+			FSA.or(
+				expressions.stream()
+					.map(Lithp::parse)
+					.toArray(FSA[]::new)
+			)
+		);
 	}
 
-	class TokenStream{
+	static class TokenStream{
 		final char[] tokens;
 		int index;
 
@@ -42,7 +62,7 @@ public class Lithp{
 		}
 
 		char peek(){
-			if(index >= tokens.length){
+			if(empty()){
 				throw new IllegalEndOfStream();
 			}
 			return tokens[index];
@@ -53,10 +73,14 @@ public class Lithp{
 			index++;
 			return rv;
 		}
+
+		public boolean empty(){
+			return index >= tokens.length;
+		}
 	}
 
 	static FSA parse(Expression e){
-		return null;
+		return parse(e.label, new TokenStream(e.expression));
 	}
 
 	static class ParseException extends RuntimeException{
@@ -79,20 +103,52 @@ public class Lithp{
 		}
 	}
 
-	static FSA parse(TokenStream tokens){
+	static FSA parseWhile(String label, TokenStream tokens, BooleanSupplier terminator){
+		var elements = new ArrayList<FSA>();
+		while(terminator.getAsBoolean()){
+			elements.add(parseSingle(tokens));
+		}
+		return FSA.concatenate(label, elements.toArray(FSA[]::new));
+	}
+
+	static FSA parse(String label, TokenStream tokens){
+		return parseWhile(label, tokens, () -> !tokens.empty());
+	}
+
+	static FSA parseSingle(TokenStream tokens){
 		return switch(tokens.peek()){
 			case '\'' -> parseLiteral(tokens);
+			case '*' -> parseKleene(tokens);
+			case '!' -> parseNegation(tokens);
+			case '(' -> parseParenthesis(tokens);
 			default -> throw new IllegalToken(tokens.peek());
 		};
 	}
+	static void expect(char token, char expected){
+		if(token != expected){
+			throw new IllegalToken(token);
+		}
+	}
+
+	static FSA parseKleene(TokenStream tokens){
+		expect(tokens.poll(), '*');
+		return parseSingle(tokens).kleene();
+	}
+
+	static FSA parseNegation(TokenStream tokens){
+		expect(tokens.poll(), '!');
+		return parseSingle(tokens).negate();
+	}
+
+	static FSA parseParenthesis(TokenStream tokens){
+		expect(tokens.poll(), '(');
+		var rv = parseWhile(null, tokens, () -> tokens.peek() != ')');
+		tokens.poll();
+		return rv;
+	}
 
 	static FSA parseLiteral(TokenStream tokens){
-		{
-			char token = tokens.poll();
-			if(token != '\''){
-				throw new IllegalToken(token);
-			}
-		}
+		expect(tokens.poll(), '\'');
 		var builder = new StringBuilder();
 		outer:for(;;){
 			char token = tokens.poll();

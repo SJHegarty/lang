@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.stream.IntStream;
 
-interface Node{
+public interface Node{
 
 	Set<? extends Node> transitions(char c);
 
