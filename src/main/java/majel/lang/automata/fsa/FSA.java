@@ -14,81 +14,6 @@ import static majel.util.functional.CharPredicate.*;
 
 public class FSA {
 
-	public static void main(String...args){
-	//	testOr();
-		System.err.println();
-		testOr();
-	}
-
-	public static void testOr(){
-		var lower = new FSA(CharPredicate.inclusiveRange('a', 'z'), "lower");
-		var upper = new FSA(c -> c >= 'A' && c <= 'Z', "upper");
-		var alpha = FSA.concatenate("test", lower, upper);
-
-		var examples = new String[]{
-			"a",
-			"aa",
-			"1",
-			"b",
-			"Z",
-			"Za",
-			"aZ"
-		};
-
-		var machines = new FSA[]{
-			lower,
-			lower.negate(),
-			upper,
-			upper.negate(),
-			alpha,
-			FSA.literal("aZ", "yo")
-		};
-
-		for(var m: machines) {
-			System.err.println(m);
-			var processor = new StringProcessor(m);
-			for (String s : examples) {
-				var res = processor.process(s);
-				System.err.println(s + " " + res.terminating() + " " + res.labels());
-			}
-			System.err.println();
-		}
-	}
-
-	public static void testAnd(){
-		var lower = new FSA(inclusiveRange('a', (char)('a' + 20)), "lower");
-		var upper = new FSA(inclusiveRange((char)('z' - 20), 'z'), "upper");
-		var neglw = lower.negate();
-		var negup = upper.negate();
-		var orneg = FSA.or(neglw, negup);
-
-
-		var andlu = orneg.negate();
-
-		var examples = IntStream.rangeClosed('a', 'z')
-			.mapToObj(i -> "" + (char)i)
-			.toArray(String[]::new);
-
-		var machines = new FSA[]{
-			lower,
-			upper,
-			neglw,
-			negup,
-			orneg,
-			orneg.negate()
-		};
-
-		for(var m: machines) {
-			System.err.println(m);
-			var processor = new StringProcessor(m);
-			for (String s : examples) {
-				var res = processor.process(s);
-				System.err.println(s + " " + res.terminating() + " " + res.labels());
-			}
-			System.err.println();
-		}
-
-	}
 	public static final char LAMBDA = '^';
 	public static final int TABLE_SIZE = 0x100;
 
@@ -101,8 +26,6 @@ public class FSA {
 	private FSA(SimpleNode entryPoint){
 		this.entryPoint = entryPoint;
 	}
-
-
 
 	public FSA(CharPredicate predicate, String label) {
 		this();
@@ -149,13 +72,6 @@ public class FSA {
 		);
 	}
 	public FSA repeating(int lowerBound, int upperBound){
-		/*
-			lowerBound - 1 non-terminating copies
-			1 + upperBound - lowerBound terminating copies
-
-			the easiest way to implement this is by modifying the concatenate method to take an IntPredicate on the layer index.
-			That predicate (given n) defines whether or not the nth element is terminating or not.
-		 */
 		if((lowerBound|upperBound) < 0 || upperBound < lowerBound){
 			throw new IllegalArgumentException(
 				String.format("[%s, %s]", lowerBound, upperBound)

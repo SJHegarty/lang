@@ -1,0 +1,12 @@
+tetht-optional :~ ?*('abacus''...')'sleep'
+tetht-literal :~ 'batman'
+tetht-negation :~ !'batman'
+tetht-kleene :~ *[a...z]
+tetht-wild :~ ...
+tetht-concatenation :~ *.'a'*.
+tetht-or :~ +('sleep', 'batman')
+tetht-and-not :~ -(*+([a...z], [A...Z]), 'batman'
+tetht-and :~ &(*[a...s], *[e...z])
+tetht-bound-repetition :~ #(3...5, [a...g]),
+tetht-fixed-repetition :~ #(3, [a...z])
+tetht-unbound-repetition :~ #(4+, *.)

@@ -1,5 +1,6 @@
 package majel.lang.descent.lithp;
 
+import majel.util.LambdaUtils;
 import majel.util.functional.CharPredicate;
 import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
@@ -32,7 +33,65 @@ public class Lithp{
 				 	meaning is the interpretation of that structure.
 
 	 */
+	/*
+		TODO:
+			Build a (greedy) tokeniser and use it to parse the lithp expression format
+				name :~ *[a...z]?*('-'*[a...z])
+				expr :~ *.
+			It would be nice to implement named and poly extractions:
+				line :~ @(name)' :~ '@(expr)
+				lithp :~ @(line)*('\n'@(line))
+			Here it would be nice if within lithp, the line content was auto extracted to a value called "lines"
+
+		TODO:
+			A simpler mechanism is to allow for the tokeniser to read a token of a given type:
+				Lithp:
+					name :~ *[a...z]?*('-'*[a...z])
+					separator :~ ' :~ '
+					expr :~ *.
+					new-line :~ '\n'
+				Java:
+					List<Expression> expressions = new ArrayList<>();
+					for(;;){
+						var name = readNamed(tokens, "name")
+						readNamed(tokens, "separator")
+						var expr = readNamed(tokens, "expression")
+						expressions.add(new Expression(name, expr));
+						if(stream.empty()){
+							break;
+						}
+						readNamed("new-line");
+						//Can support empty lithps and blank last lines with a loop check on stream.empty()
+						//I don't really see why you'd need or want to.
+					}
+					//The readNamed will keep searching as long as the given state is terminable on the
+					//token stream.
+					//If a non-terminating state is reached, the last terminating state is returned to
+					//Add mark + reset capability to the token stream, marking on all terminating states
+					//For terminable states, read content should be appended to a char queue,
+					//For terminating states the char queue content should be flushed to the return buffer.
+					//If no terminating states are reached a NoMatchFound should be thrown
+
+
+
+	 */
 	public static void main(String...args){
+		String lithpSrc = """
+			tetht-optional :~ ?*('abacus''...')'sleep'
+			tetht-literal :~ 'batman'
+			tetht-negation :~ !'batman'
+			tetht-kleene :~ *[a...z]
+			tetht-wild :~ ...
+			tetht-concatenation :~ *.'a'*.
+			tetht-or :~ +('sleep', 'batman')
+			tetht-and-not :~ -(*+([a...z], [A...Z]), 'batman'
+			tetht-and :~ &(*[a...s], *[e...z])
+			tetht-bound-repetition :~ #(3...5, [a...g]),
+			tetht-fixed-repetition :~ #(3, [a...z])
+			tetht-unbound-repetition :~ #(4+, *.)
+			""";
+
+		System.err.println(lithpSrc);
 		var expressions = new TreeSet<>(
 			List.of(
 				new Expression("test", "?*('abacus''...')'sleep'"),
@@ -49,8 +108,9 @@ public class Lithp{
 				new Expression("dfgdfh", "#(4+, *.)")
 			)
 		);
-		Lithp.parseList(new TokenStream("('sleep', 'batman')"));
-		var lithp = new Lithp(expressions);
+		var bench = LambdaUtils.benchmark(() -> new Lithp(expressions));
+		var lithp = bench.result();
+		System.err.println(String.format("built parser in way too long (%sms)", bench.time()));
 		var samples = new String[]{
 			"'a'",
 			"sleep",
