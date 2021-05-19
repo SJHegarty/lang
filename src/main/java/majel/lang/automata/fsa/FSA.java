@@ -1,16 +1,16 @@
 package majel.lang.automata.fsa;
 
-import majel.util.CharPredicate;
+import majel.util.ObjectUtils;
+import majel.util.functional.CharPredicate;
+import majel.util.functional.ObjectIntFunction;
 
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.UnaryOperator;
+import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static majel.util.CharPredicate.*;
+import static majel.util.functional.CharPredicate.*;
 
 public class FSA {
 
@@ -130,19 +130,67 @@ public class FSA {
 	}
 
 	public static FSA concatenate(String label, FSA...elements){
+		int limit = elements.length - 1;
+		return concatenate(
+			label,
+			i -> i == limit,
+			elements
+		);
+	}
+
+	public FSA repeating(int lowerBound){
+		var machines = ObjectUtils.repeating(this, lowerBound);
+		final int limit = lowerBound - 1;
+		machines[limit] = machines[limit].kleene();
+		return concatenate(
+			null,
+			layer -> layer == limit,
+			machines
+		);
+	}
+	public FSA repeating(int lowerBound, int upperBound){
+		/*
+			lowerBound - 1 non-terminating copies
+			1 + upperBound - lowerBound terminating copies
+
+			the easiest way to implement this is by modifying the concatenate method to take an IntPredicate on the layer index.
+			That predicate (given n) defines whether or not the nth element is terminating or not.
+		 */
+		if((lowerBound|upperBound) < 0 || upperBound < lowerBound){
+			throw new IllegalArgumentException(
+				String.format("[%s, %s]", lowerBound, upperBound)
+			);
+		}
+		final FSA[] machines = ObjectUtils.repeating(this, upperBound);
+		int limit = lowerBound - 1;
+		return concatenate(
+			null,
+			layer -> layer >= limit,
+			machines
+		);
+	}
+
+	public static FSA concatenate(String label, IntPredicate elementTerminates, FSA...elements){
 		elements = elements.clone();
 
 		final int limit = elements.length - 1;
 
+		//(Node src, int layer) -> (Node generated) nodeBuilder
+		ObjectIntFunction<SimpleNode, SimpleNode> nodeBuilder = (src, layer) -> {
+			boolean terminating = src.terminating() && elementTerminates.test(layer);
+			return terminating ? new SimpleNode(label, true) : new SimpleNode(false);
+		};
+
 		elements[limit] = elements[limit].process(
-			n -> n.terminating() ? new SimpleNode(label, true) : new SimpleNode(false)
+			n -> nodeBuilder.apply(n, limit)
 		);
 
 		for(int i = limit - 1; i >= 0; i--){
 			var next = elements[i + 1].entryPoint;
+			int fi = i;
 			elements[i] = elements[i].process(
 				n -> {
-					var rv = new SimpleNode(false);
+					var rv = nodeBuilder.apply(n, fi);
 					if(n.terminating()){
 						rv.transitions(LAMBDA).add(next);
 					}

@@ -1,4 +1,4 @@
-package majel.util;
+package majel.util.functional;
 
 @FunctionalInterface
 public

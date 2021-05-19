@@ -1,6 +1,6 @@
 package majel.lang.descent.lithp;
 
-import majel.util.CharPredicate;
+import majel.util.functional.CharPredicate;
 import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
 
@@ -9,8 +9,29 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.BooleanSupplier;
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 
 public class Lithp{
+	/*
+	TODO:
+		Language Feature:
+			The layers of code.
+				 There are four layers: formatting, structural-separators, structure and meaning.
+				 	To the largest extent possible formatting should be kept minimal, however reversal of formatting should still be supported
+				 	structural separators are language features whose format is not strictly required to be correct in order to parse correctly running software
+				 		in the list: [a, b, c] the separator ", " is the preferred form - this is a matter of preference
+				 			the strings "," and " " also provide adequate separation
+				 			as in "[a b c] and [a,b,c], ([abc] works when the list elements are all REQUIRED to be length one, but not when they simply CAN be.)
+				 				in these examples, the verbose form is not used - however formatting is consistent (but may not be across a file or project).
+				 				[a b,c] and [a,b c] are also parsable, but have inconsistent formatting,
+				 				Ultimately, once parsed, a, b, and c can be placed in a list,
+				 					the structural separators to be discarded (the defaults can be regenerated later),
+				 						and all divergencies from the default are the content of the formatting layer
+				 	structure is the extracted structure of the input format.
+				 	meaning is the interpretation of that structure.
+
+	 */
 	public static void main(String...args){
 		var expressions = new TreeSet<>(
 			List.of(
@@ -22,7 +43,10 @@ public class Lithp{
 				new Expression("more", "*.'a'*."),
 				new Expression("childhood", "+('sleep', 'batman')"),
 				new Expression("foo", "-(*+([a...z], [A...Z]), 'batman')"),
-				new Expression("whaver", "&(*[a...s], *[e...z])")
+				new Expression("whaver", "&(*[a...s], *[e...z])"),
+				new Expression("???", "#(3...5, [a...g])"),
+				new Expression("qweqwr", "#(3, [a...z])"),
+				new Expression("dfgdfh", "#(4+, *.)")
 			)
 		);
 		Lithp.parseList(new TokenStream("('sleep', 'batman')"));
@@ -35,7 +59,14 @@ public class Lithp{
 			"batman",
 			"'bZ'",
 			"bZap",
-			"foo"
+			"foo",
+			"a",
+			"ab",
+			"abc",
+			"abcd",
+			"abcde",
+			"abcdef",
+			"abcdefg"
 		};
 		for(var s: samples){
 			var result = lithp.parser.process(s);
@@ -127,6 +158,17 @@ public class Lithp{
 		public IllegalToken(char c){
 			super(String.format("'%s'", c));
 		}
+
+		public IllegalToken(TokenStream tokens){
+			super(
+				String.format(
+					"Illegal token '%s' at index:%s of expression:%s",
+					tokens.peek(),
+					tokens.index,
+					new String(tokens.tokens)
+				)
+			);
+		}
 	}
 
 	static class IllegalEndOfStream extends ParseException{
@@ -159,6 +201,7 @@ public class Lithp{
 			case '?' -> parseOptional(tokens);
 			case '.' -> parseWild(tokens);
 			case '[' ->	parseRange(tokens);
+			case '#' -> parseRepetition(tokens);
 			default -> throw new IllegalToken(tokens.peek());
 		};
 	}
@@ -230,6 +273,45 @@ public class Lithp{
 		var rv = parseWhile(null, tokens, () -> tokens.peek() != ')');
 		tokens.poll();
 		return rv;
+	}
+
+	static FSA parseRepetition(TokenStream tokens){
+		tokens.read("#(");
+		CharPredicate digits = CharPredicate.inclusiveRange('0', '9');
+		IntSupplier intReader = () -> {
+			var builder = new StringBuilder();
+			while(digits.test(tokens.peek())){
+				builder.append(tokens.poll());
+			}
+			return Integer.parseInt(builder.toString());
+		};
+		int lower = intReader.getAsInt();
+		Supplier<FSA> baseExtractor = () -> {
+			tokens.read(", ");
+			var rv = parseSingle(tokens);
+			tokens.read(')');
+			return rv;
+		};
+		switch(tokens.peek()){
+			case '.' -> {
+				tokens.read("...");
+				int upper = intReader.getAsInt();
+				return baseExtractor.get()
+					.repeating(lower, upper);
+			}
+			case '+' -> {
+				tokens.poll();
+				return baseExtractor.get()
+					.repeating(lower);
+			}
+			case ',' -> {
+				return baseExtractor.get()
+					.repeating(lower, lower);
+			}
+			default -> throw new IllegalToken(tokens);
+		}
+	//	var example = "#(1...3, *.)";
+
 	}
 
 	static FSA parseLiteral(TokenStream tokens){

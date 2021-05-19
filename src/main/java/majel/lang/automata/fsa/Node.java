@@ -1,6 +1,6 @@
 package majel.lang.automata.fsa;
 
-import majel.util.CharPredicate;
+import majel.util.functional.CharPredicate;
 
 import java.util.HashSet;
 import java.util.Set;
