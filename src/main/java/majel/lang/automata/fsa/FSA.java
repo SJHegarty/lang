@@ -52,13 +52,18 @@ public class FSA {
 		return rv;
 	}
 
-	public static FSA concatenate(String label, FSA...elements){
-		int limit = elements.length - 1;
-		return concatenate(
-			label,
-			i -> i == limit,
-			elements
-		);
+	public static FSA concatenate(FSA...elements){
+		return switch(elements.length){
+			case 0 -> new FSA();
+			case 1 -> elements[0];
+			default -> {
+				int limit = elements.length - 1;
+				yield concatenate(
+					i -> i == limit,
+					elements
+				);
+			}
+		};
 	}
 
 	public FSA repeating(int lowerBound){
@@ -66,7 +71,6 @@ public class FSA {
 		final int limit = lowerBound - 1;
 		machines[limit] = machines[limit].kleene();
 		return concatenate(
-			null,
 			layer -> layer == limit,
 			machines
 		);
@@ -80,13 +84,12 @@ public class FSA {
 		final FSA[] machines = ObjectUtils.repeating(this, upperBound);
 		int limit = lowerBound - 1;
 		return concatenate(
-			null,
 			layer -> layer >= limit,
 			machines
 		);
 	}
 
-	public static FSA concatenate(String label, IntPredicate elementTerminates, FSA...elements){
+	public static FSA concatenate(IntPredicate elementTerminates, FSA...elements){
 		elements = elements.clone();
 
 		final int limit = elements.length - 1;
@@ -94,7 +97,7 @@ public class FSA {
 		//(Node src, int layer) -> (Node generated) nodeBuilder
 		ObjectIntFunction<SimpleNode, SimpleNode> nodeBuilder = (src, layer) -> {
 			boolean terminating = src.terminating() && elementTerminates.test(layer);
-			return terminating ? new SimpleNode(label, true) : new SimpleNode(false);
+			return terminating ? new SimpleNode(true) : new SimpleNode(false);
 		};
 
 		elements[limit] = elements[limit].process(
@@ -270,6 +273,24 @@ public class FSA {
 				.filter(rv::add)
 				.forEach(queue::add);
 		}
+
+		return rv;
+	}
+
+	public FSA named(String name){
+		var rv = process(
+			n -> {
+				var labels = new TreeSet<String>();
+				labels.addAll(n.labels());
+				if(n.terminating()){
+					labels.add(name);
+				}
+				return new SimpleNode(
+					labels,
+					n.terminating()
+				);
+			}
+		);
 
 		return rv;
 	}

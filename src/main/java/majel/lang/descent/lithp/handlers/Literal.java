@@ -2,10 +2,14 @@ package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
 import majel.lang.descent.lithp.Handler;
-import majel.lang.descent.lithp.Lithp;
+import majel.lang.descent.lithp.RecursiveDescentParser;
 import majel.lang.descent.lithp.TokenStream;
 
-public class Literal implements Handler{
+public class Literal extends Handler{
+	public Literal(RecursiveDescentParser parser){
+		super(parser);
+	}
+
 	@Override
 	public char headToken(){
 		return '\'';
@@ -27,7 +31,7 @@ public class Literal implements Handler{
 							case 't' -> '\t';
 							case 'n' -> '\n';
 							case '\\' -> '\\';
-							default -> throw new Lithp.IllegalToken(tokens);
+							default -> throw new RecursiveDescentParser.IllegalToken(tokens);
 						}
 					);
 					tokens.poll();

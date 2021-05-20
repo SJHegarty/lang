@@ -2,14 +2,18 @@ package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
 import majel.lang.descent.lithp.Handler;
-import majel.lang.descent.lithp.Lithp;
+import majel.lang.descent.lithp.RecursiveDescentParser;
 import majel.lang.descent.lithp.TokenStream;
 import majel.util.functional.CharPredicate;
 
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
-public class Repetition implements Handler{
+public class Repetition extends Handler<FSA>{
+	public Repetition(RecursiveDescentParser<FSA> parser){
+		super(parser);
+	}
+
 	@Override
 	public char headToken(){
 		return '#';
@@ -30,7 +34,7 @@ public class Repetition implements Handler{
 		int lower = intReader.getAsInt();
 		Supplier<FSA> baseExtractor = () -> {
 			tokens.read(", ");
-			var rv = Lithp.parseSingle(tokens);
+			var rv = parser.parseSingle(tokens);
 			tokens.read(')');
 			return rv;
 		};
@@ -50,7 +54,7 @@ public class Repetition implements Handler{
 				return baseExtractor.get()
 					.repeating(lower, lower);
 			}
-			default -> throw new Lithp.IllegalToken(tokens);
+			default -> throw new RecursiveDescentParser.IllegalToken(tokens);
 		}
 	}
 }

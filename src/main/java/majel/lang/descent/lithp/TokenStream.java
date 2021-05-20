@@ -3,16 +3,17 @@ package majel.lang.descent.lithp;
 import majel.util.functional.CharPredicate;
 
 public class TokenStream{
-	final char[] tokens;
-	int index;
+	private final char[] tokens;
+	private int index;
+	private int mark;
 
-	TokenStream(String expression){
+	public TokenStream(String expression){
 		this.tokens = expression.toCharArray();
 	}
 
 	public char peek(){
 		if(empty()){
-			throw new Lithp.IllegalEndOfStream();
+			throw new RecursiveDescentParser.IllegalEndOfStream();
 		}
 		return tokens[index];
 	}
@@ -30,7 +31,7 @@ public class TokenStream{
 	public void read(CharPredicate predicate){
 		var token = poll();
 		if(!predicate.test(token)){
-			throw new Lithp.IllegalToken(this);
+			throw new RecursiveDescentParser.IllegalToken(this);
 		}
 	}
 
@@ -44,4 +45,19 @@ public class TokenStream{
 		}
 	}
 
+	public void mark(){
+		mark = index;
+	}
+
+	public void reset(){
+		index = mark;
+	}
+
+	public String expression(){
+		return new String(tokens);
+	}
+
+	public int index(){
+		return index;
+	}
 }

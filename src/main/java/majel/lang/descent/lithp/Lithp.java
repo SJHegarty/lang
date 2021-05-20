@@ -1,40 +1,36 @@
 package majel.lang.descent.lithp;
 
-import majel.lang.descent.lithp.handlers.*;
-import majel.lang.descent.lithp.handlers.Optional;
-import majel.util.LambdaUtils;
-import majel.util.functional.CharPredicate;
 import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
+import majel.lang.descent.lithp.handlers.*;
+import majel.util.LambdaUtils;
 
-import java.util.*;
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
-import java.util.function.IntSupplier;
-import java.util.function.Supplier;
+import java.util.List;
+import java.util.TreeSet;
 
-public class Lithp{
+public class Lithp extends RecursiveDescentParser<FSA>{
 	/*
-	TODO:
-		Language Feature:
-			The layers of code.
-				 There are four layers: formatting, structural-separators, structure and meaning.
-				 	To the largest extent possible formatting should be kept minimal, however reversal of formatting should still be supported
-				 	structural separators are language features whose format is not strictly required to be correct in order to parse correctly running software
-				 		in the list: [a, b, c] the separator ", " is the preferred form - this is a matter of preference
-				 			the strings "," and " " also provide adequate separation
-				 			as in "[a b c] and [a,b,c], ([abc] works when the list elements are all REQUIRED to be length one, but not when they simply CAN be.)
-				 				in these examples, the verbose form is not used - however formatting is consistent (but may not be across a file or project).
-				 				[a b,c] and [a,b c] are also parsable, but have inconsistent formatting,
-				 				Ultimately, once parsed, a, b, and c can be placed in a list,
-				 					the structural separators to be discarded (the defaults can be regenerated later),
-				 						and all divergencies from the default are the content of the formatting layer
-				 	structure is the extracted structure of the input format.
-				 	meaning is the interpretation of that structure.
+TODO:
+	Language Feature:
+		The layers of code.
+			 There are four layers: formatting, structural-separators, structure and meaning.
+				 To the largest extent possible formatting should be kept minimal, however reversal of formatting should still be supported
+				 structural separators are language features whose format is not strictly required to be correct in order to parse correctly running software
+					 in the list: [a, b, c] the separator ", " is the preferred form - this is a matter of preference
+						 the strings "," and " " also provide adequate separation
+						 as in "[a b c] and [a,b,c], ([abc] works when the list elements are all REQUIRED to be length one, but not when they simply CAN be.)
+							 in these examples, the verbose form is not used - however formatting is consistent (but may not be across a file or project).
+							 [a b,c] and [a,b c] are also parsable, but have inconsistent formatting,
+							 Ultimately, once parsed, a, b, and c can be placed in a list,
+								 the structural separators to be discarded (the defaults can be regenerated later),
+									 and all divergencies from the default are the content of the formatting layer
+				 structure is the extracted structure of the input format.
+				 meaning is the interpretation of that structure.
 
-	 */
+ */
 	/*
 		TODO:
+			<(name, *.)
 			Build a (greedy) tokeniser and use it to parse the lithp expression format
 				name :~ *[a...z]?*('-'*[a...z])
 				expr :~ *.
@@ -77,39 +73,30 @@ public class Lithp{
 	 */
 	public static void main(String...args){
 		String lithpSrc = """
-			tetht-optional :~ ?*('abacus''...')'sleep'
-			tetht-literal :~ 'batman'
-			tetht-negation :~ !'batman'
-			tetht-kleene :~ *[a...z]
-			tetht-wild :~ ...
-			tetht-concatenation :~ *.'a'*.
-			tetht-or :~ +('sleep', 'batman')
-			tetht-and-not :~ -(*+([a...z], [A...Z]), 'batman'
-			tetht-and :~ &(*[a...s], *[e...z])
-			tetht-bound-repetition :~ #(3...5, [a...g])
-			tetht-fixed-repetition :~ #(3, [a...z])
-			tetht-unbound-repetition :~ #(4+, *.)
+			<(opt, ?*('abacus''...')'sleep')
+			<(lit, 'batman')
+			<(neg, !'batman')
+			<(kle, *[a...z])
+			<(wil, ...)
+			<(con, *.'a'*.)
+			<(ork, +('sleep', 'batman'))
+			<(ant, -(*+([a...z], [A...Z]), 'batman'))
+			<(and, &(*[a...s], *[e...z]))
+			<(bnd, #(3...5, [a...g]))
+			<(fix, #(3, [a...z]))
+			<(unb, #(4+, *.))
 			""";
 
 		System.err.println(lithpSrc);
-		var expressions = new TreeSet<>(
-			List.of(
-				new Expression("test", "?*('abacus''...')'sleep'"),
-				new Expression("dunna dunna dunna dunna", "'batman'"),
-				new Expression("gone hungry", "!'batman'"),
-				new Expression("...", "*[a...z]"),
-				new Expression("blah", "..."),
-				new Expression("more", "*.'a'*."),
-				new Expression("childhood", "+('sleep', 'batman')"),
-				new Expression("foo", "-(*+([a...z], [A...Z]), 'batman')"),
-				new Expression("whaver", "&(*[a...s], *[e...z])"),
-				new Expression("???", "#(3...5, [a...g])"),
-				new Expression("qweqwr", "#(3, [a...z])"),
-				new Expression("dfgdfh", "#(4+, *.)")
-			)
+		lithpSrc.split("\n");
+		var bench = LambdaUtils.benchmark(
+			() -> {
+				var lithp = new Lithp();
+
+				return lithp.build(lithpSrc.split("\n"));
+			}
 		);
-		var bench = LambdaUtils.benchmark(() -> new Lithp(expressions));
-		var lithp = bench.result();
+		var parser = bench.result();
 		System.err.println(String.format("built parser in way too long (%sms)", bench.time()));
 		var samples = new String[]{
 			"'a'",
@@ -128,130 +115,37 @@ public class Lithp{
 			"abcdef",
 			"abcdefg"
 		};
+		var processor = new StringProcessor(parser);
 		for(var s: samples){
-			var result = lithp.parser.process(s);
-			System.err.println(result.terminating() + " " + result.labels() + " " + s);
+			var result = processor.process(s);
+			var subres = result.node();
+			if(subres == null)continue;
+			System.err.println(subres.terminating() + " " + subres.labels() + " " + s + " -> " + result.value());
 		}
 	}
 
-	record Expression(String label, String expression) implements Comparable<Expression>{
-		@Override
-		public int compareTo(Expression o) {
-			return label.compareTo(o.label);
-		}
+	public Lithp(){
+		registerHandler(And::new);
+		registerHandler(Literal::new);
+		registerHandler(Kleene::new);
+		registerHandler(Negation::new);
+		registerHandler(Parenthesis::new);
+		registerHandler(Or::new);
+		registerHandler(AndNot::new);
+		registerHandler(Optional::new);
+		registerHandler(WildCard::new);
+		registerHandler(Range::new);
+		registerHandler(Repetition::new);
+		registerHandler(Named::new);
 	}
 
-	final StringProcessor parser;
-
-	public Lithp(SortedSet<Expression> expressions){
-		parser = new StringProcessor(
-			FSA.or(
-				expressions.stream()
-					.map(Lithp::parse)
-					.toArray(FSA[]::new)
-			)
-		);
+	@Override
+	public FSA concat(List<FSA> elements){
+		return FSA.concatenate(elements.toArray(FSA[]::new));
 	}
 
-	static FSA parse(Expression e){
-		return parse(e.label, new TokenStream(e.expression));
+	@Override
+	public FSA or(List<FSA> elements){
+		return FSA.or(elements.toArray(FSA[]::new));
 	}
-
-	static class ParseException extends RuntimeException{
-		ParseException(){}
-
-		ParseException(String message){
-			super(message);
-		}
-	}
-
-	public static class IllegalExpression extends ParseException{
-		public IllegalExpression(TokenStream tokens){
-			super(new String(tokens.tokens));
-		}
-	}
-
-	public static class IllegalToken extends ParseException{
-
-		public IllegalToken(TokenStream tokens){
-			super(
-				String.format(
-					"Illegal token '%s' at index:%s of expression:%s",
-					tokens.peek(),
-					tokens.index,
-					new String(tokens.tokens)
-				)
-			);
-		}
-	}
-
-	static class IllegalEndOfStream extends ParseException{
-		public IllegalEndOfStream(){
-			super();
-		}
-	}
-
-	public static FSA parseWhile(String label, TokenStream tokens, BooleanSupplier terminator){
-		var elements = new ArrayList<FSA>();
-		while(terminator.getAsBoolean()){
-			elements.add(parseSingle(tokens));
-		}
-		return FSA.concatenate(label, elements.toArray(FSA[]::new));
-	}
-
-	static FSA parse(String label, TokenStream tokens){
-		return parseWhile(label, tokens, () -> !tokens.empty());
-	}
-
-	private static final Handler[] handlers;
-	static{
-		handlers = new Handler[256];
-		Consumer<Handler> registrar = h -> {
-			char headToken = h.headToken();
-			if(handlers[headToken] != null){
-				throw new UnsupportedOperationException(
-					String.format(
-						"%s already defined for head-token '%s'",
-						Handler.class.getSimpleName(),
-						headToken
-					)
-				);
-			}
-			handlers[headToken] = h;
-		};
-		registrar.accept(new And());
-		registrar.accept(new Literal());
-		registrar.accept(new Kleene());
-		registrar.accept(new Negation());
-		registrar.accept(new Parenthesis());
-		registrar.accept(new Or());
-		registrar.accept(new AndNot());
-		registrar.accept(new Optional());
-		registrar.accept(new WildCard());
-		registrar.accept(new Range());
-		registrar.accept(new Repetition());
-	}
-
-	public static FSA parseSingle(TokenStream tokens){
-		var handler = handlers[tokens.peek()];
-		if(handler == null){
-			throw new IllegalToken(tokens);
-		}
-		return handler.parse(tokens);
-	}
-
-	public static FSA[] parseList(TokenStream tokens){
-		tokens.read('(');
-		var list = new ArrayList<FSA>();
-		for(;;){
-			list.add(parseSingle(tokens));
-			if(tokens.peek() == ')'){
-				break;
-			}
-			tokens.read(", ");
-		}
-		tokens.poll();
-		return list.toArray(FSA[]::new);
-	}
-
 }

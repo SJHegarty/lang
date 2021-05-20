@@ -2,10 +2,15 @@ package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
 import majel.lang.descent.lithp.Handler;
-import majel.lang.descent.lithp.Lithp;
+import majel.lang.descent.lithp.RecursiveDescentParser;
 import majel.lang.descent.lithp.TokenStream;
 
-public class Kleene implements Handler{
+public class Kleene extends Handler<FSA>{
+
+	public Kleene(RecursiveDescentParser<FSA> parser){
+		super(parser);
+	}
+
 	@Override
 	public char headToken(){
 		return '*';
@@ -14,6 +19,6 @@ public class Kleene implements Handler{
 	@Override
 	public FSA parse(TokenStream tokens){
 		checkHead(tokens);
-		return Lithp.parseSingle(tokens).kleene();
+		return parser.parseSingle(tokens).kleene();
 	}
 }

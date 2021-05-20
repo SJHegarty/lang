@@ -1,14 +1,18 @@
 package majel.lang.descent.lithp;
 
-import majel.lang.automata.fsa.FSA;
+public abstract class Handler<T>{
 
-public interface Handler{
+	protected final RecursiveDescentParser<T> parser;
 
-	default void checkHead(TokenStream tokens){
+	protected Handler(RecursiveDescentParser<T> parser){
+		this.parser = parser;
+	}
+
+	protected void checkHead(TokenStream tokens){
 		tokens.read(headToken());
 	}
 
-	char headToken();
+	public abstract char headToken();
 
-	FSA parse(TokenStream tokens);
+	public abstract T parse(TokenStream tokens);
 }
