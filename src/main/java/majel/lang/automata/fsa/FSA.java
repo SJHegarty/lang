@@ -221,6 +221,17 @@ public class FSA {
 		nodeOp.accept(sink);
 	}
 
+	/*
+	TODO:
+		Rename clone() as copy(),
+		Genericise FSA on <T extends Node>
+		Add a method .deterministic() returning an FSA<MetaNode>
+		Make copy() always return a FSA<SimpleNode>
+		this method should be implementable as:
+			return new FSA<>(new MetaNode(entryPoint))
+				.deterministic()
+				.copy()
+	 */
 	public FSA dfa(){
 		complete();
 		record Lookup(MetaNode meta, SimpleNode built){}

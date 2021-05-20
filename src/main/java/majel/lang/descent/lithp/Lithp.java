@@ -71,8 +71,10 @@ TODO:
 
 
 	 */
-	public static void main(String...args){
+	public static void main(String... args){
 		String lithpSrc = """
+			<(str, *[a...z])
+			<(ident, @(str)*('-'@(str)))
 			<(opt, ?*('abacus''...')'sleep')
 			<(lit, 'batman')
 			<(double-breakfast, @(lit)'+'@(lit))
@@ -93,7 +95,6 @@ TODO:
 		var bench = LambdaUtils.benchmark(
 			() -> {
 				var lithp = new Lithp();
-
 				return lithp.build(lithpSrc.split("\n"));
 			}
 		);
@@ -101,6 +102,7 @@ TODO:
 		System.err.println(String.format("built parser in way too long (%sms)", bench.time()));
 		var samples = new String[]{
 			"batman+batman",
+			"this-is-an-ident",
 			"'a'",
 			"sleep",
 			"abacus...sleep",
@@ -118,10 +120,10 @@ TODO:
 			"abcdefg"
 		};
 		var processor = new StringProcessor(parser);
-		for(var s: samples){
+		for(var s : samples){
 			var result = processor.process(s);
 			var subres = result.node();
-			if(subres == null)continue;
+			if(subres == null) continue;
 			System.err.println(subres.terminating() + " " + subres.labels() + " " + s + " -> " + result.value());
 		}
 	}
