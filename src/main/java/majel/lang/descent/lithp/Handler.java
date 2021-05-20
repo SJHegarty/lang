@@ -14,5 +14,5 @@ public abstract class Handler<T>{
 
 	public abstract char headToken();
 
-	public abstract T parse(TokenStream tokens);
+	public abstract T parse(RecursiveDescentContext<T> context);
 }

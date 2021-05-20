@@ -10,7 +10,7 @@ public class StringProcessor{
 	}
 
 	public Blah process(TokenStream tokens){
-		Node terminating = null;
+		var last = automaton.entryPoint;
 		var node = automaton.entryPoint;
 		var builder = new StringBuilder();
 		var buffer = new StringBuilder();
@@ -28,12 +28,11 @@ public class StringProcessor{
 				builder.append(buffer);
 				buffer.delete(0, buffer.length());
 				tokens.mark();
-				terminating = node;
+				last = node;
 			}
 		}
 		tokens.reset();
-		return new Blah(builder.toString(), terminating);
-
+		return new Blah(builder.toString(), last);
 	}
 
 	public Blah process(String value){

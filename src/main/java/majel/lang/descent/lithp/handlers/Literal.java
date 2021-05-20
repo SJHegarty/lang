@@ -2,11 +2,12 @@ package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
 import majel.lang.descent.lithp.Handler;
+import majel.lang.descent.lithp.RecursiveDescentContext;
 import majel.lang.descent.lithp.RecursiveDescentParser;
 import majel.lang.descent.lithp.TokenStream;
 
-public class Literal extends Handler{
-	public Literal(RecursiveDescentParser parser){
+public class Literal extends Handler<FSA>{
+	public Literal(RecursiveDescentParser<FSA> parser){
 		super(parser);
 	}
 
@@ -16,7 +17,8 @@ public class Literal extends Handler{
 	}
 
 	@Override
-	public FSA parse(TokenStream tokens){
+	public FSA parse(RecursiveDescentContext<FSA> context){
+		var tokens = context.tokens();
 		checkHead(tokens);
 		var builder = new StringBuilder();
 		outer:for(;;){

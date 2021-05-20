@@ -1,12 +1,8 @@
 package majel.lang.descent.lithp;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.SortedSet;
+import java.util.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class RecursiveDescentParser<T>{
@@ -33,14 +29,12 @@ public abstract class RecursiveDescentParser<T>{
 	}
 
 	public T build(String...expressions){
+		final Map<String, T> map = new HashMap<>();
 		return or(
 			Stream.of(expressions)
+				.map(expr -> new RecursiveDescentContext<>(map, new TokenStream(expr)))
 				.map(this::parse).toList()
 			);
-	}
-
-	T parse(String expression){
-		return parse(new TokenStream(expression));
 	}
 
 	static class ParseException extends RuntimeException{
@@ -77,10 +71,10 @@ public abstract class RecursiveDescentParser<T>{
 		}
 	}
 
-	public T parseWhile(TokenStream tokens, BooleanSupplier terminator){
+	public T parseWhile(RecursiveDescentContext<T> context, BooleanSupplier terminator){
 		var elements = new ArrayList<T>();
 		while(terminator.getAsBoolean()){
-			elements.add(parseSingle(tokens));
+			elements.add(parseSingle(context));
 		}
 		return concat(Collections.unmodifiableList(elements));
 	}
@@ -88,23 +82,26 @@ public abstract class RecursiveDescentParser<T>{
 	public abstract T concat(List<T> elements);
 	public abstract T or(List<T> elements);
 
-	T parse(TokenStream tokens){
-		return parseWhile(tokens, () -> !tokens.empty());
+	T parse(RecursiveDescentContext<T> context){
+		var tokens = context.tokens();
+		return parseWhile(context, () -> !tokens.empty());
 	}
 
-	public T parseSingle(TokenStream tokens){
+	public T parseSingle(RecursiveDescentContext<T> context){
+		var tokens = context.tokens();
 		var handler = handlers[tokens.peek()];
 		if(handler == null){
 			throw new IllegalToken(tokens);
 		}
-		return handler.parse(tokens);
+		return handler.parse(context);
 	}
 
-	public List<T> parseList(TokenStream tokens){
+	public List<T> parseList(RecursiveDescentContext<T> context){
+		var tokens = context.tokens();
 		tokens.read('(');
 		var list = new ArrayList<T>();
 		for(;;){
-			list.add(parseSingle(tokens));
+			list.add(parseSingle(context));
 			if(tokens.peek() == ')'){
 				break;
 			}

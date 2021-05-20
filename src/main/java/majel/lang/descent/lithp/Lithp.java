@@ -75,6 +75,7 @@ TODO:
 		String lithpSrc = """
 			<(opt, ?*('abacus''...')'sleep')
 			<(lit, 'batman')
+			<(double-breakfast, @(lit)'+'@(lit))
 			<(neg, !'batman')
 			<(kle, *[a...z])
 			<(wil, ...)
@@ -99,6 +100,7 @@ TODO:
 		var parser = bench.result();
 		System.err.println(String.format("built parser in way too long (%sms)", bench.time()));
 		var samples = new String[]{
+			"batman+batman",
 			"'a'",
 			"sleep",
 			"abacus...sleep",
@@ -137,6 +139,7 @@ TODO:
 		registerHandler(Range::new);
 		registerHandler(Repetition::new);
 		registerHandler(Named::new);
+		registerHandler(Lookup::new);
 	}
 
 	@Override
