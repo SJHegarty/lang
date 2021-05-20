@@ -1,15 +1,15 @@
 package majel.lang.descent.lithp;
 
+import majel.lang.descent.lithp.handlers.*;
+import majel.lang.descent.lithp.handlers.Optional;
 import majel.util.LambdaUtils;
 import majel.util.functional.CharPredicate;
 import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -86,7 +86,7 @@ public class Lithp{
 			tetht-or :~ +('sleep', 'batman')
 			tetht-and-not :~ -(*+([a...z], [A...Z]), 'batman'
 			tetht-and :~ &(*[a...s], *[e...z])
-			tetht-bound-repetition :~ #(3...5, [a...g]),
+			tetht-bound-repetition :~ #(3...5, [a...g])
 			tetht-fixed-repetition :~ #(3, [a...z])
 			tetht-unbound-repetition :~ #(4+, *.)
 			""";
@@ -153,49 +153,6 @@ public class Lithp{
 		);
 	}
 
-	static class TokenStream{
-		final char[] tokens;
-		int index;
-
-		TokenStream(String expression){
-			this.tokens = expression.toCharArray();
-		}
-
-		char peek(){
-			if(empty()){
-				throw new IllegalEndOfStream();
-			}
-			return tokens[index];
-		}
-
-		char poll(){
-			char rv = peek();
-			index++;
-			return rv;
-		}
-
-		public boolean empty(){
-			return index >= tokens.length;
-		}
-
-		public void read(CharPredicate predicate){
-			var token = poll();
-			if(!predicate.test(token)){
-				throw new IllegalToken(token);
-			}
-		}
-		public void read(char expected){
-			read(c -> c == expected);
-		}
-
-		public void read(String expected){
-			for(char c: expected.toCharArray()){
-				read(c);
-			}
-		}
-
-	}
-
 	static FSA parse(Expression e){
 		return parse(e.label, new TokenStream(e.expression));
 	}
@@ -208,16 +165,13 @@ public class Lithp{
 		}
 	}
 
-	static class IllegalExpression extends ParseException{
-		public IllegalExpression(String expression){
-			super(expression);
+	public static class IllegalExpression extends ParseException{
+		public IllegalExpression(TokenStream tokens){
+			super(new String(tokens.tokens));
 		}
 	}
 
-	static class IllegalToken extends ParseException{
-		public IllegalToken(char c){
-			super(String.format("'%s'", c));
-		}
+	public static class IllegalToken extends ParseException{
 
 		public IllegalToken(TokenStream tokens){
 			super(
@@ -237,7 +191,7 @@ public class Lithp{
 		}
 	}
 
-	static FSA parseWhile(String label, TokenStream tokens, BooleanSupplier terminator){
+	public static FSA parseWhile(String label, TokenStream tokens, BooleanSupplier terminator){
 		var elements = new ArrayList<FSA>();
 		while(terminator.getAsBoolean()){
 			elements.add(parseSingle(tokens));
@@ -249,24 +203,44 @@ public class Lithp{
 		return parseWhile(label, tokens, () -> !tokens.empty());
 	}
 
-	static FSA parseSingle(TokenStream tokens){
-		return switch(tokens.peek()){
-			case '\'' -> parseLiteral(tokens);
-			case '*' -> parseKleene(tokens);
-			case '!' -> parseNegation(tokens);
-			case '(' -> parseParenthesis(tokens);
-			case '&' -> parseAnd(tokens);
-			case '+' -> parseOr(tokens);
-			case '-' -> parseAndNot(tokens);
-			case '?' -> parseOptional(tokens);
-			case '.' -> parseWild(tokens);
-			case '[' ->	parseRange(tokens);
-			case '#' -> parseRepetition(tokens);
-			default -> throw new IllegalToken(tokens.peek());
+	private static final Handler[] handlers;
+	static{
+		handlers = new Handler[256];
+		Consumer<Handler> registrar = h -> {
+			char headToken = h.headToken();
+			if(handlers[headToken] != null){
+				throw new UnsupportedOperationException(
+					String.format(
+						"%s already defined for head-token '%s'",
+						Handler.class.getSimpleName(),
+						headToken
+					)
+				);
+			}
+			handlers[headToken] = h;
 		};
+		registrar.accept(new And());
+		registrar.accept(new Literal());
+		registrar.accept(new Kleene());
+		registrar.accept(new Negation());
+		registrar.accept(new Parenthesis());
+		registrar.accept(new Or());
+		registrar.accept(new AndNot());
+		registrar.accept(new Optional());
+		registrar.accept(new WildCard());
+		registrar.accept(new Range());
+		registrar.accept(new Repetition());
 	}
 
-	static FSA[] parseList(TokenStream tokens){
+	public static FSA parseSingle(TokenStream tokens){
+		var handler = handlers[tokens.peek()];
+		if(handler == null){
+			throw new IllegalToken(tokens);
+		}
+		return handler.parse(tokens);
+	}
+
+	public static FSA[] parseList(TokenStream tokens){
 		tokens.read('(');
 		var list = new ArrayList<FSA>();
 		for(;;){
@@ -278,128 +252,6 @@ public class Lithp{
 		}
 		tokens.poll();
 		return list.toArray(FSA[]::new);
-	}
-
-	static FSA parseAnd(TokenStream tokens){
-		tokens.read('&');
-		return FSA.and(parseList(tokens));
-	}
-
-	static FSA parseOr(TokenStream tokens){
-		tokens.read('+');
-		return FSA.or(parseList(tokens));
-	}
-
-	static FSA parseAndNot(TokenStream tokens){
-		tokens.read('-');
-		var list = parseList(tokens);
-		if(list.length != 2){
-			throw new IllegalExpression(new String(tokens.tokens));
-		}
-		return FSA.and(list[0], list[1].negate());
-	}
-
-	static FSA parseOptional(TokenStream tokens){
-		tokens.read('?');
-		return parseSingle(tokens).optional();
-	}
-
-	static FSA parseWild(TokenStream tokens){
-		tokens.read('.');
-		return new FSA(c -> true, null);
-	}
-
-	static FSA parseRange(TokenStream tokens){
-		tokens.read('[');
-		char c0 = tokens.poll();
-		tokens.read("...");
-		char c1 = tokens.poll();
-		tokens.read(']');
-		return new FSA(c -> c >= c0 && c <= c1, null);
-	}
-
-	static FSA parseKleene(TokenStream tokens){
-		tokens.read('*');
-		return parseSingle(tokens).kleene();
-	}
-
-	static FSA parseNegation(TokenStream tokens){
-		tokens.read('!');
-		return parseSingle(tokens).negate();
-	}
-
-	static FSA parseParenthesis(TokenStream tokens){
-		tokens.read('(');
-		var rv = parseWhile(null, tokens, () -> tokens.peek() != ')');
-		tokens.poll();
-		return rv;
-	}
-
-	static FSA parseRepetition(TokenStream tokens){
-		tokens.read("#(");
-		CharPredicate digits = CharPredicate.inclusiveRange('0', '9');
-		IntSupplier intReader = () -> {
-			var builder = new StringBuilder();
-			while(digits.test(tokens.peek())){
-				builder.append(tokens.poll());
-			}
-			return Integer.parseInt(builder.toString());
-		};
-		int lower = intReader.getAsInt();
-		Supplier<FSA> baseExtractor = () -> {
-			tokens.read(", ");
-			var rv = parseSingle(tokens);
-			tokens.read(')');
-			return rv;
-		};
-		switch(tokens.peek()){
-			case '.' -> {
-				tokens.read("...");
-				int upper = intReader.getAsInt();
-				return baseExtractor.get()
-					.repeating(lower, upper);
-			}
-			case '+' -> {
-				tokens.poll();
-				return baseExtractor.get()
-					.repeating(lower);
-			}
-			case ',' -> {
-				return baseExtractor.get()
-					.repeating(lower, lower);
-			}
-			default -> throw new IllegalToken(tokens);
-		}
-	//	var example = "#(1...3, *.)";
-
-	}
-
-	static FSA parseLiteral(TokenStream tokens){
-		tokens.read('\'');
-		var builder = new StringBuilder();
-		outer:for(;;){
-			char token = tokens.poll();
-			switch(token){
-				case '\'' -> {
-					break outer;
-				}
-				case '\\' -> {
-					token = tokens.poll();
-					builder.append(
-						switch(token){
-							case 't' -> '\t';
-							case 'n' -> '\n';
-							case '\\' -> '\\';
-							default -> throw new IllegalToken(token);
-						}
-					);
-				}
-				default -> {
-					builder.append(token);
-				}
-			}
-		}
-		return FSA.literal(null, builder.toString());
 	}
 
 }
