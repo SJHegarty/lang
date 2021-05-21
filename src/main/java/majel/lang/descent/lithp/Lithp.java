@@ -161,10 +161,10 @@ TODO:
 			""";
 
 		String lithpSrc = """
-			<(ident-test, (<(seg, *[a...z])*('-'@(seg))))
+			<(ident-test, (<(seg, *[a...z])*('-'@seg;)))
 			<(opt, (?*('abacus''...')'sleep'))
 			<(lit, 'batman')
-			<(double-breakfast, (@(lit)?*(', '@(lit))))
+			<(double-breakfast, (@lit;?*(', '@lit;)))
 			<(neg, !'batman')
 			<(kle, *[a...z])
 			<(wil, (...))
@@ -175,7 +175,7 @@ TODO:
 			<(bnd, #(3...5, [a...g]))
 			<(fix, #(3, [a...z]))
 			<(unb, #(4+, *.))
-			<(test-composite, +(@(ident-test), @(double-breakfast)))
+			<(test-composite, +(@ident-test;, @double-breakfast;))
 			""";
 
 		System.err.println(lithpSrc);
@@ -212,7 +212,8 @@ TODO:
 			var result = processor.process(s);
 			var subres = result.node();
 			if(subres == null) continue;
-			System.err.println(subres.terminating() + " " + subres.labels() + " " + s + " -> " + result.value());
+			var extract = result.value();
+			System.err.println(s.equals(extract) + " " + subres.terminating() + " " + subres.labels() + " " + s + " -> " + extract);
 		}
 	}
 

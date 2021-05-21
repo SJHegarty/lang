@@ -28,12 +28,11 @@ public class Lookup extends Handler<FSA>{
 		}
 		var tokens = context.tokens();
 		checkHead(tokens);
-		tokens.read('(');
 		var name = processor.process(tokens).value();
 		if(name.length() == 0){
 			throw new RecursiveDescentParser.IllegalExpression(tokens);
 		}
-		tokens.read(')');
+		tokens.read(';');
 		return context.named(name);
 	}
 }
