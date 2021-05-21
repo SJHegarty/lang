@@ -36,7 +36,7 @@ public class Repetition extends Handler<FSA>{
 		int lower = intReader.getAsInt();
 		Supplier<FSA> baseExtractor = () -> {
 			tokens.read(", ");
-			var rv = parser.parseSingle(context);
+			var rv = parser.parse(context);
 			tokens.read(')');
 			return rv;
 		};

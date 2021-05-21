@@ -21,6 +21,6 @@ public class Kleene extends Handler<FSA>{
 	public FSA parse(RecursiveDescentContext<FSA> context){
 		var tokens = context.tokens();
 		checkHead(tokens);
-		return parser.parseSingle(context).kleene();
+		return parser.parse(context).kleene();
 	}
 }

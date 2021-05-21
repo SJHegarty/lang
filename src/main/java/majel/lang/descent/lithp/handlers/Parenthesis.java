@@ -21,8 +21,8 @@ public class Parenthesis extends Handler<FSA>{
 	public FSA parse(RecursiveDescentContext<FSA> context){
 		var tokens = context.tokens();
 		checkHead(tokens);
-		var rv = parser.parseWhile(context, () -> tokens.peek() != ')');
+		var result = parser.parseWhile(context, () -> tokens.peek() != ')');
 		tokens.poll();
-		return rv;
+		return FSA.concatenate(result.toArray(FSA[]::new));
 	}
 }

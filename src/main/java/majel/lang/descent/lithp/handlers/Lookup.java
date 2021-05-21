@@ -23,7 +23,7 @@ public class Lookup extends Handler<FSA>{
 	public FSA parse(RecursiveDescentContext<FSA> context){
 		if(processor == null){
 			processor = new StringProcessor(
-				parser.build("*[a...z]?*('-'*[a...z])")
+				parser.build("(*[a...z]?*('-'*[a...z]))")
 			);
 		}
 		var tokens = context.tokens();

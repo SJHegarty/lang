@@ -20,6 +20,6 @@ public class Negation extends Handler<FSA>{
 	public FSA parse(RecursiveDescentContext<FSA> context){
 		var tokens = context.tokens();
 		checkHead(tokens);
-		return parser.parseSingle(context).negate();
+		return parser.parse(context).negate();
 	}
 }

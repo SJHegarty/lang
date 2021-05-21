@@ -24,7 +24,7 @@ public class Named extends Handler<FSA>{
 	public FSA parse(RecursiveDescentContext<FSA> context){
 		if(processor == null){
 			processor = new StringProcessor(
-				parser.build("*[a...z]?*('-'*[a...z])")
+				parser.build("(*[a...z]?*('-'*[a...z]))")
 			);
 		}
 		var tokens = context.tokens();
@@ -35,7 +35,7 @@ public class Named extends Handler<FSA>{
 			throw new RecursiveDescentParser.IllegalExpression(tokens);
 		}
 		tokens.read(", ");
-		var base = parser.parseWhile(context, () -> tokens.peek() != ')');
+		var base = parser.parse(context);
 		tokens.poll();
 		var rv = base.named(name);
 		context.register(name, rv);

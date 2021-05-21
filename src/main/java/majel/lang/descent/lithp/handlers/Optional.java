@@ -21,6 +21,6 @@ public class Optional extends Handler<FSA>{
 	public FSA parse(RecursiveDescentContext<FSA> context){
 		var tokens = context.tokens();
 		checkHead(tokens);
-		return parser.parseSingle(context).optional();
+		return parser.parse(context).optional();
 	}
 }

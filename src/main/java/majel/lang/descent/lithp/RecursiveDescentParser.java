@@ -5,7 +5,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public abstract class RecursiveDescentParser<T>{
+public class RecursiveDescentParser<T>{
 
 	private final Handler<T>[] handlers;
 
@@ -28,13 +28,31 @@ public abstract class RecursiveDescentParser<T>{
 		handlers[headToken] = h;
 	}
 
-	public T build(String...expressions){
-		final Map<String, T> map = new HashMap<>();
-		return or(
-			Stream.of(expressions)
-				.map(expr -> new RecursiveDescentContext<>(map, new TokenStream(expr)))
-				.map(this::parse).toList()
-			);
+	public T build(String expression){
+		return parse(
+			new RecursiveDescentContext<>(
+				new TreeMap<>(),
+				new TokenStream(expression)
+			)
+		);
+	}
+
+	public SortedMap<String, T> build(String...expressions){
+		final SortedMap<String, T> map = new TreeMap<>();
+
+		Stream.of(expressions)
+			.map(expr -> new RecursiveDescentContext<>(map, new TokenStream(expr)))
+			.map(
+				context -> {
+					var rv = parse(context);
+					if(!context.tokens().empty()){
+						throw new IllegalToken(context.tokens());
+					}
+					return rv;
+				}
+			).toList();
+
+		return map;
 	}
 
 	static class ParseException extends RuntimeException{
@@ -71,23 +89,15 @@ public abstract class RecursiveDescentParser<T>{
 		}
 	}
 
-	public T parseWhile(RecursiveDescentContext<T> context, BooleanSupplier terminator){
+	public List<T> parseWhile(RecursiveDescentContext<T> context, BooleanSupplier terminator){
 		var elements = new ArrayList<T>();
 		while(terminator.getAsBoolean()){
-			elements.add(parseSingle(context));
+			elements.add(parse(context));
 		}
-		return concat(Collections.unmodifiableList(elements));
+		return Collections.unmodifiableList(elements);
 	}
 
-	public abstract T concat(List<T> elements);
-	public abstract T or(List<T> elements);
-
-	T parse(RecursiveDescentContext<T> context){
-		var tokens = context.tokens();
-		return parseWhile(context, () -> !tokens.empty());
-	}
-
-	public T parseSingle(RecursiveDescentContext<T> context){
+	public T parse(RecursiveDescentContext<T> context){
 		var tokens = context.tokens();
 		var handler = handlers[tokens.peek()];
 		if(handler == null){
@@ -101,7 +111,7 @@ public abstract class RecursiveDescentParser<T>{
 		tokens.read('(');
 		var list = new ArrayList<T>();
 		for(;;){
-			list.add(parseSingle(context));
+			list.add(parse(context));
 			if(tokens.peek() == ')'){
 				break;
 			}

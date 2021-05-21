@@ -72,22 +72,110 @@ TODO:
 
 	 */
 	public static void main(String... args){
+		String fuckAbout = """
+			$?~(std-in, <(long-buffer, #(1...4096, .))){
+				~ <(line, /<(content, *!'\n')'\n');
+				
+				-- an idea around asserts:
+				
+				$?~(long-buffer, @(line)){
+					~ <(ident, <(seg, *[a...z])*('-'@(seg)));
+					~ <(idents, ('['@(seg)*(', '@(seg))']));
+					
+					?~(line, <(command, (@(ident))?(' '<(params, *.)))){
+						?~(command){
+							'echo' :: <<~ :: Echoing Input: @(params).
+							'help' :: <<: {
+								There aren't many command options yet.
+									Just echo and help.
+									Given you managed to run help, you should be alright with echo.
+										Examples:
+											help:
+											echo: Yo.
+							}
+						}
+					}
+					
+					?~(content, @(idents)){
+						~ <(dark-knight, 'batman');
+						~ <(butler, 'alfred');
+						~ <(acrobat, 'robin');
+						
+						-- ~ <(batmen, @(DK)*('-'@(DK)));
+						
+						-- some sort of splitting method could be nicer.
+						-- a fetching block fot initialisation allowing the results to be immutable would be cool.
+						
+						@all-for-dinner ~ [ident] :< idents.[ident];
+						@batmen ~ [dark-knight] :< .new();
+						@guests ~ [ident] :< .new();
+						@alfred ~ <?butler>;
+						@robin ~ <?acrobat>;
+						
+						@all-for-dinner.[
+							?~(ident){
+								@(DK) :: @batmen[?] :< ~@(DK);
+								@(B) :: @butler :< ~@(butler);
+								@(A) :: @acrobat :< ~@(acrobat);
+							}&!{
+								@guests[?] :< ident;
+								?~(!@(acrobat));
+								?~!(@(butler));
+							}
+						];
+						
+						@bat-count ~ Int-8 :< batmen.size;
+						
+						?=(bat-count, 1){
+							<<: There can be only one.
+						}&!{
+							@buffer ~ StringBuilder :< .new();
+							[1...bat-count].{
+								@buffer[?] :< 'dinner ';
+							}
+							@buffer[?] :< 'batmen!';
+							<<~ @(buffer)
+						}
+						
+						?(butler){
+							<<~ @(butler) was there.
+						}&!{
+							<<: Not even the butler turned up.
+						}
+						
+						?(acrobat){
+							<<~ @(acrobat) was there.
+						}&!{
+							<<: Dirty little orphan.
+						}
+						
+						?=(guests.size, 0){
+							<<: No-one else was present.
+						}&!{
+							<<~ Who invited @(guests)?
+						}
+					};
+					
+				}
+			}
+			""";
+
 		String lithpSrc = """
-			<(str, *[a...z])
-			<(ident, @(str)*('-'@(str)))
-			<(opt, ?*('abacus''...')'sleep')
+			<(ident-test, (<(seg, *[a...z])*('-'@(seg))))
+			<(opt, (?*('abacus''...')'sleep'))
 			<(lit, 'batman')
-			<(double-breakfast, @(lit)'+'@(lit))
+			<(double-breakfast, (@(lit)?*(', '@(lit))))
 			<(neg, !'batman')
 			<(kle, *[a...z])
-			<(wil, ...)
-			<(con, *.'a'*.)
+			<(wil, (...))
+			<(con, (*.'a'*.))
 			<(ork, +('sleep', 'batman'))
 			<(ant, -(*+([a...z], [A...Z]), 'batman'))
 			<(and, &(*[a...s], *[e...z]))
 			<(bnd, #(3...5, [a...g]))
 			<(fix, #(3, [a...z]))
 			<(unb, #(4+, *.))
+			<(test-composite, +(@(ident-test), @(double-breakfast)))
 			""";
 
 		System.err.println(lithpSrc);
@@ -98,7 +186,7 @@ TODO:
 				return lithp.build(lithpSrc.split("\n"));
 			}
 		);
-		var parser = bench.result();
+		var parser = bench.result().get("test-composite");
 		System.err.println(String.format("built parser in way too long (%sms)", bench.time()));
 		var samples = new String[]{
 			"batman+batman",
@@ -144,13 +232,4 @@ TODO:
 		registerHandler(Lookup::new);
 	}
 
-	@Override
-	public FSA concat(List<FSA> elements){
-		return FSA.concatenate(elements.toArray(FSA[]::new));
-	}
-
-	@Override
-	public FSA or(List<FSA> elements){
-		return FSA.or(elements.toArray(FSA[]::new));
-	}
 }
