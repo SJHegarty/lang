@@ -10,10 +10,7 @@ import majel.util.functional.CharPredicate;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
-public class Repetition extends Handler<FSA>{
-	public Repetition(RecursiveDescentParser<FSA> parser){
-		super(parser);
-	}
+public class Repetition implements Handler<FSA>{
 
 	@Override
 	public char headToken(){
@@ -21,8 +18,7 @@ public class Repetition extends Handler<FSA>{
 	}
 
 	@Override
-	public FSA parse(RecursiveDescentContext<FSA> context){
-		var tokens = context.tokens();
+	public FSA parse(TokenStream<FSA> tokens){
 		checkHead(tokens);
 		tokens.read('(');
 		CharPredicate digits = CharPredicate.inclusiveRange('0', '9');
@@ -36,7 +32,7 @@ public class Repetition extends Handler<FSA>{
 		int lower = intReader.getAsInt();
 		Supplier<FSA> baseExtractor = () -> {
 			tokens.read(", ");
-			var rv = parser.parse(context);
+			var rv = tokens.parse();
 			tokens.read(')');
 			return rv;
 		};

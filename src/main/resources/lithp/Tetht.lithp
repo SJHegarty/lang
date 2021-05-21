@@ -1,12 +1,84 @@
-tetht-optional :~ ?*('abacus''...')'sleep'
-tetht-literal :~ 'batman'
-tetht-negation :~ !'batman'
-tetht-kleene :~ *[a...z]
-tetht-wild :~ ...
-tetht-concatenation :~ *.'a'*.
-tetht-or :~ +('sleep', 'batman')
-tetht-and-not :~ -(*+([a...z], [A...Z]), 'batman'
-tetht-and :~ &(*[a...s], *[e...z])
-tetht-bound-repetition :~ #(3...5, [a...g]),
-tetht-fixed-repetition :~ #(3, [a...z])
-tetht-unbound-repetition :~ #(4+, *.)
+$?~(std-in, <(long-buffer, #(1...4096, .))){
+	~ <(line, /<(content, *!'\n')'\n');
+
+	-- an idea around asserts:
+
+	$?~(long-buffer, @(line)){
+		~ <(ident, <(seg, *[a...z])*('-'@(seg)));
+		~ <(idents, ('['@(seg)*(', '@(seg))']));
+
+		?~(line, <(command, (@(ident))?(' '<(params, *.)))){
+			?~(command){
+				'echo' :: <<~ :: Echoing Input: @(params).
+				'help' :: <<: {
+					There aren't many command options yet.
+						Just echo and help.
+						Given you managed to run help, you should be alright with echo.
+							Examples:
+								help:
+								echo: Yo.
+				}
+			}
+		}
+
+		?~(content, @(idents)){
+			~ <(dark-knight, 'batman');
+			~ <(butler, 'alfred');
+			~ <(acrobat, 'robin');
+
+			-- ~ <(batmen, @(DK)*('-'@(DK)));
+
+			-- some sort of splitting method could be nicer.
+			-- a fetching block fot initialisation allowing the results to be immutable would be cool.
+
+			@all-for-dinner ~ [ident] :< idents.[ident];
+			@batmen ~ [dark-knight] :< .new();
+			@guests ~ [ident] :< .new();
+			@alfred ~ <?butler>;
+			@robin ~ <?acrobat>;
+
+			--doesn't check for multiple alfreds/robins
+			@all-for-dinner.[
+				?~(ident){
+					@(DK) :: @batmen[?] :< ~@(DK);
+					@(B) :: @butler :< ~@(butler);
+					@(A) :: @acrobat :< ~@(acrobat);
+				}&!{
+					@guests[?] :< ident;
+				}
+			];
+
+			@bat-count ~ Int-8 :< batmen.size;
+
+			?=(bat-count, 1){
+				<<: There can be only one.
+			}&!{
+				@buffer ~ StringBuilder :< .new();
+				[1...bat-count].{
+					@buffer[?] :< 'dinner ';
+				}
+				@buffer[?] :< 'batmen!';
+				<<~ @(buffer)
+			}
+
+			?(butler){
+				<<~ @(butler) was there.
+			}&!{
+				<<: Not even the butler turned up.
+			}
+
+			?(acrobat){
+				<<~ @(acrobat) was there.
+			}&!{
+				<<: Dirty little orphan.
+			}
+
+			?=(guests.size, 0){
+				<<: No-one else was present.
+			}&!{
+				<<~ Who invited @(guests)?
+			}
+		};
+
+	}
+}

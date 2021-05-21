@@ -5,12 +5,9 @@ import majel.lang.automata.fsa.StringProcessor;
 import majel.lang.descent.lithp.Handler;
 import majel.lang.descent.lithp.RecursiveDescentContext;
 import majel.lang.descent.lithp.RecursiveDescentParser;
+import majel.lang.descent.lithp.TokenStream;
 
-public class Lookup extends Handler<FSA>{
-
-	public Lookup(RecursiveDescentParser<FSA> parser){
-		super(parser);
-	}
+public class Lookup implements Handler<FSA>{
 
 	@Override
 	public char headToken(){
@@ -20,19 +17,18 @@ public class Lookup extends Handler<FSA>{
 	private transient StringProcessor processor;
 
 	@Override
-	public FSA parse(RecursiveDescentContext<FSA> context){
+	public FSA parse(TokenStream<FSA> tokens){
 		if(processor == null){
 			processor = new StringProcessor(
-				parser.build("(*[a...z]?*('-'*[a...z]))")
+				tokens.parser().build("(*[a...z]?*('-'*[a...z]))")
 			);
 		}
-		var tokens = context.tokens();
 		checkHead(tokens);
 		var name = processor.process(tokens).value();
 		if(name.length() == 0){
 			throw new RecursiveDescentParser.IllegalExpression(tokens);
 		}
 		tokens.read(';');
-		return context.named(name);
+		return tokens.context().named(name);
 	}
 }

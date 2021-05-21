@@ -3,6 +3,8 @@ package majel.lang.descent.lithp;
 import java.util.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class RecursiveDescentParser<T>{
@@ -13,8 +15,8 @@ public class RecursiveDescentParser<T>{
 		handlers = new Handler[256];
 	}
 
-	public void registerHandler(Function<RecursiveDescentParser<T>, Handler<T>> builder){
-		Handler<T> h = builder.apply(this);
+	public void registerHandler(Supplier<Handler<T>> builder){
+		Handler<T> h = builder.get();
 		char headToken = h.headToken();
 		if(handlers[headToken] != null){
 			throw new UnsupportedOperationException(
@@ -29,30 +31,25 @@ public class RecursiveDescentParser<T>{
 	}
 
 	public T build(String expression){
-		return parse(
-			new RecursiveDescentContext<>(
-				new TreeMap<>(),
-				new TokenStream(expression)
-			)
+		var context = new RecursiveDescentContext<>(
+			new TreeMap<>(),
+			this
 		);
+		return parse(context.createStream(expression));
 	}
 
 	public SortedMap<String, T> build(String...expressions){
-		final SortedMap<String, T> map = new TreeMap<>();
+		var context = new RecursiveDescentContext<>(
+			new TreeMap<>(),
+			this
+		);
 
 		Stream.of(expressions)
-			.map(expr -> new RecursiveDescentContext<>(map, new TokenStream(expr)))
-			.map(
-				context -> {
-					var rv = parse(context);
-					if(!context.tokens().empty()){
-						throw new IllegalToken(context.tokens());
-					}
-					return rv;
-				}
-			).toList();
+			.map(context::createStream)
+			.map(this::parse)
+			.collect(Collectors.toList());
 
-		return map;
+		return context.namedInstances();
 	}
 
 	static class ParseException extends RuntimeException{
@@ -89,29 +86,27 @@ public class RecursiveDescentParser<T>{
 		}
 	}
 
-	public List<T> parseWhile(RecursiveDescentContext<T> context, BooleanSupplier terminator){
+	public List<T> parseWhile(TokenStream<T> tokens, BooleanSupplier terminator){
 		var elements = new ArrayList<T>();
 		while(terminator.getAsBoolean()){
-			elements.add(parse(context));
+			elements.add(parse(tokens));
 		}
 		return Collections.unmodifiableList(elements);
 	}
 
-	public T parse(RecursiveDescentContext<T> context){
-		var tokens = context.tokens();
+	public T parse(TokenStream<T> tokens){
 		var handler = handlers[tokens.peek()];
 		if(handler == null){
 			throw new IllegalToken(tokens);
 		}
-		return handler.parse(context);
+		return handler.parse(tokens);
 	}
 
-	public List<T> parseList(RecursiveDescentContext<T> context){
-		var tokens = context.tokens();
+	public List<T> parseList(TokenStream<T> tokens){
 		tokens.read('(');
 		var list = new ArrayList<T>();
 		for(;;){
-			list.add(parse(context));
+			list.add(parse(tokens));
 			if(tokens.peek() == ')'){
 				break;
 			}

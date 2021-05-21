@@ -6,11 +6,7 @@ import majel.lang.descent.lithp.RecursiveDescentContext;
 import majel.lang.descent.lithp.RecursiveDescentParser;
 import majel.lang.descent.lithp.TokenStream;
 
-public class Parenthesis extends Handler<FSA>{
-
-	public Parenthesis(RecursiveDescentParser<FSA> parser){
-		super(parser);
-	}
+public class Parenthesis implements Handler<FSA>{
 
 	@Override
 	public char headToken(){
@@ -18,10 +14,10 @@ public class Parenthesis extends Handler<FSA>{
 	}
 
 	@Override
-	public FSA parse(RecursiveDescentContext<FSA> context){
-		var tokens = context.tokens();
+	public FSA parse(TokenStream<FSA> tokens){
 		checkHead(tokens);
-		var result = parser.parseWhile(context, () -> tokens.peek() != ')');
+		var parser = tokens.context().parser();
+		var result = parser.parseWhile(tokens, () -> tokens.peek() != ')');
 		tokens.poll();
 		return FSA.concatenate(result.toArray(FSA[]::new));
 	}

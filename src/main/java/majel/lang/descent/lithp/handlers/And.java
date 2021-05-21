@@ -4,12 +4,9 @@ import majel.lang.automata.fsa.FSA;
 import majel.lang.descent.lithp.Handler;
 import majel.lang.descent.lithp.RecursiveDescentContext;
 import majel.lang.descent.lithp.RecursiveDescentParser;
+import majel.lang.descent.lithp.TokenStream;
 
-public class And extends Handler<FSA>{
-
-	public And(RecursiveDescentParser<FSA> parser){
-		super(parser);
-	}
+public class And implements Handler<FSA>{
 
 	@Override
 	public char headToken(){
@@ -17,9 +14,10 @@ public class And extends Handler<FSA>{
 	}
 
 	@Override
-	public FSA parse(RecursiveDescentContext<FSA> context){
-		var tokens = context.tokens();
+	public FSA parse(TokenStream<FSA> tokens){
 		checkHead(tokens);
-		return FSA.and(parser.parseList(context).toArray(FSA[]::new));
+		var parser = tokens.context().parser();
+
+		return FSA.and(parser.parseList(tokens).toArray(FSA[]::new));
 	}
 }

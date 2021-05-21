@@ -6,10 +6,7 @@ import majel.lang.descent.lithp.RecursiveDescentContext;
 import majel.lang.descent.lithp.RecursiveDescentParser;
 import majel.lang.descent.lithp.TokenStream;
 
-public class Or extends Handler<FSA>{
-	public Or(RecursiveDescentParser<FSA> parser){
-		super(parser);
-	}
+public class Or implements Handler<FSA>{
 
 	@Override
 	public char headToken(){
@@ -17,9 +14,8 @@ public class Or extends Handler<FSA>{
 	}
 
 	@Override
-	public FSA parse(RecursiveDescentContext<FSA> context){
-		var tokens = context.tokens();
+	public FSA parse(TokenStream<FSA> tokens){
 		checkHead(tokens);
-		return FSA.or(parser.parseList(context).toArray(FSA[]::new));
+		return FSA.or(tokens.parseList().toArray(FSA[]::new));
 	}
 }

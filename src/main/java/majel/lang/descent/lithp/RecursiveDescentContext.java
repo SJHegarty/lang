@@ -1,13 +1,11 @@
 package majel.lang.descent.lithp;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.SortedMap;
 
-public record RecursiveDescentContext<T>(Map<String, T> namedInstances, TokenStream tokens){
-
-	public TokenStream tokens(){
-		return tokens;
-	}
+public record RecursiveDescentContext<T>(
+	SortedMap<String, T> namedInstances,
+	RecursiveDescentParser<T> parser
+){
 
 	public T named(String name){
 		return namedInstances.get(name);
@@ -24,5 +22,13 @@ public record RecursiveDescentContext<T>(Map<String, T> namedInstances, TokenStr
 			);
 		}
 		namedInstances.put(name, t);
+	}
+
+	public TokenStream<T> createStream(String expression){
+		return new TokenStream<>(this, expression);
+	}
+
+	public RecursiveDescentParser<T> parser(){
+		return parser;
 	}
 }

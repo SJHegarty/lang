@@ -7,11 +7,7 @@ import majel.lang.descent.lithp.RecursiveDescentContext;
 import majel.lang.descent.lithp.RecursiveDescentParser;
 import majel.lang.descent.lithp.TokenStream;
 
-public class Named extends Handler<FSA>{
-
-	public Named(RecursiveDescentParser<FSA> parser){
-		super(parser);
-	}
+public class Named implements Handler<FSA>{
 
 	@Override
 	public char headToken(){
@@ -21,13 +17,12 @@ public class Named extends Handler<FSA>{
 	private transient StringProcessor processor;
 
 	@Override
-	public FSA parse(RecursiveDescentContext<FSA> context){
+	public FSA parse(TokenStream<FSA> tokens){
 		if(processor == null){
 			processor = new StringProcessor(
-				parser.build("(*[a...z]?*('-'*[a...z]))")
+				tokens.parser().build("(*[a...z]?*('-'*[a...z]))")
 			);
 		}
-		var tokens = context.tokens();
 		checkHead(tokens);
 		tokens.read('(');
 		var name = processor.process(tokens).value();
@@ -35,10 +30,10 @@ public class Named extends Handler<FSA>{
 			throw new RecursiveDescentParser.IllegalExpression(tokens);
 		}
 		tokens.read(", ");
-		var base = parser.parse(context);
+		var base = tokens.parse();
 		tokens.poll();
 		var rv = base.named(name);
-		context.register(name, rv);
+		tokens.context().register(name, rv);
 		return rv;
 	}
 }
