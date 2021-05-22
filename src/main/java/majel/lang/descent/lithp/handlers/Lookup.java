@@ -18,8 +18,11 @@ public class Lookup implements Handler<FSA>{
 	@Override
 	public FSA parse(RecursiveDescentTokenStream<FSA> tokens){
 		if(processor == null){
+			var exprLC = "(*[a...z]?*('-'*[a...z]))";
+			var exprUC = "*[A...Z]";
+			var expr = "+(" + exprLC + ", " + exprUC + ")";
 			processor = new StringProcessor(
-				tokens.parser().build("(*[a...z]?*('-'*[a...z]))")
+				tokens.parser().build(expr)
 			);
 		}
 		checkHead(tokens);

@@ -5,6 +5,7 @@ import majel.lang.automata.fsa.StringProcessor;
 import majel.lang.descent.lithp.Handler;
 import majel.lang.descent.lithp.IllegalExpression;
 import majel.lang.descent.lithp.RecursiveDescentTokenStream;
+import majel.lang.descent.lithp.TokenStream;
 
 public class Named implements Handler<FSA>{
 
@@ -18,8 +19,15 @@ public class Named implements Handler<FSA>{
 	@Override
 	public FSA parse(RecursiveDescentTokenStream<FSA> tokens){
 		if(processor == null){
+			var word = "(*[a...z]?[A...Z]?*[a...z])";
+			var expr = new StringBuilder()
+				.append("(")
+				.append(word)
+				.append("?*('-'").append(word).append(")")
+				.append(")");
+
 			processor = new StringProcessor(
-				tokens.parser().build("(*[a...z]?*('-'*[a...z]))")
+				tokens.parser().build(expr.toString())
 			);
 		}
 		checkHead(tokens);
@@ -31,8 +39,26 @@ public class Named implements Handler<FSA>{
 		tokens.read(", ");
 		var base = tokens.parse();
 		tokens.poll();
-		var rv = base.named(name);
-		tokens.context().register(name, rv);
+		var lower = name.toLowerCase();
+		var rv = base.named(lower);
+
+		var shortForm = new StringBuilder();
+		for(String s: new TokenStream(name).split('-')){
+			var builder = new StringBuilder();
+			for(char c: s.toCharArray()){
+				if(Character.isUpperCase(c)){
+					builder.append(c);
+				}
+			}
+			switch(builder.length()){
+				case 0: builder.append(Character.toUpperCase(s.charAt(0)));
+				case 1: break;
+				default: throw new IllegalExpression(tokens);
+			}
+			shortForm.append(builder);
+		}
+		tokens.context().register(lower, rv);
+		tokens.context().register(shortForm.toString(), rv);
 		return rv;
 	}
 }

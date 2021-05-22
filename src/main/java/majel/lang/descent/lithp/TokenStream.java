@@ -2,6 +2,9 @@ package majel.lang.descent.lithp;
 
 import majel.util.functional.CharPredicate;
 
+import java.util.ArrayList;
+import java.util.function.Consumer;
+
 public class TokenStream{
 	private final char[] tokens;
 	private int index;
@@ -57,8 +60,36 @@ public class TokenStream{
 		return new String(tokens);
 	}
 
+	public String remaining(){
+		return expression().substring(index);
+	}
 	public int index(){
 		return index;
 	}
 
+	public String[] split(char separator){
+		var results = new ArrayList<String>();
+		Consumer<StringBuilder> addOp = builder -> {
+			var built = builder.toString();
+			if(built.length() != 0){
+				results.add(built);
+			}
+		};
+		outer:for(;;){
+			var builder = new StringBuilder();
+			for(;;){
+				if(empty()){
+					addOp.accept(builder);
+					break outer;
+				}
+				char c = poll();
+				if(c == separator){
+					addOp.accept(builder);
+					break;
+				}
+				builder.append(c);
+			}
+		}
+		return results.toArray(String[]::new);
+	}
 }

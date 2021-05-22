@@ -5,9 +5,6 @@ import majel.lang.automata.fsa.StringProcessor;
 import majel.lang.descent.lithp.handlers.*;
 import majel.util.LambdaUtils;
 
-import java.util.List;
-import java.util.TreeSet;
-
 public class Lithp extends RecursiveDescentParser<FSA>{
 	/*
 TODO:
@@ -75,15 +72,15 @@ TODO:
 		String lithpSrc = """
 			<(ident-test, (<(seg, *[a...z])*('-'@seg;)))
 			<(opt, (?*('abacus''...')'sleep'))
-			<(lit, 'batman')
-			<(double-breakfast, (@lit;?*(', '@lit;)))
+			<(dark-kNight, 'batman')
+			<(double-bReakfast, (@dark-knight;?*(', '@dark-knight;)))
 			<(neg, !'batman')
 			<(kle, *[a...z])
 			<(wil, (...))
 			<(con, (*.'a'*.))
-			<(ork, +('sleep', 'batman'))
+			<(oRk, +('sleep', 'batman'))
 			<(ant, -(*+([a...z], [A...Z]), 'batman'))
-			<(and, &(*[a...s], *[e...z]))
+			<(anD, &(*[a...s], *[e...z]))
 			<(bnd, #(3...5, [a...g]))
 			<(fix, #(3, [a...z]))
 			<(unb, #(4+, *.))
@@ -118,7 +115,7 @@ TODO:
 			"abcdef",
 			"abcdefg"
 		};
-		var parser = context.parse("+(@ident-test;, @double-breakfast;)");
+		var parser = context.parse("+(@IT;, @DR;)");
 		var processor = new StringProcessor(parser);
 		for(var s : samples){
 			var result = processor.process(s);

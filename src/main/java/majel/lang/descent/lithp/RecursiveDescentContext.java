@@ -1,5 +1,6 @@
 package majel.lang.descent.lithp;
 
+import java.util.Optional;
 import java.util.SortedMap;
 
 public record RecursiveDescentContext<T>(
@@ -8,7 +9,8 @@ public record RecursiveDescentContext<T>(
 ){
 
 	public T named(String name){
-		return namedInstances.get(name);
+		return Optional.ofNullable(namedInstances.get(name))
+			.orElseThrow(() -> new IllegalExpression(new TokenStream(name)));
 	}
 
 	public void register(String name, T t){
