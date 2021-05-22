@@ -59,11 +59,21 @@ public class RecursiveDescentParser<T>{
 	}
 
 	public T parse(RecursiveDescentTokenStream<T> tokens){
+		var mark = tokens.mark();
 		var handler = handlers[tokens.peek()];
 		if(handler == null){
 			throw new IllegalToken(tokens);
 		}
-		return handler.parse(tokens);
+		try{
+			return handler.parse(tokens);
+		}
+		catch(ParseException e){
+			throw e;
+		}
+		catch(RuntimeException e){
+			mark.reset();
+			throw new IllegalToken(tokens);
+		}
 	}
 
 	public List<T> parseList(RecursiveDescentTokenStream<T> tokens){

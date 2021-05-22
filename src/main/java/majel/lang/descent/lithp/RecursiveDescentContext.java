@@ -9,8 +9,9 @@ public record RecursiveDescentContext<T>(
 ){
 
 	public T named(String name){
-		return Optional.ofNullable(namedInstances.get(name))
-			.orElseThrow(() -> new IllegalExpression(new TokenStream(name)));
+		return Optional
+			.ofNullable(namedInstances.get(name))
+			.orElseThrow();
 	}
 
 	public void register(String name, T t){

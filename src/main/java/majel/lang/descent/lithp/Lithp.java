@@ -70,16 +70,19 @@ TODO:
 	 */
 	public static void main(String... args){
 		String lithpSrc = """
-			<(ident-test, (<(seg, *[a...z])*('-'@seg;)))
+			<(lower-case, [a...z])
+			<(upper-case, [A...Z])
+			<(alphabetic, +(@LC;, @UC;))
+			<(ident-test, (<(word, *@LC;)*('-'@W;)))
 			<(opt, (?*('abacus''...')'sleep'))
 			<(dark-kNight, 'batman')
 			<(double-bReakfast, (@dark-knight;?*(', '@dark-knight;)))
 			<(neg, !'batman')
 			<(kle, *[a...z])
-			<(wil, (...))
+			<(wiL, (...))
 			<(con, (*.'a'*.))
 			<(oRk, +('sleep', 'batman'))
-			<(ant, -(*+([a...z], [A...Z]), 'batman'))
+			<(anT, -(*+([a...z], [A...Z]), 'batman'))
 			<(anD, &(*[a...s], *[e...z]))
 			<(bnd, #(3...5, [a...g]))
 			<(fix, #(3, [a...z]))

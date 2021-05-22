@@ -48,12 +48,20 @@ public class TokenStream{
 		}
 	}
 
-	public void mark(){
-		mark = index;
+	public class Mark{
+		final int mark;
+
+		public Mark(){
+			this.mark = index;
+		}
+
+		public void reset(){
+			index = mark;
+		}
 	}
 
-	public void reset(){
-		index = mark;
+	public Mark mark(){
+		return new Mark();
 	}
 
 	public String expression(){

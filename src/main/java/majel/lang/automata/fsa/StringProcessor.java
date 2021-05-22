@@ -14,6 +14,7 @@ public class StringProcessor{
 		var node = automaton.entryPoint;
 		var builder = new StringBuilder();
 		var buffer = new StringBuilder();
+		var mark = tokens.mark();
 		while(!tokens.empty() && node.terminable()){
 			char c = tokens.poll();
 			buffer.append(c);
@@ -27,11 +28,11 @@ public class StringProcessor{
 			if(node.terminating()){
 				builder.append(buffer);
 				buffer.delete(0, buffer.length());
-				tokens.mark();
+				mark = tokens.mark();
 				last = node;
 			}
 		}
-		tokens.reset();
+		mark.reset();
 		return new Blah(builder.toString(), last);
 	}
 
