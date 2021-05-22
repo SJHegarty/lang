@@ -2,8 +2,8 @@ package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
 import majel.lang.descent.lithp.Handler;
-import majel.lang.descent.lithp.RecursiveDescentParser;
-import majel.lang.descent.lithp.TokenStream;
+import majel.lang.descent.lithp.IllegalToken;
+import majel.lang.descent.lithp.RecursiveDescentTokenStream;
 
 public class Literal implements Handler<FSA>{
 
@@ -13,7 +13,7 @@ public class Literal implements Handler<FSA>{
 	}
 
 	@Override
-	public FSA parse(TokenStream<FSA> tokens){
+	public FSA parse(RecursiveDescentTokenStream<FSA> tokens){
 		checkHead(tokens);
 		var builder = new StringBuilder();
 		outer:for(;;){
@@ -28,7 +28,7 @@ public class Literal implements Handler<FSA>{
 							case 't' -> '\t';
 							case 'n' -> '\n';
 							case '\\' -> '\\';
-							default -> throw new RecursiveDescentParser.IllegalToken(tokens);
+							default -> throw new IllegalToken(tokens);
 						}
 					);
 					tokens.poll();

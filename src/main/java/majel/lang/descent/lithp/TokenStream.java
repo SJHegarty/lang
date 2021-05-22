@@ -2,25 +2,18 @@ package majel.lang.descent.lithp;
 
 import majel.util.functional.CharPredicate;
 
-import java.util.List;
-
-public class TokenStream<T>{
-	private final RecursiveDescentContext<T> context;
+public class TokenStream{
 	private final char[] tokens;
 	private int index;
 	private int mark;
 
-	public TokenStream(
-		RecursiveDescentContext<T> context,
-		String expression
-	){
-		this.context = context;
+	public TokenStream(String expression){
 		this.tokens = expression.toCharArray();
 	}
 
 	public char peek(){
 		if(empty()){
-			throw new RecursiveDescentParser.IllegalEndOfStream();
+			throw new IllegalEndOfStream();
 		}
 		return tokens[index];
 	}
@@ -38,7 +31,7 @@ public class TokenStream<T>{
 	public void read(CharPredicate predicate){
 		var token = poll();
 		if(!predicate.test(token)){
-			throw new RecursiveDescentParser.IllegalToken(this);
+			throw new IllegalToken(this);
 		}
 	}
 
@@ -68,19 +61,4 @@ public class TokenStream<T>{
 		return index;
 	}
 
-	public RecursiveDescentContext<T> context(){
-		return context;
-	}
-
-	public RecursiveDescentParser<T> parser(){
-		return context.parser();
-	}
-
-	public T parse(){
-		return parser().parse(this);
-	}
-
-	public List<T> parseList(){
-		return parser().parseList(this);
-	}
 }

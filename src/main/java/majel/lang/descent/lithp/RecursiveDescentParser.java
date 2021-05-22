@@ -2,7 +2,6 @@ package majel.lang.descent.lithp;
 
 import java.util.*;
 import java.util.function.BooleanSupplier;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,7 +37,7 @@ public class RecursiveDescentParser<T>{
 		return parse(context.createStream(expression));
 	}
 
-	public SortedMap<String, T> build(String...expressions){
+	public RecursiveDescentContext<T> buildContext(String...expressions){
 		var context = new RecursiveDescentContext<>(
 			new TreeMap<>(),
 			this
@@ -46,47 +45,12 @@ public class RecursiveDescentParser<T>{
 
 		Stream.of(expressions)
 			.map(context::createStream)
-			.map(this::parse)
-			.collect(Collectors.toList());
+			.forEach(this::parse);
 
-		return context.namedInstances();
+		return context;
 	}
 
-	static class ParseException extends RuntimeException{
-		ParseException(){}
-
-		ParseException(String message){
-			super(message);
-		}
-	}
-
-	public static class IllegalExpression extends ParseException{
-		public IllegalExpression(TokenStream tokens){
-			super(tokens.expression());
-		}
-	}
-
-	public static class IllegalToken extends ParseException{
-
-		public IllegalToken(TokenStream tokens){
-			super(
-				String.format(
-					"Illegal token '%s' at index:%s of expression:%s",
-					tokens.peek(),
-					tokens.index(),
-					tokens.expression()
-				)
-			);
-		}
-	}
-
-	static class IllegalEndOfStream extends ParseException{
-		public IllegalEndOfStream(){
-			super();
-		}
-	}
-
-	public List<T> parseWhile(TokenStream<T> tokens, BooleanSupplier terminator){
+	public List<T> parseWhile(RecursiveDescentTokenStream<T> tokens, BooleanSupplier terminator){
 		var elements = new ArrayList<T>();
 		while(terminator.getAsBoolean()){
 			elements.add(parse(tokens));
@@ -94,7 +58,7 @@ public class RecursiveDescentParser<T>{
 		return Collections.unmodifiableList(elements);
 	}
 
-	public T parse(TokenStream<T> tokens){
+	public T parse(RecursiveDescentTokenStream<T> tokens){
 		var handler = handlers[tokens.peek()];
 		if(handler == null){
 			throw new IllegalToken(tokens);
@@ -102,7 +66,7 @@ public class RecursiveDescentParser<T>{
 		return handler.parse(tokens);
 	}
 
-	public List<T> parseList(TokenStream<T> tokens){
+	public List<T> parseList(RecursiveDescentTokenStream<T> tokens){
 		tokens.read('(');
 		var list = new ArrayList<T>();
 		for(;;){

@@ -24,10 +24,18 @@ public record RecursiveDescentContext<T>(
 		namedInstances.put(name, t);
 	}
 
-	public TokenStream<T> createStream(String expression){
-		return new TokenStream<>(this, expression);
+	public RecursiveDescentTokenStream<T> createStream(String expression){
+		return new RecursiveDescentTokenStream<>(this, expression);
 	}
 
+	public T parse(String expression){
+		var stream = createStream(expression);
+		var rv = stream.parse();
+		if(!stream.empty()){
+			throw new IllegalToken(stream);
+		}
+		return rv;
+	}
 	public RecursiveDescentParser<T> parser(){
 		return parser;
 	}

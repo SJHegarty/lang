@@ -87,7 +87,6 @@ TODO:
 			<(bnd, #(3...5, [a...g]))
 			<(fix, #(3, [a...z]))
 			<(unb, #(4+, *.))
-			<(test-composite, +(@ident-test;, @double-breakfast;))
 			""";
 
 		System.err.println(lithpSrc);
@@ -95,10 +94,10 @@ TODO:
 		var bench = LambdaUtils.benchmark(
 			() -> {
 				var lithp = new Lithp();
-				return lithp.build(lithpSrc.split("\n"));
+				return lithp.buildContext(lithpSrc.split("\n"));
 			}
 		);
-		var parser = bench.result().get("test-composite");
+		var context = bench.result();
 		System.err.println(String.format("built parser in way too long (%sms)", bench.time()));
 		var samples = new String[]{
 			"batman+batman",
@@ -119,6 +118,7 @@ TODO:
 			"abcdef",
 			"abcdefg"
 		};
+		var parser = context.parse("+(@ident-test;, @double-breakfast;)");
 		var processor = new StringProcessor(parser);
 		for(var s : samples){
 			var result = processor.process(s);
