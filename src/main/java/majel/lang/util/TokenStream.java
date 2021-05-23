@@ -1,5 +1,7 @@
-package majel.lang.descent.lithp;
+package majel.lang.util;
 
+import majel.lang.err.IllegalEndOfStream;
+import majel.lang.err.IllegalToken;
 import majel.util.functional.CharPredicate;
 
 import java.util.ArrayList;
@@ -8,7 +10,6 @@ import java.util.function.Consumer;
 public class TokenStream{
 	private final char[] tokens;
 	private int index;
-	private int mark;
 
 	public TokenStream(String expression){
 		this.tokens = expression.toCharArray();

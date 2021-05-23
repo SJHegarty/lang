@@ -2,9 +2,9 @@ package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
-import majel.lang.descent.lithp.Handler;
-import majel.lang.descent.lithp.IllegalExpression;
-import majel.lang.descent.lithp.RecursiveDescentTokenStream;
+import majel.lang.descent.Handler;
+import majel.lang.err.IllegalExpression;
+import majel.lang.descent.RecursiveDescentTokenStream;
 
 public class Lookup implements Handler<FSA>{
 

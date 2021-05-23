@@ -1,9 +1,11 @@
-package majel.lang.descent.lithp;
+package majel.lang.descent;
+
+import majel.lang.err.IllegalToken;
+import majel.lang.err.ParseException;
 
 import java.util.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class RecursiveDescentParser<T>{

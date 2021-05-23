@@ -1,4 +1,6 @@
-package majel.lang.descent.lithp;
+package majel.lang.descent;
+
+import majel.lang.util.TokenStream;
 
 import java.util.List;
 

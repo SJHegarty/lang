@@ -1,4 +1,6 @@
-package majel.lang.descent.lithp;
+package majel.lang.descent;
+
+import majel.lang.err.IllegalToken;
 
 import java.util.Optional;
 import java.util.SortedMap;

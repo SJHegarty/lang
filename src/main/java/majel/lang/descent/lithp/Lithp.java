@@ -2,6 +2,7 @@ package majel.lang.descent.lithp;
 
 import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
+import majel.lang.descent.RecursiveDescentParser;
 import majel.lang.descent.lithp.handlers.*;
 import majel.util.LambdaUtils;
 
@@ -73,10 +74,11 @@ TODO:
 			<(lower-case, [a...z])
 			<(upper-case, [A...Z])
 			<(alphabetic, +(@LC;, @UC;))
-			<(ident-test, (<(word, *@LC;)*('-'@W;)))
+			<(ident-test, (<(lower-case-word, *@LC;)*('-'@LCW;)))
 			<(opt, (?*('abacus''...')'sleep'))
+			<(donkey-kong, 'Donkey Kong')
 			<(dark-kNight, 'batman')
-			<(double-bReakfast, (@dark-knight;?*(', '@dark-knight;)))
+			<(double-bReakfast, (@DN;?*(', '@DN;)))
 			<(neg, !'batman')
 			<(kle, *[a...z])
 			<(wiL, (...))

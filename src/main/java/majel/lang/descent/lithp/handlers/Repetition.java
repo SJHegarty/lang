@@ -1,9 +1,9 @@
 package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
-import majel.lang.descent.lithp.Handler;
-import majel.lang.descent.lithp.IllegalToken;
-import majel.lang.descent.lithp.RecursiveDescentTokenStream;
+import majel.lang.descent.Handler;
+import majel.lang.err.IllegalToken;
+import majel.lang.descent.RecursiveDescentTokenStream;
 import majel.util.functional.CharPredicate;
 
 import java.util.function.IntSupplier;

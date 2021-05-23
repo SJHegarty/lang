@@ -1,6 +1,6 @@
 package majel.lang.automata.fsa;
 
-import majel.lang.descent.lithp.TokenStream;
+import majel.lang.util.TokenStream;
 
 public class StringProcessor{
 	private final FSA automaton;

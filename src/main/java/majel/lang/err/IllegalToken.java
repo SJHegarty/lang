@@ -1,4 +1,6 @@
-package majel.lang.descent.lithp;
+package majel.lang.err;
+
+import majel.lang.util.TokenStream;
 
 public class IllegalToken extends ParseException{
 

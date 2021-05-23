@@ -1,4 +1,6 @@
-package majel.lang.descent.lithp;
+package majel.lang.descent;
+
+import majel.lang.util.TokenStream;
 
 public interface Handler<T>{
 

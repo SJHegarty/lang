@@ -1,7 +1,9 @@
 package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
-import majel.lang.descent.lithp.*;
+import majel.lang.descent.Handler;
+import majel.lang.err.IllegalExpression;
+import majel.lang.descent.RecursiveDescentTokenStream;
 
 public class AndNot implements Handler<FSA>{
 
