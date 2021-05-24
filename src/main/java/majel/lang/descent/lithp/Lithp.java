@@ -95,9 +95,7 @@ TODO:
 		lithpSrc.split("\n");
 		final var lithp = new Lithp();
 		var bench = LambdaUtils.benchmark(
-			() -> {
-				return lithp.buildContext(lithpSrc.split("\n"));
-			}
+			() -> lithp.buildContext(lithpSrc.split("\n"))
 		);
 		var context = bench.result();
 		System.err.println(String.format("built parser in way too long (%sms)", bench.time()));
@@ -120,7 +118,7 @@ TODO:
 			"abcdef",
 			"abcdefg"
 		};
-		var parser = lithp.parse("+(@IT;, @DR;)").build(context);
+		var parser = context.build("+(@IT;, @DR;)");
 
 		var processor = new StringProcessor(parser);
 		for(var s : samples){

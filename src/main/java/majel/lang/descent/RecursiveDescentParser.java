@@ -44,23 +44,12 @@ public class RecursiveDescentParser<T>{
 	}
 
 	public T build(String expression){
-		return parse(expression).build(buildContext());
+		return buildContext().build(expression);
 	}
 
 	public RecursiveDescentBuildContext<T> buildContext(String...expressions){
-		var rv = new RecursiveDescentBuildContext<T>(new TreeMap<>());
-		Stream.of(expressions)
-			.map(
-				s -> {
-					var expr = parse(s);
-					if(!expr.reconstitute().equals(s)){
-						throw new IllegalStateException();
-					}
-					return expr;
-				}
-			)
-			.forEach(expr -> expr.build(rv));
-
+		var rv = new RecursiveDescentBuildContext<>(this, new TreeMap<>());
+		Stream.of(expressions).forEach(rv::build);
 		return rv;
 	}
 
@@ -81,7 +70,11 @@ public class RecursiveDescentParser<T>{
 	}
 
 	public Expression<T> parse(String expression){
-		return parse(new TokenStream(expression));
+		var rv = parse(new TokenStream(expression));
+		if(!rv.reconstitute().equals(expression)){
+			throw new IllegalStateException();
+		}
+		return rv;
 	}
 
 	public Expression<T> parse(TokenStream tokens){

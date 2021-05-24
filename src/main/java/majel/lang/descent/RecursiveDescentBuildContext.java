@@ -3,7 +3,10 @@ package majel.lang.descent;
 import java.util.Optional;
 import java.util.SortedMap;
 
-public record RecursiveDescentBuildContext<T>(SortedMap<String, T> namedInstances){
+public record RecursiveDescentBuildContext<T>(
+	RecursiveDescentParser<T> parser,
+	SortedMap<String, T> namedInstances
+){
 	public T named(String name){
 		return Optional
 			.ofNullable(namedInstances.get(name))
@@ -21,5 +24,13 @@ public record RecursiveDescentBuildContext<T>(SortedMap<String, T> namedInstance
 			);
 		}
 		namedInstances.put(name, t);
+	}
+
+	public T build(String expression){
+		return build(parser.parse(expression));
+	}
+
+	public T build(Expression<T> expression){
+		return expression.build(this);
 	}
 }
