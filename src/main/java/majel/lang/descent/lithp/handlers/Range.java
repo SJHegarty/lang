@@ -5,6 +5,7 @@ import majel.lang.descent.Expression;
 import majel.lang.descent.Handler;
 import majel.lang.descent.RecursiveDescentBuildContext;
 import majel.lang.descent.RecursiveDescentParser;
+import majel.lang.descent.lithp.Lithp;
 import majel.lang.util.TokenStream;
 
 public class Range implements Handler<FSA>{
@@ -18,13 +19,12 @@ public class Range implements Handler<FSA>{
 		return OPENING_BRACKET;
 	}
 
-	//TODO: utilise character extraction from Literal
 	@Override
 	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
 		checkHead(tokens);
-		char c0 = tokens.poll();
+		char c0 = Lithp.parseLiteral(tokens);
 		tokens.read(DELIMITER);
-		char c1 = tokens.poll();
+		char c1 = Lithp.parseLiteral(tokens);
 		tokens.read(CLOSING_BRACKET);
 
 		return new Expression<>(){

@@ -5,11 +5,14 @@ import majel.lang.err.ParseException;
 import majel.lang.util.TokenStream;
 import majel.util.functional.CharPredicate;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.TreeMap;
 import java.util.function.BooleanSupplier;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
 /*
 	TODO:
  		Split the context into ExpressionContext and ParseContext.

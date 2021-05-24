@@ -5,7 +5,7 @@ import majel.lang.descent.Expression;
 import majel.lang.descent.Handler;
 import majel.lang.descent.RecursiveDescentBuildContext;
 import majel.lang.descent.RecursiveDescentParser;
-import majel.lang.err.IllegalToken;
+import majel.lang.descent.lithp.Lithp;
 import majel.lang.util.TokenStream;
 
 public class Literal implements Handler<FSA>{
@@ -24,29 +24,18 @@ public class Literal implements Handler<FSA>{
 		outer:{
 			var builder = new StringBuilder();
 			for(;;){
-				char token = tokens.poll();
-				switch(token){
+				switch(tokens.peek()){
 					case ENCLOSING_TOKEN -> {
 						str = builder.toString();
 						break outer;
 					}
-					case '\\' -> {
-						builder.append(
-							switch(tokens.peek()){
-								case 't' -> '\t';
-								case 'n' -> '\n';
-								case '\\' -> '\\';
-								default -> throw new IllegalToken(tokens);
-							}
-						);
-						tokens.poll();
-					}
 					default -> {
-						builder.append(token);
+						builder.append(Lithp.parseLiteral(tokens));
 					}
 				}
 			}
 		}
+		tokens.poll();
 		return new Expression<>(){
 			@Override
 			public String reconstitute(){

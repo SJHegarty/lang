@@ -4,6 +4,8 @@ import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
 import majel.lang.descent.RecursiveDescentParser;
 import majel.lang.descent.lithp.handlers.*;
+import majel.lang.err.IllegalToken;
+import majel.lang.util.TokenStream;
 import majel.util.LambdaUtils;
 
 public class Lithp extends RecursiveDescentParser<FSA>{
@@ -130,7 +132,6 @@ TODO:
 		}
 	}
 
-
 	public static final char OPENING_PARENTHESIS = '(';
 	public static final char CLOSING_PARENTHESIS = ')';
 	public static final String DELIMITER = ", ";
@@ -149,6 +150,26 @@ TODO:
 		registerHandler(Repetition::new);
 		registerHandler(Named::new);
 		registerHandler(Lookup::new);
+	}
+
+	public static char parseLiteral(TokenStream tokens){
+		var mark = tokens.mark();
+		char token = tokens.poll();
+		return switch(token){
+			case '\'' -> {
+				mark.reset();
+				throw new IllegalToken(tokens);
+			}
+			case '\\' -> {
+				yield switch(tokens.peek()){
+					case 't' -> '\t';
+					case 'n' -> '\n';
+					case '\\' -> '\\';
+					default -> throw new IllegalToken(tokens);
+				};
+			}
+			default -> token;
+		};
 	}
 
 }
