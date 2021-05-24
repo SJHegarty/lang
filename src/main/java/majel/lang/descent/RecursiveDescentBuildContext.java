@@ -1,0 +1,25 @@
+package majel.lang.descent;
+
+import java.util.Optional;
+import java.util.SortedMap;
+
+public record RecursiveDescentBuildContext<T>(SortedMap<String, T> namedInstances){
+	public T named(String name){
+		return Optional
+			.ofNullable(namedInstances.get(name))
+			.orElseThrow();
+	}
+
+	public void register(String name, T t){
+		if(namedInstances.containsKey(name)){
+			throw new UnsupportedOperationException(
+				String.format(
+					"name \"%s\" is already registered to %s",
+					name,
+					namedInstances.get(name)
+				)
+			);
+		}
+		namedInstances.put(name, t);
+	}
+}

@@ -1,19 +1,32 @@
 package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
-import majel.lang.descent.Handler;
-import majel.lang.descent.RecursiveDescentTokenStream;
+import majel.lang.descent.*;
+import majel.lang.util.TokenStream;
 
 public class Optional implements Handler<FSA>{
 
+	private static final char HEAD_TOKEN = '?';
+
 	@Override
 	public char headToken(){
-		return '?';
+		return HEAD_TOKEN;
 	}
 
 	@Override
-	public FSA parse(RecursiveDescentTokenStream<FSA> tokens){
+	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
 		checkHead(tokens);
-		return tokens.parse().optional();
+		var base = parser.parse(tokens);
+		return new Expression<>(){
+			@Override
+			public String reconstitute(){
+				return HEAD_TOKEN + base.reconstitute();
+			}
+
+			@Override
+			public FSA build(RecursiveDescentBuildContext<FSA> context){
+				return base.build(context).optional();
+			}
+		};
 	}
 }

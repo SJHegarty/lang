@@ -1,22 +1,41 @@
 package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
-import majel.lang.descent.Handler;
-import majel.lang.descent.RecursiveDescentTokenStream;
+import majel.lang.descent.*;
+import majel.lang.util.TokenStream;
+
+import static majel.lang.descent.lithp.Lithp.*;
 
 public class Parenthesis implements Handler<FSA>{
 
 	@Override
 	public char headToken(){
-		return '(';
+		return OPENING_PARENTHESIS;
 	}
 
 	@Override
-	public FSA parse(RecursiveDescentTokenStream<FSA> tokens){
+	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
 		checkHead(tokens);
-		var parser = tokens.context().parser();
-		var result = parser.parseWhile(tokens, () -> tokens.peek() != ')');
+		var expressions = parser.parseUntil(tokens, CLOSING_PARENTHESIS);
 		tokens.poll();
-		return FSA.concatenate(result.toArray(FSA[]::new));
+		return new Expression<>(){
+			@Override
+			public String reconstitute(){
+				var builder = new StringBuilder().append(OPENING_PARENTHESIS);
+				for(var expr: expressions){
+					builder.append(expr.reconstitute());
+				}
+				return builder.append(CLOSING_PARENTHESIS).toString();
+			}
+
+			@Override
+			public FSA build(RecursiveDescentBuildContext<FSA> context){
+				return FSA.concatenate(
+					expressions.stream()
+						.map(expr -> expr.build(context))
+						.toArray(FSA[]::new)
+				);
+			}
+		};
 	}
 }

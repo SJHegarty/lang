@@ -4,10 +4,10 @@ $?~(std-in, <(long-buffer, #(1...4096, .))){
 	-- an idea around asserts:
 
 	$?~(long-buffer, @(line)){
-		~ <(ident, <(seg, *[a...z])*('-'@(seg)));
-		~ <(idents, ('['@(seg)*(', '@(seg))']));
+		~ <(ident, (<(seg, *[a...z])*('-'@(seg))));
+		~ <(idents, ('['@(ident)*(', '@(ident))']));
 
-		?~(line, <(command, (@(ident))?(' '<(params, *.)))){
+		?~(line, <(command, (@(ident))':'?(' '<(params, *.)))){
 			?~(command){
 				'echo' :: <<~ :: Echoing Input: @(params).
 				'help' :: <<: {
@@ -19,6 +19,51 @@ $?~(std-in, <(long-buffer, #(1...4096, .))){
 								echo: Yo.
 				}
 			}
+		}
+
+		result ~ Type :< ?:(some-obj, SomeClass){
+			<= some-obj.some-class-prop();
+		}&!{
+			<= some-obj.base-call();
+		}
+
+		$* :: exclusive switch - only the first path reached should run
+		?^~(some-string){
+			*[a...z]{
+				<<: :: lower case
+			}
+			*.{
+				<<: :: other strings.
+			}
+		}
+
+		$* :: inclusive switch - all paths run.
+
+		?~(some-string){
+			*[a...z]{
+				<<: :: lower case
+			}
+			*.{
+				<<: :: all strings.
+			}
+		}
+		&!{
+			<<: :: other strings
+		}
+
+		?-(some-flag){
+			do-things();
+		}
+
+		?:(some-obj, SomeClass){
+			some-obj.some-class-call();
+		}
+
+		?:(some-obj){
+			SomeClass {
+				.do-things();
+			}
+			SomeOtherClass :: .do-other-things();
 		}
 
 		?~(content, @(idents)){
@@ -36,6 +81,7 @@ $?~(std-in, <(long-buffer, #(1...4096, .))){
 			@guests ~ [ident] :< .new();
 			@alfred ~ <?butler>;
 			@robin ~ <?acrobat>;
+
 
 			--doesn't check for multiple alfreds/robins
 			@all-for-dinner.[

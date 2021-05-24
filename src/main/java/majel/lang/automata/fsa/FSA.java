@@ -5,12 +5,12 @@ import majel.util.functional.CharPredicate;
 import majel.util.functional.ObjectIntFunction;
 
 import java.util.*;
-import java.util.function.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.IntPredicate;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import static majel.util.functional.CharPredicate.*;
 
 public class FSA {
 
@@ -27,9 +27,9 @@ public class FSA {
 		this.entryPoint = entryPoint;
 	}
 
-	public FSA(CharPredicate predicate, String label) {
+	public FSA(CharPredicate predicate) {
 		this();
-		final var node = new SimpleNode(label, true);
+		final var node = new SimpleNode(true);
 		for (char c = 0; c < TABLE_SIZE; c++) {
 			if(predicate.test(c)){
 				entryPoint.transitions(c).add(node);;
@@ -37,7 +37,7 @@ public class FSA {
 		}
 	}
 
-	public static FSA literal(String label, String value){
+	public static FSA literal(String value){
 		var rv = new FSA();
 		var node = rv.entryPoint;
 		final int limit = value.length() - 1;
@@ -47,7 +47,7 @@ public class FSA {
 			node = next;
 		}
 		node.transitions(value.charAt(limit))
-			.add(new SimpleNode(label, true));
+			.add(new SimpleNode(true));
 
 		return rv;
 	}
@@ -67,26 +67,32 @@ public class FSA {
 	}
 
 	public FSA repeating(int lowerBound){
-		var machines = ObjectUtils.repeating(this, lowerBound);
-		final int limit = lowerBound - 1;
-		machines[limit] = machines[limit].kleene();
-		return concatenate(
-			layer -> layer == limit,
-			machines
-		);
+		return repeating(lowerBound, Integer.MAX_VALUE);
 	}
+
 	public FSA repeating(int lowerBound, int upperBound){
 		if((lowerBound|upperBound) < 0 || upperBound < lowerBound){
 			throw new IllegalArgumentException(
 				String.format("[%s, %s]", lowerBound, upperBound)
 			);
 		}
-		final FSA[] machines = ObjectUtils.repeating(this, upperBound);
-		int limit = lowerBound - 1;
-		return concatenate(
-			layer -> layer >= limit,
-			machines
-		);
+		if(upperBound == Integer.MAX_VALUE){
+			var machines = ObjectUtils.repeating(this, lowerBound);
+			final int limit = lowerBound - 1;
+			machines[limit] = machines[limit].kleene();
+			return concatenate(
+				layer -> layer == limit,
+				machines
+			);
+		}
+		else{
+			final FSA[] machines = ObjectUtils.repeating(this, upperBound);
+			int limit = lowerBound - 1;
+			return concatenate(
+				layer -> layer >= limit,
+				machines
+			);
+		}
 	}
 
 	public static FSA concatenate(IntPredicate elementTerminates, FSA...elements){

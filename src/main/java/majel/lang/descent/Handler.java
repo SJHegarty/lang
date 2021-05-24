@@ -10,5 +10,7 @@ public interface Handler<T>{
 
 	char headToken();
 
-	T parse(RecursiveDescentTokenStream<T> context);
+	Expression<T> parse(RecursiveDescentParser<T> parser, TokenStream tokens);
+
+
 }

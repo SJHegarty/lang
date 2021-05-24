@@ -2,22 +2,24 @@ package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
-import majel.lang.descent.Handler;
-import majel.lang.err.IllegalExpression;
-import majel.lang.descent.RecursiveDescentTokenStream;
+import majel.lang.descent.*;
 import majel.lang.util.TokenStream;
+
+import static majel.lang.descent.lithp.Lithp.*;
 
 public class Named implements Handler<FSA>{
 
+	private static final char HEAD_TOKEN = '<';
+
 	@Override
 	public char headToken(){
-		return '<';
+		return HEAD_TOKEN;
 	}
 
 	private transient StringProcessor processor;
 
 	@Override
-	public FSA parse(RecursiveDescentTokenStream<FSA> tokens){
+	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
 		if(processor == null){
 			var word = "(*[a...z]?[A...Z]?*[a...z])";
 			var expr = new StringBuilder()
@@ -27,38 +29,54 @@ public class Named implements Handler<FSA>{
 				.append(")");
 
 			processor = new StringProcessor(
-				tokens.parser().build(expr.toString())
+				parser.build(expr.toString())
 			);
 		}
 		checkHead(tokens);
-		tokens.read('(');
+		tokens.read(OPENING_PARENTHESIS);
 		var name = processor.process(tokens).value();
-		if(name.length() == 0){
-			throw new IllegalExpression(tokens);
-		}
-		tokens.read(", ");
-		var base = tokens.parse();
-		tokens.poll();
-		var lower = name.toLowerCase();
-		var rv = base.named(lower);
+		tokens.read(DELIMITER);
+		var base = parser.parse(tokens);
+		tokens.read(CLOSING_PARENTHESIS);
 
-		var shortForm = new StringBuilder();
-		for(String s: new TokenStream(name).split('-')){
-			var builder = new StringBuilder();
-			for(char c: s.toCharArray()){
-				if(Character.isUpperCase(c)){
-					builder.append(c);
+		return new Expression<>(){
+			@Override
+			public String reconstitute(){
+				return new StringBuilder()
+					.append(HEAD_TOKEN)
+					.append(OPENING_PARENTHESIS)
+					.append(name)
+					.append(DELIMITER)
+					.append(base.reconstitute())
+					.append(CLOSING_PARENTHESIS)
+					.toString();
+			}
+
+			@Override
+			public FSA build(RecursiveDescentBuildContext<FSA> context){
+
+				var lower = name.toLowerCase();
+				var rv = base.build(context).named(lower);
+
+				var shortForm = new StringBuilder();
+				for(String s: new TokenStream(name).split('-')){
+					final char segchar;
+					final char[] chars = s.toCharArray();
+					block:{
+						for(int i = 1; i < chars.length; i++){
+							if(Character.isUpperCase(chars[i])){
+								segchar = chars[i];
+								break block;
+							}
+						}
+						segchar = Character.toUpperCase(chars[0]);
+					}
+					shortForm.append(segchar);
 				}
+				context.register(lower, rv);
+				context.register(shortForm.toString(), rv);
+				return rv;
 			}
-			switch(builder.length()){
-				case 0: builder.append(Character.toUpperCase(s.charAt(0)));
-				case 1: break;
-				default: throw new IllegalExpression(tokens);
-			}
-			shortForm.append(builder);
-		}
-		tokens.context().register(lower, rv);
-		tokens.context().register(shortForm.toString(), rv);
-		return rv;
+		};
 	}
 }

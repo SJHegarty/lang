@@ -93,9 +93,9 @@ TODO:
 
 		System.err.println(lithpSrc);
 		lithpSrc.split("\n");
+		final var lithp = new Lithp();
 		var bench = LambdaUtils.benchmark(
 			() -> {
-				var lithp = new Lithp();
 				return lithp.buildContext(lithpSrc.split("\n"));
 			}
 		);
@@ -120,7 +120,8 @@ TODO:
 			"abcdef",
 			"abcdefg"
 		};
-		var parser = context.parse("+(@IT;, @DR;)");
+		var parser = lithp.parse("+(@IT;, @DR;)").build(context);
+
 		var processor = new StringProcessor(parser);
 		for(var s : samples){
 			var result = processor.process(s);
@@ -130,6 +131,11 @@ TODO:
 			System.err.println(s.equals(extract) + " " + subres.terminating() + " " + subres.labels() + " " + s + " -> " + extract);
 		}
 	}
+
+
+	public static final char OPENING_PARENTHESIS = '(';
+	public static final char CLOSING_PARENTHESIS = ')';
+	public static final String DELIMITER = ", ";
 
 	public Lithp(){
 		registerHandler(And::new);

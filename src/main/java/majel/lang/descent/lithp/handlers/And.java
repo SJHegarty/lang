@@ -1,21 +1,56 @@
 package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
+import majel.lang.descent.Expression;
 import majel.lang.descent.Handler;
-import majel.lang.descent.RecursiveDescentTokenStream;
+import majel.lang.descent.RecursiveDescentBuildContext;
+import majel.lang.descent.RecursiveDescentParser;
+import majel.lang.util.TokenStream;
+
+import static majel.lang.descent.lithp.Lithp.*;
 
 public class And implements Handler<FSA>{
 
+	private static final char HEAD_TOKEN = '&';
+
 	@Override
 	public char headToken(){
-		return '&';
+		return HEAD_TOKEN;
 	}
 
 	@Override
-	public FSA parse(RecursiveDescentTokenStream<FSA> tokens){
+	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
 		checkHead(tokens);
-		var parser = tokens.context().parser();
+		var elements = parser.parseList(
+			tokens,
+			OPENING_PARENTHESIS,
+			CLOSING_PARENTHESIS,
+			DELIMITER
+		);
+		return new Expression<>(){
+			@Override
+			public String reconstitute(){
+				return new StringBuilder()
+					.append(HEAD_TOKEN)
+					.append(
+						parser.reconstituteList(
+							elements,
+							OPENING_PARENTHESIS,
+							CLOSING_PARENTHESIS,
+							DELIMITER
+						)
+					)
+					.toString();
+			}
 
-		return FSA.and(parser.parseList(tokens).toArray(FSA[]::new));
+			@Override
+			public FSA build(RecursiveDescentBuildContext<FSA> context){
+				return FSA.and(
+					elements.stream()
+						.map(expr -> expr.build(context))
+						.toArray(FSA[]::new)
+				);
+			}
+		};
 	}
 }
