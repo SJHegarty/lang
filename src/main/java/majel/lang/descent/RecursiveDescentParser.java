@@ -13,6 +13,8 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static majel.lang.automata.fsa.FSA.TABLE_SIZE;
+
 /*
 	TODO:
  		Split the context into ExpressionContext and ParseContext.
@@ -33,17 +35,21 @@ public class RecursiveDescentParser<T>{
 
 	public void registerHandler(Supplier<Handler<T>> builder){
 		Handler<T> h = builder.get();
-		char headToken = h.headToken();
-		if(handlers[headToken] != null){
-			throw new UnsupportedOperationException(
-				String.format(
-					"%s already defined for head-token '%s'",
-					Handler.class.getSimpleName(),
-					headToken
-				)
-			);
+		for(int i = 0; i < TABLE_SIZE; i++){
+			char headToken = (char)i;
+			if(h.supportsHead(new TokenStream(Character.toString(headToken)))){
+				if(handlers[headToken] != null){
+					throw new UnsupportedOperationException(
+						String.format(
+							"%s already defined for head-token '%s'",
+							Handler.class.getSimpleName(),
+							headToken
+						)
+					);
+				}
+				handlers[headToken] = h;
+			}
 		}
-		handlers[headToken] = h;
 	}
 
 	public T build(String expression){

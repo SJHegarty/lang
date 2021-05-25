@@ -3,14 +3,14 @@ package majel.lang.descent.lithp.handlers;
 import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
 import majel.lang.descent.Expression;
-import majel.lang.descent.Handler;
+import majel.lang.descent.CharHandler;
 import majel.lang.descent.RecursiveDescentBuildContext;
 import majel.lang.descent.RecursiveDescentParser;
 import majel.lang.util.TokenStream;
 
 import static majel.lang.descent.lithp.Lithp.*;
 
-public class Named implements Handler<FSA>{
+public class Named implements CharHandler<FSA>{
 
 	private static final char HEAD_TOKEN = '<';
 

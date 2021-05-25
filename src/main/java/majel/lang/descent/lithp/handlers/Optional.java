@@ -2,12 +2,12 @@ package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
 import majel.lang.descent.Expression;
-import majel.lang.descent.Handler;
+import majel.lang.descent.CharHandler;
 import majel.lang.descent.RecursiveDescentBuildContext;
 import majel.lang.descent.RecursiveDescentParser;
 import majel.lang.util.TokenStream;
 
-public class Optional implements Handler<FSA>{
+public class Optional implements CharHandler<FSA>{
 
 	private static final char HEAD_TOKEN = '?';
 

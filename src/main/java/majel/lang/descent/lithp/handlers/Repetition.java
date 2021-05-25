@@ -1,10 +1,7 @@
 package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
-import majel.lang.descent.Expression;
-import majel.lang.descent.Handler;
-import majel.lang.descent.RecursiveDescentBuildContext;
-import majel.lang.descent.RecursiveDescentParser;
+import majel.lang.descent.*;
 import majel.lang.err.IllegalToken;
 import majel.lang.util.TokenStream;
 import majel.util.functional.CharPredicate;
@@ -13,7 +10,7 @@ import java.util.function.IntSupplier;
 
 import static majel.lang.descent.lithp.Lithp.*;
 
-public class Repetition implements Handler<FSA>{
+public class Repetition implements CharHandler<FSA>{
 
 	private static final CharPredicate DIGITS = CharPredicate.inclusiveRange('0', '9');
 	private static final char HEAD_TOKEN = '#';

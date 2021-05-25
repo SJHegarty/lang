@@ -2,7 +2,7 @@ package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.FSA;
 import majel.lang.descent.Expression;
-import majel.lang.descent.Handler;
+import majel.lang.descent.CharHandler;
 import majel.lang.descent.RecursiveDescentBuildContext;
 import majel.lang.descent.RecursiveDescentParser;
 import majel.lang.util.TokenStream;
@@ -10,7 +10,7 @@ import majel.lang.util.TokenStream;
 import java.util.List;
 
 import static majel.lang.descent.lithp.Lithp.*;
-public class Or implements Handler<FSA>{
+public class Or implements CharHandler<FSA>{
 
 	private static final char HEAD_TOKEN = '+';
 
