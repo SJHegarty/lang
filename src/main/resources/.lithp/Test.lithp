@@ -1,0 +1,6 @@
+<(lower-case, [a...z])
+<(upper-case, [A...Z])
+<(ident-word, *@LC;)
+<(class-word, (@UC;@IW;))
+<(ident, (@IW;*('-'@IW;)))
+<(class, *@CW;)

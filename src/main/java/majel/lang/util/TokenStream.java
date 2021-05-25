@@ -32,11 +32,20 @@ public class TokenStream{
 		return index >= tokens.length;
 	}
 
-	public void read(CharPredicate predicate){
+	public char read(CharPredicate predicate){
 		var token = poll();
 		if(!predicate.test(token)){
 			throw new IllegalToken(this);
 		}
+		return token;
+	}
+
+	public String readWhile(CharPredicate predicate){
+		var builder = new StringBuilder();
+		while(!empty() && predicate.test(peek())){
+			builder.append(poll());
+		}
+		return builder.toString();
 	}
 
 	public void read(char expected){
