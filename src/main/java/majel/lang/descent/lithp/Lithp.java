@@ -2,6 +2,7 @@ package majel.lang.descent.lithp;
 
 import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
+import majel.lang.descent.LA1Handler;
 import majel.lang.descent.RecursiveDescentParser;
 import majel.lang.descent.lithp.handlers.*;
 import majel.lang.err.IllegalToken;
@@ -137,19 +138,25 @@ TODO:
 	public static final String DELIMITER = ", ";
 
 	public Lithp(){
-		registerHandler(And::new);
-		registerHandler(Literal::new);
-		registerHandler(Kleene::new);
-		registerHandler(Negation::new);
-		registerHandler(Parenthesis::new);
-		registerHandler(Or::new);
-		registerHandler(AndNot::new);
-		registerHandler(Optional::new);
-		registerHandler(WildCard::new);
-		registerHandler(Range::new);
-		registerHandler(Repetition::new);
-		registerHandler(Named::new);
-		registerHandler(Lookup::new);
+		super(
+			new LA1Handler<>(){
+				{
+					registerHandler(And::new);
+					registerHandler(Literal::new);
+					registerHandler(Kleene::new);
+					registerHandler(Negation::new);
+					registerHandler(Parenthesis::new);
+					registerHandler(Or::new);
+					registerHandler(AndNot::new);
+					registerHandler(Optional::new);
+					registerHandler(WildCard::new);
+					registerHandler(Range::new);
+					registerHandler(Repetition::new);
+					registerHandler(Named::new);
+					registerHandler(Lookup::new);
+				}
+			}
+		);
 	}
 
 	public static char parseLiteral(TokenStream tokens){

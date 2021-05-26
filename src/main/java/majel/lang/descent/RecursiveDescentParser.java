@@ -27,29 +27,10 @@ import static majel.lang.automata.fsa.FSA.TABLE_SIZE;
  */
 public class RecursiveDescentParser<T>{
 
-	private final Handler<T>[] handlers;
-
-	public RecursiveDescentParser(){
-		handlers = new Handler[256];
-	}
-
-	public void registerHandler(Supplier<Handler<T>> builder){
-		Handler<T> h = builder.get();
-		for(int i = 0; i < TABLE_SIZE; i++){
-			char headToken = (char)i;
-			if(h.supportsHead(new TokenStream(Character.toString(headToken)))){
-				if(handlers[headToken] != null){
-					throw new UnsupportedOperationException(
-						String.format(
-							"%s already defined for head-token '%s'",
-							Handler.class.getSimpleName(),
-							headToken
-						)
-					);
-				}
-				handlers[headToken] = h;
-			}
-		}
+	private final HandlerSelector<T> selector;
+	public RecursiveDescentParser(HandlerSelector<T> selector){
+		//handlers = new Handler[256];
+		this.selector = selector;
 	}
 
 	public T build(String expression){
@@ -80,6 +61,7 @@ public class RecursiveDescentParser<T>{
 
 	public Expression<T> parse(String expression){
 		var rv = parse(new TokenStream(expression));
+		System.err.println(rv.reconstitute());
 		if(!rv.reconstitute().equals(expression)){
 			throw new IllegalStateException();
 		}
@@ -88,7 +70,7 @@ public class RecursiveDescentParser<T>{
 
 	public Expression<T> parse(TokenStream tokens){
 		var mark = tokens.mark();
-		var handler = handlers[tokens.peek()];
+		var handler = selector.markedHandlerFor(tokens);
 		if(handler == null){
 			throw new IllegalToken(tokens);
 		}
