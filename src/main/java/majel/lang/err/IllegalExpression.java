@@ -4,6 +4,6 @@ import majel.lang.util.TokenStream;
 
 public class IllegalExpression extends ParseException{
 	public IllegalExpression(TokenStream tokens){
-		super(tokens.expression());
+		super(tokens.remaining());
 	}
 }

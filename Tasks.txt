@@ -1,0 +1,26 @@
+Expression selection and consequently the indent parsing implementation in process (based upon it) are completely borked for now; this is not yet a huge problem since it's still advising me on reasonable changes to include in the underlying API.
+
+The next set of changes to make is to attempt the unification of the parser APIs; right now there are two implementations:
+ - The first implementation is based on the parsing of the primitive TokenStream.
+ - The second currently lacks a token stream.
+
+The unification of the two is reasonable simple:
+ - Provide a wrapper class to primitive processors that implements the MajelStream<SimpleToken> interface.
+ - Provide a machine with minimal complexity and reasonable capabilities that is a ByteCharStream and deals in byte-chars directly.
+ - When feeding the MajelStream<SimpleToken> into the wrapper class, it is unwound:
+  - A type check maps it:
+   - If it is a wrapped ByteCharStream it is simply unwrapped.
+   - If it is not, then it is wrapped in an interface which implements ByteCharStream
+   The ByteCharStream that has been configured can then be fed into the wrapped primitive processor (ByteCharParser)  
+
+(With the ideal runtime, it could be detected that this was occurring, and the primitive implementation could be auto-generated.)   
+The first step in this is to fix the ByteCharStream implementation.
+Currently it's a class, not an interface and simply contains a char[].
+
+The current parser conflates the parsing and construction by storing them in the same interface.
+Split the two apart in the Lithp parser - the other nice thing here is that it makes the temporal structure of the program more reflective of the order of definition.
+
+The two new classes can actually share the same interface:
+	SimpleStream -> MajelStream<SimpleToken> -> MajelStream<LithpToken> -> MajelStream<FSA>
+This final stream could be concatenated, made deterministic etc.
+ 

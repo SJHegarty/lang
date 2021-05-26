@@ -5,10 +5,7 @@ import majel.lang.err.ParseException;
 import majel.lang.util.TokenStream;
 import majel.util.functional.CharPredicate;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -38,7 +35,7 @@ public class RecursiveDescentParser<T>{
 	}
 
 	public RecursiveDescentBuildContext<T> buildContext(String...expressions){
-		var rv = new RecursiveDescentBuildContext<>(this, new TreeMap<>());
+		var rv = new RecursiveDescentBuildContext<>(this, new LinkedHashMap<>());
 		Stream.of(expressions).forEach(rv::build);
 		return rv;
 	}

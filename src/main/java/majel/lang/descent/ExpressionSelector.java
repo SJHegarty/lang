@@ -2,25 +2,29 @@ package majel.lang.descent;
 
 import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.Node;
+import majel.lang.automata.fsa.StringProcessor;
 import majel.lang.descent.lithp.Lithp;
+import majel.lang.err.IllegalExpression;
 import majel.lang.util.TokenStream;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ExpressionSelector<T> implements HandlerSelector<T>{
 
-	private boolean validated = true;
-	private final List<ExpressionHandler<T>> handlers = new ArrayList<>();
+	private final Map<String, ExpressionHandler<T>> handlers = new HashMap<>();
+	private StringProcessor processor;
 
 	protected void registerHandler(ExpressionHandler<T> handler){
-		validated = false;
-		handlers.add(handler);
+		processor = null;
+		handlers.put(Long.toString(System.nanoTime()), handler);
 	}
 
 	protected void validate(){
-		if(validated){
+		if(processor != null){
 			return;
 		}
 		final FSA tail = new Lithp().build("?*.");
@@ -29,11 +33,14 @@ public class ExpressionSelector<T> implements HandlerSelector<T>{
 			build a lookup table mapping generated named to parsers.
 			Lookup is performed by getting the name associate with the terminating state of the found machine.
 		*/
-		final FSA[] extended = handlers.stream()
+		final FSA[] extended = handlers.entrySet().stream()
 			.map(
-				h -> FSA
-					.concatenate(h.headProcessor().automaton(), tail)
-					.named(Long.toString(System.currentTimeMillis()))
+				entry -> FSA
+					.concatenate(
+						entry.getValue().headProcessor().automaton(),
+						tail
+					)
+					.named(entry.getKey())
 			)
 			.toArray(FSA[]::new);
 
@@ -46,14 +53,31 @@ public class ExpressionSelector<T> implements HandlerSelector<T>{
 		if(!collisions.isEmpty()){
 			throw new IllegalStateException(collisions.toString());
 		}
-		validated = true;
+
+		this.processor = new StringProcessor(
+			FSA.or(
+				handlers.entrySet().stream()
+					.map(
+						entry -> entry.getValue().headProcessor().automaton().named(entry.getKey())
+					)
+					.toArray(FSA[]::new)
+			)
+		);
 	}
 
 	@Override
 	public Handler<T> handlerFor(TokenStream tokens){
-		if(!validated){
+		if(processor == null){
 			throw new IllegalStateException();
 		}
-		return null;
+		var mark = tokens.mark();
+		for(var label: processor.process(tokens).node().labels()){
+			var handler = handlers.get(label);
+			if(handler != null){
+				return handler;
+			}
+		}
+		mark.reset();
+		throw new IllegalExpression(tokens);
 	}
 }

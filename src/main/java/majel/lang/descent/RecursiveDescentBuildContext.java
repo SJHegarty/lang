@@ -1,12 +1,13 @@
 package majel.lang.descent;
 
+import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.function.IntFunction;
 
 public record RecursiveDescentBuildContext<T>(
 	RecursiveDescentParser<T> parser,
-	SortedMap<String, T> namedInstances
+	LinkedHashMap<String, T> namedInstances
 ){
 	public T named(String name){
 		return Optional
