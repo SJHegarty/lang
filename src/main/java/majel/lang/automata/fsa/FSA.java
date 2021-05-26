@@ -276,7 +276,7 @@ public class FSA {
 		return rv;
 	}
 
-	Set<SimpleNode> nodes(){
+	public Set<SimpleNode> nodes(){
 		final var rv = new HashSet<SimpleNode>();
 		final var queue = new ArrayDeque<SimpleNode>();
 
@@ -291,7 +291,7 @@ public class FSA {
 				.forEach(queue::add);
 		}
 
-		return rv;
+		return Collections.unmodifiableSet(rv);
 	}
 
 	public FSA named(String name){

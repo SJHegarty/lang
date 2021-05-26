@@ -2,7 +2,7 @@ package majel.lang.descent.lithp;
 
 import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
-import majel.lang.descent.LA1Handler;
+import majel.lang.descent.LA1Selector;
 import majel.lang.descent.RecursiveDescentParser;
 import majel.lang.descent.lithp.handlers.*;
 import majel.lang.err.IllegalToken;
@@ -92,6 +92,7 @@ TODO:
 			<(bnd, #(3...5, [a...g]))
 			<(fix, #(3, [a...z]))
 			<(unb, #(4+, *.))
+			<(nothing-else, !@.;)
 			""";
 
 		System.err.println(lithpSrc);
@@ -139,7 +140,7 @@ TODO:
 
 	public Lithp(){
 		super(
-			new LA1Handler<>(){
+			new LA1Selector<>(){
 				{
 					registerHandler(And::new);
 					registerHandler(Literal::new);
@@ -168,7 +169,7 @@ TODO:
 				throw new IllegalToken(tokens);
 			}
 			case '\\' -> {
-				yield switch(tokens.peek()){
+				yield switch(tokens.poll()){
 					case 't' -> '\t';
 					case 'n' -> '\n';
 					case '\\' -> '\\';

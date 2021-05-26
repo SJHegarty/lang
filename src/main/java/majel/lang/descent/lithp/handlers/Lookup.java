@@ -23,6 +23,24 @@ public class Lookup implements CharHandler<FSA>{
 
 	@Override
 	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
+		checkHead(tokens);
+
+		if(tokens.peek() == '.'){
+			final String body = ".;";
+			tokens.read(body);
+			return new Expression<>(){
+				@Override
+				public String reconstitute(){
+					return headToken() + body;
+				}
+
+				@Override
+				public FSA build(RecursiveDescentBuildContext<FSA> context){
+					return FSA.or(context.machines(FSA[]::new));
+				}
+			};
+		}
+
 		if(processor == null){
 			var exprLC = "(*[a...z]?*('-'*[a...z]))";
 			var exprUC = "*[A...Z]";
@@ -31,7 +49,6 @@ public class Lookup implements CharHandler<FSA>{
 				parser.build(expr)
 			);
 		}
-		checkHead(tokens);
 		var name = processor.process(tokens).value();
 		if(name.length() == 0){
 			throw new IllegalExpression(tokens);

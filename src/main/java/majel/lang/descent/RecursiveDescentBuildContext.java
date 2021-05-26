@@ -2,6 +2,7 @@ package majel.lang.descent;
 
 import java.util.Optional;
 import java.util.SortedMap;
+import java.util.function.IntFunction;
 
 public record RecursiveDescentBuildContext<T>(
 	RecursiveDescentParser<T> parser,
@@ -32,5 +33,9 @@ public record RecursiveDescentBuildContext<T>(
 
 	public T build(Expression<T> expression){
 		return expression.build(this);
+	}
+
+	public T[] machines(IntFunction<T[]> generator){
+		return namedInstances.values().toArray(generator);
 	}
 }

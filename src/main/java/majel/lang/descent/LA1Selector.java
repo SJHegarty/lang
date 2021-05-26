@@ -6,10 +6,10 @@ import java.util.function.Supplier;
 
 import static majel.lang.automata.fsa.FSA.TABLE_SIZE;
 
-public class LA1Handler<T> implements HandlerSelector<T>{
+public class LA1Selector<T> implements HandlerSelector<T>{
 	private final Handler<T>[] handlers;
 
-	public LA1Handler(){
+	public LA1Selector(){
 		this.handlers = new Handler[256];
 	}
 

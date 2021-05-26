@@ -63,6 +63,7 @@ public class RecursiveDescentParser<T>{
 		var rv = parse(new TokenStream(expression));
 		System.err.println(rv.reconstitute());
 		if(!rv.reconstitute().equals(expression)){
+			rv.reconstitute();
 			throw new IllegalStateException();
 		}
 		return rv;

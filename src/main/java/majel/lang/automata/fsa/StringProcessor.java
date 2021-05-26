@@ -43,4 +43,8 @@ public class StringProcessor{
 	public record Blah(String value, Node node){
 
 	}
+
+	public FSA automaton(){
+		return automaton;
+	}
 }

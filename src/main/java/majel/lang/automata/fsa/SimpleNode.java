@@ -4,7 +4,7 @@ import majel.util.functional.CharPredicate;
 
 import java.util.*;
 
-class SimpleNode implements Node{
+public class SimpleNode implements Node{
 	/*
 	TODO:
 		Don't just return the ProxySet, allow a SetBuilder to be passed into the constructor
