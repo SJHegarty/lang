@@ -62,7 +62,7 @@ public class Named implements CharHandler<FSA>{
 				var rv = base.build(context).named(lower);
 
 				var shortForm = new StringBuilder();
-				for(String s: new TokenStream(name).split('-')){
+				for(String s: TokenStream.from(name).split('-')){
 					final char segchar;
 					final char[] chars = s.toCharArray();
 					block:{

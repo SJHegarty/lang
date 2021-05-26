@@ -22,7 +22,7 @@ public class LA1Selector<T> implements HandlerSelector<T>{
 		Handler<T> h = builder.get();
 		for(int i = 0; i < TABLE_SIZE; i++){
 			char headToken = (char)i;
-			if(h.supportsHead(new TokenStream(Character.toString(headToken)))){
+			if(h.supportsHead(TokenStream.of(headToken))){
 				if(handlers[headToken] != null){
 					throw new UnsupportedOperationException(
 						String.format(

@@ -37,7 +37,7 @@ public class StringProcessor{
 	}
 
 	public Blah process(String value){
-		return process(new TokenStream(value));
+		return process(TokenStream.from(value));
 	}
 
 	public record Blah(String value, Node node){

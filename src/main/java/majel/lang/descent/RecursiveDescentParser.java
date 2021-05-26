@@ -57,7 +57,7 @@ public class RecursiveDescentParser<T>{
 	}
 
 	public Expression<T> parse(String expression){
-		var rv = parse(new TokenStream(expression));
+		var rv = parse(TokenStream.from(expression));
 		System.err.println(rv.reconstitute());
 		if(!rv.reconstitute().equals(expression)){
 			rv.reconstitute();

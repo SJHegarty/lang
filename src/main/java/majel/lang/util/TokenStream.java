@@ -1,38 +1,55 @@
 package majel.lang.util;
 
-import majel.lang.err.IllegalEndOfStream;
 import majel.lang.err.IllegalToken;
 import majel.util.functional.CharPredicate;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-public class TokenStream{
-	private final char[] tokens;
-	private int index;
-
-	public TokenStream(String expression){
-		this.tokens = expression.toCharArray();
+public interface TokenStream{
+	static TokenStream from(String value){
+		return TokenStream.of(value.toCharArray());
 	}
 
-	public char peek(){
-		if(empty()){
-			throw new IllegalEndOfStream();
-		}
-		return tokens[index];
+	static TokenStream of(char...tokens){
+
+		return new TokenStream(){
+			private int index;
+
+			@Override
+			public char peek(){
+				return tokens[index];
+			}
+
+			@Override
+			public char poll(){
+				return tokens[index++];
+			}
+
+			@Override
+			public boolean empty(){
+				return index >= tokens.length;
+			}
+
+			@Override
+			public Mark mark(){
+				final int mark = index;
+				return () -> index = mark;
+			}
+		};
 	}
 
-	public char poll(){
-		char rv = peek();
-		index++;
-		return rv;
+	char peek();
+	char poll();
+	boolean empty();
+
+	interface Mark{
+		void reset();
 	}
 
-	public boolean empty(){
-		return index >= tokens.length;
-	}
+	Mark mark();
 
-	public char read(CharPredicate predicate){
+	default char read(CharPredicate predicate){
 		var token = poll();
 		if(!predicate.test(token)){
 			throw new IllegalToken(this);
@@ -40,7 +57,7 @@ public class TokenStream{
 		return token;
 	}
 
-	public String readWhile(CharPredicate predicate){
+	default String readWhile(CharPredicate predicate){
 		var builder = new StringBuilder();
 		while(!empty() && predicate.test(peek())){
 			builder.append(poll());
@@ -48,44 +65,27 @@ public class TokenStream{
 		return builder.toString();
 	}
 
-	public void read(char expected){
+	default void read(char expected){
 		read(c -> c == expected);
 	}
 
-	public void read(String expected){
+	default void read(String expected){
 		for(char c : expected.toCharArray()){
 			read(c);
 		}
 	}
 
-	public class Mark{
-		final int mark;
-
-		public Mark(){
-			this.mark = index;
+	default String remaining(){
+		var mark = mark();
+		var builder = new StringBuilder();
+		while(!empty()){
+			builder.append(poll());
 		}
-
-		public void reset(){
-			index = mark;
-		}
+		mark.reset();
+		return builder.toString();
 	}
 
-	public Mark mark(){
-		return new Mark();
-	}
-
-	public String expression(){
-		return new String(tokens);
-	}
-
-	public String remaining(){
-		return expression().substring(index);
-	}
-	public int index(){
-		return index;
-	}
-
-	public String[] split(char separator){
+	default String[] split(char separator){
 		var results = new ArrayList<String>();
 		Consumer<StringBuilder> addOp = builder -> {
 			var built = builder.toString();
