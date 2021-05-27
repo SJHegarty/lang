@@ -22,7 +22,7 @@ public interface StreamParser<S extends Token, D extends Token>{
 
 		final int limit = (eSize < rSize) ? eSize : rSize;
 		for(int i = 0; i < limit; i++){
-			if(!elements[i].eq(reconstituted.get(i))){
+			if(!elements[i].equals(reconstituted.get(i))){
 				return i;
 			}
 		}

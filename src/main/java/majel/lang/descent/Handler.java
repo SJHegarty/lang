@@ -2,19 +2,19 @@ package majel.lang.descent;
 
 import majel.lang.err.IllegalToken;
 import majel.lang.util.TokenStream;
+import majel.stream.Token;
 
-public interface Handler<T>{
+public interface Handler<S extends Token, T extends Token>{
 
-	default void checkHead(TokenStream tokens){
+	default void checkHead(TokenStream<S> tokens){
 		if(!supportsHead(tokens)){
 			throw new IllegalToken(tokens);
 		}
 		tokens.poll();
 	}
 
-	boolean supportsHead(TokenStream tokens);
+	boolean supportsHead(TokenStream<S> tokens);
 
-	Expression<T> parse(RecursiveDescentParser<T> parser, TokenStream tokens);
-
+	T parse(TokenStream<S> tokens, TokenStream<T> parsed);
 
 }

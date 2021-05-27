@@ -1,5 +1,6 @@
 package majel.lang.automata.fsa;
 
+import majel.stream.Token;
 import majel.util.ObjectUtils;
 import majel.util.functional.CharPredicate;
 import majel.util.functional.ObjectIntFunction;
@@ -12,7 +13,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class FSA {
+public class FSA implements Token{
 
 	public static final char LAMBDA = '^';
 	public static final int TABLE_SIZE = 0x100;
@@ -52,6 +53,9 @@ public class FSA {
 		return rv;
 	}
 
+	public static FSA concatenate(List<FSA> elements){
+		return concatenate(elements.toArray(FSA[]::new));
+	}
 	public static FSA concatenate(FSA...elements){
 		return switch(elements.length){
 			case 0 -> new FSA();
@@ -156,6 +160,10 @@ public class FSA {
 	}
 
 	public static FSA or(FSA... elements){
+		return or(Arrays.asList(elements));
+	}
+
+	public static FSA or(List<FSA> elements){
 		var rv = new FSA();
 		var l = rv.entryPoint.transitions(LAMBDA);
 
@@ -197,11 +205,15 @@ public class FSA {
 	}
 
 	public static FSA and(FSA...elements){
+		return and(Arrays.asList(elements));
+	}
+
+	public static FSA and(List<FSA> elements){
 		for(var e: elements){
 			e.complete();
 		}
 		var not = or(
-			Stream.of(elements)
+			elements.stream()
 				.map(FSA::negate)
 				.toArray(FSA[]::new)
 		);

@@ -1,8 +1,12 @@
 package majel.lang.descent;
 
+import majel.lang.Parser;
 import majel.lang.err.IllegalToken;
 import majel.lang.err.ParseException;
+import majel.lang.util.Mark;
+import majel.lang.util.SimpleTokenStream;
 import majel.lang.util.TokenStream;
+import majel.stream.Token;
 import majel.util.functional.CharPredicate;
 
 import java.util.*;
@@ -22,41 +26,41 @@ import static majel.lang.automata.fsa.FSA.TABLE_SIZE;
  			Likewise @some-name; should not lookup some-name until later in the process.
  			The context containing a Map<name:String, Expression> should not be accessible until semantic processing is occurring.
  */
-public class RecursiveDescentParser<T>{
+public class RecursiveDescentParser<S extends Token, T extends Token> implements Parser<S, T>{
 
-	private final HandlerSelector<T> selector;
-	public RecursiveDescentParser(HandlerSelector<T> selector){
+	private final HandlerSelector<S, T> selector;
+	public RecursiveDescentParser(HandlerSelector<S, T> selector){
 		//handlers = new Handler[256];
 		this.selector = selector;
 	}
 
-	public T build(String expression){
+	/*public T build(String expression){
 		return buildContext().build(expression);
-	}
+	}*/
 
-	public RecursiveDescentBuildContext<T> buildContext(String...expressions){
+	/*public RecursiveDescentBuildContext<T> buildContext(String...expressions){
 		var rv = new RecursiveDescentBuildContext<>(this, new LinkedHashMap<>());
 		Stream.of(expressions).forEach(rv::build);
 		return rv;
-	}
+	}*/
 
-	public List<Expression<T>> parseUntil(TokenStream tokens, char c){
+	/*public List<Expression<T>> parseUntil(SimpleTokenStream tokens, char c){
 		return parseWhile(tokens, t -> t != c);
-	}
+	}*/
 
-	public List<Expression<T>> parseWhile(TokenStream tokens, CharPredicate predicate){
+	/*public List<Expression<T>> parseWhile(SimpleTokenStream tokens, CharPredicate predicate){
 		return parseWhile(tokens, () -> predicate.test(tokens.peek()));
-	}
+	}*/
 
-	public List<Expression<T>> parseWhile(TokenStream tokens, BooleanSupplier terminator){
+	/*public List<Expression<T>> parseWhile(SimpleTokenStream tokens, BooleanSupplier terminator){
 		var elements = new ArrayList<Expression<T>>();
 		while(terminator.getAsBoolean()){
 			elements.add(parse(tokens));
 		}
 		return Collections.unmodifiableList(elements);
-	}
+	}*/
 
-	public Expression<T> parse(String expression){
+	/*public Expression<T> parse(String expression){
 		var rv = parse(TokenStream.from(expression));
 		System.err.println(rv.reconstitute());
 		if(!rv.reconstitute().equals(expression)){
@@ -64,27 +68,9 @@ public class RecursiveDescentParser<T>{
 			throw new IllegalStateException();
 		}
 		return rv;
-	}
+	}*/
 
-	public Expression<T> parse(TokenStream tokens){
-		var mark = tokens.mark();
-		var handler = selector.markedHandlerFor(tokens);
-		if(handler == null){
-			throw new IllegalToken(tokens);
-		}
-		try{
-			return handler.parse(this, tokens);
-		}
-		catch(ParseException e){
-			throw e;
-		}
-		catch(RuntimeException e){
-			mark.reset();
-			throw new IllegalToken(tokens);
-		}
-	}
-
-	public List<Expression<T>> parseList(
+	/*public List<Expression<T>> parseList(
 		TokenStream tokens,
 		char openingParenthesis,
 		char closingParenthesis,
@@ -121,6 +107,47 @@ public class RecursiveDescentParser<T>{
 		return builder
 			.append(closingParenthesis)
 			.toString();
-	}
+	}*/
 
+	@Override
+	public TokenStream<T> parse(TokenStream<S> tokens){
+		return new TokenStream<T>(){
+			@Override
+			public T peek(){
+				var mark = tokens.mark();
+				var rv = poll();
+				mark.reset();
+				return rv;
+			}
+
+			@Override
+			public T poll(){
+				var mark = tokens.mark();
+				var handler = selector.markedHandlerFor(tokens);
+				if(handler == null){
+					throw new IllegalToken(tokens);
+				}
+				//try{
+					return handler.parse(tokens, this);
+				//}
+				/*catch(ParseException e){
+					throw e;
+				}
+				catch(RuntimeException e){
+					mark.reset();
+					throw new IllegalToken(tokens);
+				}*/
+			}
+
+			@Override
+			public boolean empty(){
+				return tokens.empty();
+			}
+
+			@Override
+			public Mark mark(){
+				return tokens.mark();
+			}
+		};
+	}
 }

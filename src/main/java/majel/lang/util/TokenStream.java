@@ -1,28 +1,104 @@
 package majel.lang.util;
 
+import majel.lang.automata.fsa.FSA;
 import majel.lang.err.IllegalToken;
+import majel.stream.SimpleToken;
+import majel.stream.Token;
 import majel.util.functional.CharPredicate;
 
-import java.util.ArrayList;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
-public interface TokenStream{
-	static TokenStream from(String value){
-		return TokenStream.of(value.toCharArray());
+public interface TokenStream<T extends Token> extends Iterable<T>{
+
+	T peek();
+	T poll();
+	boolean empty();
+	Mark mark();
+
+	default T read(Predicate<T> predicate){
+		var token = poll();
+		if(!predicate.test(token)){
+			throw new IllegalToken(this);
+		}
+		return token;
 	}
 
-	static TokenStream of(char...tokens){
+	default List<T> readWhile(Predicate<T> predicate){
+		var results = new ArrayList<T>();
+		while(!empty()){
+			var mark = mark();
+			var next = poll();
+			if(predicate.test(next)){
+				results.add(next);
+			}
+			else{
+				mark.reset();
+				break;
+			}
+		}
+		return Collections.unmodifiableList(results);
+	}
 
-		return new TokenStream(){
-			private int index;
+	default void read(T expected){
+		read(t -> t.equals(expected));
+	}
+
+	default TokenStream<T> concat(Supplier<TokenStream<T>> continuation){
+		final var wrapped = this;
+		return new TokenStream<T>(){
+			TokenStream<T> built;
+
+			TokenStream<T> source(){
+				if(built == null){
+					if(wrapped.empty()){
+						built = continuation.get();
+						if(built == null){
+							throw new IllegalStateException();
+						}
+					}
+					else{
+						return wrapped;
+					}
+				}
+				return built;
+			}
 
 			@Override
-			public char peek(){
+			public T peek(){
+				return source().peek();
+			}
+
+			@Override
+			public T poll(){
+				return source().poll();
+			}
+
+			@Override
+			public boolean empty(){
+				return source().empty();
+			}
+
+			@Override
+			public Mark mark(){
+				return source().mark();
+			}
+		};
+	}
+
+	static <T extends Token> TokenStream<T> of(T... tokens){
+		return new TokenStream<T>(){
+			int index;
+			@Override
+			public T peek(){
 				return tokens[index];
 			}
 
 			@Override
-			public char poll(){
+			public T poll(){
 				return tokens[index++];
 			}
 
@@ -39,75 +115,77 @@ public interface TokenStream{
 		};
 	}
 
-	char peek();
-	char poll();
-	boolean empty();
+	@Override
+	default Iterator<T> iterator(){
+		return new Iterator<>(){
+			@Override
+			public boolean hasNext(){
+				return !TokenStream.this.empty();
+			}
 
-	interface Mark{
-		void reset();
-	}
-
-	Mark mark();
-
-	default char read(CharPredicate predicate){
-		var token = poll();
-		if(!predicate.test(token)){
-			throw new IllegalToken(this);
-		}
-		return token;
-	}
-
-	default String readWhile(CharPredicate predicate){
-		var builder = new StringBuilder();
-		while(!empty() && predicate.test(peek())){
-			builder.append(poll());
-		}
-		return builder.toString();
-	}
-
-	default void read(char expected){
-		read(c -> c == expected);
-	}
-
-	default void read(String expected){
-		for(char c : expected.toCharArray()){
-			read(c);
-		}
-	}
-
-	default String remaining(){
-		var mark = mark();
-		var builder = new StringBuilder();
-		while(!empty()){
-			builder.append(poll());
-		}
-		mark.reset();
-		return builder.toString();
-	}
-
-	default String[] split(char separator){
-		var results = new ArrayList<String>();
-		Consumer<StringBuilder> addOp = builder -> {
-			var built = builder.toString();
-			if(built.length() != 0){
-				results.add(built);
+			@Override
+			public T next(){
+				return TokenStream.this.poll();
 			}
 		};
-		outer:for(;;){
-			var builder = new StringBuilder();
-			for(;;){
-				if(empty()){
-					addOp.accept(builder);
-					break outer;
-				}
-				char c = poll();
-				if(c == separator){
-					addOp.accept(builder);
-					break;
-				}
-				builder.append(c);
+	}
+
+	default <D extends Token> TokenStream<D> map(Function<T, D> mapper){
+		var wrapped = this;
+		return new TokenStream<D>(){
+			@Override
+			public D peek(){
+				return mapper.apply(wrapped.peek());
 			}
+
+			@Override
+			public D poll(){
+				return mapper.apply(wrapped.poll());
+			}
+
+			@Override
+			public boolean empty(){
+				return wrapped.empty();
+			}
+
+			@Override
+			public Mark mark(){
+				return wrapped.mark();
+			}
+		};
+	}
+
+	default <C extends Collection<T>> C collect(Supplier<C> builder){
+		var rv = builder.get();
+		for(var t: this){
+			rv.add(t);
 		}
-		return results.toArray(String[]::new);
+		return rv;
+	}
+
+	static <T extends Token> TokenStream<T> from(List<T> elements){
+		return new TokenStream<T>(){
+			int index;
+			@Override
+			public T peek(){
+				return elements.get(index);
+			}
+
+			@Override
+			public T poll(){
+				return elements.get(index++);
+			}
+
+			@Override
+			public boolean empty(){
+				return index >= elements.size();
+			}
+
+			@Override
+			public Mark mark(){
+				final int mark = index;
+				return () -> index = mark;
+			}
+		};
 	}
 }

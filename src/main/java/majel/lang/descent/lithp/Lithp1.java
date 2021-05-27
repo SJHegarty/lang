@@ -1,15 +1,15 @@
 package majel.lang.descent.lithp;
 
-import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
 import majel.lang.descent.LA1Selector;
 import majel.lang.descent.RecursiveDescentParser;
 import majel.lang.descent.lithp.handlers.*;
 import majel.lang.err.IllegalToken;
-import majel.lang.util.TokenStream;
+import majel.lang.util.SimpleTokenStream;
+import majel.stream.SimpleToken;
 import majel.util.LambdaUtils;
 
-public class Lithp extends RecursiveDescentParser<FSA>{
+public class Lithp1 extends RecursiveDescentParser<SimpleToken, LithpExpression>{
 	/*
 TODO:
 	Language Feature:
@@ -75,70 +75,19 @@ TODO:
 	public static void main(String... args){
 		String lithpSrc = """
 			<(lower-case, [a...z])
-			<(upper-case, [A...Z])
-			<(alphabetic, +(@LC;, @UC;))
-			<(ident-test, (<(lower-case-word, *@LC;)*('-'@LCW;)))
-			<(opt, (?*('abacus''...')'sleep'))
-			<(donkey-kong, 'Donkey Kong')
-			<(dark-kNight, 'batman')
-			<(double-bReakfast, (@DN;?*(', '@DN;)))
-			<(neg, !'batman')
-			<(kle, *[a...z])
-			<(wiL, (...))
-			<(con, (*.'a'*.))
-			<(oRk, +('sleep', 'batman'))
-			<(anT, -(*+([a...z], [A...Z]), 'batman'))
-			<(anD, &(*[a...s], *[e...z]))
-			<(bnd, #(3...5, [a...g]))
-			<(fix, #(3, [a...z]))
-			<(unb, #(4+, *.))
-			<(nothing-else, !@.;)
 			""";
 
-		System.err.println(lithpSrc);
-		lithpSrc.split("\n");
-		final var lithp = new Lithp();
-		var bench = LambdaUtils.benchmark(
-			() -> lithp.buildContext(lithpSrc.split("\n"))
-		);
-		var context = bench.result();
-		System.err.println(String.format("built parser in way too long (%sms)", bench.time()));
-		var samples = new String[]{
-			"batman+batman",
-			"this-is-an-ident",
-			"'a'",
-			"sleep",
-			"abacus...sleep",
-			"abacus...abacus...sleep",
-			"batman",
-			"'bZ'",
-			"bZap",
-			"foo",
-			"a",
-			"ab",
-			"abc",
-			"abcd",
-			"abcde",
-			"abcdef",
-			"abcdefg"
-		};
-		var parser = context.build("+(@IT;, @DR;)");
+		var collapsed = lithpSrc.replaceAll("\n", "").replaceAll("\t", "");
+		var stream = SimpleTokenStream.from(collapsed).wrap();
+		var lithp1 = new Lithp1().parse(stream);
+		var lithp2 = new Lithp2().parse(lithp1);
 
-		var processor = new StringProcessor(parser);
-		for(var s : samples){
-			var result = processor.process(s);
-			var subres = result.node();
-			if(subres == null) continue;
-			var extract = result.value();
-			System.err.println(s.equals(extract) + " " + subres.terminating() + " " + subres.labels() + " " + s + " -> " + extract);
+		for(var v: lithp2){
+			System.err.println(v);
 		}
 	}
 
-	public static final char OPENING_PARENTHESIS = '(';
-	public static final char CLOSING_PARENTHESIS = ')';
-	public static final String DELIMITER = ", ";
-
-	public Lithp(){
+	public Lithp1(){
 		super(
 			new LA1Selector<>(){
 				{
@@ -160,20 +109,20 @@ TODO:
 		);
 	}
 
-	public static char parseLiteral(TokenStream tokens){
+	public static char parseLiteral(SimpleTokenStream tokens){
 		var mark = tokens.mark();
 		char token = tokens.poll();
 		return switch(token){
 			case '\'' -> {
 				mark.reset();
-				throw new IllegalToken(tokens);
+				throw new IllegalToken(tokens.wrap());
 			}
 			case '\\' -> {
 				yield switch(tokens.poll()){
 					case 't' -> '\t';
 					case 'n' -> '\n';
 					case '\\' -> '\\';
-					default -> throw new IllegalToken(tokens);
+					default -> throw new IllegalToken(tokens.wrap());
 				};
 			}
 			default -> token;

@@ -1,15 +1,17 @@
 package majel.lang.automata.fsa;
 
+import majel.lang.util.SimpleTokenStream;
 import majel.lang.util.TokenStream;
+import majel.stream.Token;
 
-public class StringProcessor{
+public class StringProcessor implements Token{
 	private final FSA automaton;
 
 	public StringProcessor(FSA automaton){
 		this.automaton = automaton.dfa();
 	}
 
-	public Blah process(TokenStream tokens){
+	public Blah process(SimpleTokenStream tokens){
 		var last = automaton.entryPoint;
 		var node = automaton.entryPoint;
 		var builder = new StringBuilder();
@@ -37,7 +39,7 @@ public class StringProcessor{
 	}
 
 	public Blah process(String value){
-		return process(TokenStream.from(value));
+		return process(SimpleTokenStream.from(value));
 	}
 
 	public record Blah(String value, Node node){

@@ -1,6 +1,8 @@
 package majel.lang.descent;
 
-public interface Expression<T>{
+import majel.stream.Token;
+
+public interface Expression extends Token{
 	String reconstitute();
-	T build(RecursiveDescentBuildContext<T> context);
+//	T build(RecursiveDescentBuildContext<T> context);
 }

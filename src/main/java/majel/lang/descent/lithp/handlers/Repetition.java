@@ -1,43 +1,79 @@
 package majel.lang.descent.lithp.handlers;
 
-import majel.lang.automata.fsa.FSA;
-import majel.lang.descent.*;
+import majel.lang.descent.CharHandler;
+import majel.lang.descent.lithp.LithpExpression;
+import majel.lang.descent.lithp.expressions.RepetitionExpression;
 import majel.lang.err.IllegalToken;
+import majel.lang.util.SimpleTokenStream;
 import majel.lang.util.TokenStream;
+import majel.stream.SimpleToken;
 import majel.util.functional.CharPredicate;
 
 import java.util.function.IntSupplier;
 
-import static majel.lang.descent.lithp.Lithp.*;
+import static majel.lang.descent.lithp.expressions.RepetitionExpression.CONTINUATION;
+import static majel.lang.descent.lithp.expressions.RepetitionExpression.UNBOUND;
 
-public class Repetition implements CharHandler<FSA>{
+public class Repetition implements CharHandler<LithpExpression>{
 
 	private static final CharPredicate DIGITS = CharPredicate.inclusiveRange('0', '9');
-	private static final char HEAD_TOKEN = '#';
-	private static final char UNBOUND = '+';
-	private static final String CONTINUATION = "...";
 
 	@Override
 	public char headToken(){
-		return HEAD_TOKEN;
+		return RepetitionExpression.HEAD_TOKEN;
 	}
 
+//	@Override
+//	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
+//
+//		return new Expression<>(){
+//			@Override
+//			public String reconstitute(){
+//				var builder = new StringBuilder()
+//					.append(HEAD_TOKEN)
+//					.append(LithpExpression.OPENING_PARENTHESIS)
+//					.append(lower);
+//
+//				if(upper != lower){
+//					if(upper == Integer.MAX_VALUE){
+//						builder.append(UNBOUND);
+//					}
+//					else{
+//						builder.append(CONTINUATION).append(upper);
+//					}
+//				}
+//
+//				return builder
+//					.append(LithpExpression.DELIMITER)
+//					.append(base.reconstitute())
+//					.append(LithpExpression.CLOSING_PARENTHESIS)
+//					.toString();
+//			}
+//
+//			/*@Override
+//			public FSA build(RecursiveDescentBuildContext<FSA> context){
+//				return base.build(context).repeating(lower, upper);
+//			}*/
+//		};
+//	}
+
 	@Override
-	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
+	public LithpExpression parse(TokenStream<SimpleToken> tokens, TokenStream<LithpExpression> parsed){
 		checkHead(tokens);
-		tokens.read(OPENING_PARENTHESIS);
+		var simple = SimpleTokenStream.of(tokens);
+		simple.read(LithpExpression.OPENING_PARENTHESIS);
 		IntSupplier intReader = () -> {
 			var builder = new StringBuilder();
-			while(DIGITS.test(tokens.peek())){
-				builder.append(tokens.poll());
+			while(DIGITS.test(simple.peek())){
+				builder.append(simple.poll());
 			}
 			return Integer.parseInt(builder.toString());
 		};
 		final int lower = intReader.getAsInt();
 
-		final int upper = switch(tokens.peek()){
+		final int upper = switch(simple.peek()){
 			case '.' -> {
-				tokens.read(CONTINUATION);
+				simple.read(CONTINUATION);
 				yield intReader.getAsInt();
 			}
 			case UNBOUND -> {
@@ -48,38 +84,10 @@ public class Repetition implements CharHandler<FSA>{
 			default -> throw new IllegalToken(tokens);
 		};
 
-		tokens.read(DELIMITER);
-		var base = parser.parse(tokens);
-		tokens.read(CLOSING_PARENTHESIS);
+		simple.read(LithpExpression.DELIMITER);
+		var base = parsed.poll();
+		simple.read(LithpExpression.CLOSING_PARENTHESIS);
 
-		return new Expression<>(){
-			@Override
-			public String reconstitute(){
-				var builder = new StringBuilder()
-					.append(HEAD_TOKEN)
-					.append(OPENING_PARENTHESIS)
-					.append(lower);
-
-				if(upper != lower){
-					if(upper == Integer.MAX_VALUE){
-						builder.append(UNBOUND);
-					}
-					else{
-						builder.append(CONTINUATION).append(upper);
-					}
-				}
-
-				return builder
-					.append(DELIMITER)
-					.append(base.reconstitute())
-					.append(CLOSING_PARENTHESIS)
-					.toString();
-			}
-
-			@Override
-			public FSA build(RecursiveDescentBuildContext<FSA> context){
-				return base.build(context).repeating(lower, upper);
-			}
-		};
+		return new RepetitionExpression(lower, upper, base);
 	}
 }

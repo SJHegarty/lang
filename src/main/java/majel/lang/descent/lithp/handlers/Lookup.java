@@ -1,18 +1,21 @@
 package majel.lang.descent.lithp.handlers;
 
-import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
-import majel.lang.descent.Expression;
 import majel.lang.descent.CharHandler;
-import majel.lang.descent.RecursiveDescentBuildContext;
-import majel.lang.descent.RecursiveDescentParser;
+import majel.lang.descent.lithp.Lithp1;
+import majel.lang.descent.lithp.Lithp2;
+import majel.lang.descent.lithp.LithpExpression;
+import majel.lang.descent.lithp.expressions.LookupExpression;
 import majel.lang.err.IllegalExpression;
+import majel.lang.util.SimpleTokenStream;
 import majel.lang.util.TokenStream;
+import majel.stream.SimpleToken;
 
-public class Lookup implements CharHandler<FSA>{
+import static majel.lang.descent.lithp.expressions.LookupExpression.HEAD_TOKEN;
+import static majel.lang.descent.lithp.expressions.LookupExpression.TAIL_TOKEN;
 
-	private static final char HEAD_TOKEN = '@';
-	private static final char TERMINATING_TOKEN = ';';
+public class Lookup implements CharHandler<LithpExpression>{
+
 
 	@Override
 	public char headToken(){
@@ -20,12 +23,28 @@ public class Lookup implements CharHandler<FSA>{
 	}
 
 	private transient StringProcessor processor;
+//
+//	@Override
+//	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
+//
+//		return new Expression<>(){
+//			@Override
+//			public String reconstitute(){
+//				return HEAD_TOKEN + name + TERMINATING_TOKEN;
+//			}
+//
+//			@Override
+//			public FSA build(RecursiveDescentBuildContext<FSA> context){
+//				return context.named(name);
+//			}
+//		};
+//	}
 
 	@Override
-	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
+	public LithpExpression parse(TokenStream<SimpleToken> tokens, TokenStream<LithpExpression> parsed){
 		checkHead(tokens);
-
-		if(tokens.peek() == '.'){
+		var simple = SimpleTokenStream.of(tokens);
+		/*if(simple.peek() == '.'){
 			final String body = ".;";
 			tokens.read(body);
 			return new Expression<>(){
@@ -34,36 +53,23 @@ public class Lookup implements CharHandler<FSA>{
 					return headToken() + body;
 				}
 
-				@Override
-				public FSA build(RecursiveDescentBuildContext<FSA> context){
-					return FSA.or(context.machines(FSA[]::new));
-				}
 			};
-		}
+		}*/
 
 		if(processor == null){
 			var exprLC = "(*[a...z]?*('-'*[a...z]))";
 			var exprUC = "*[A...Z]";
 			var expr = "+(" + exprLC + ", " + exprUC + ")";
+			var parser = new Lithp1().andThen(new Lithp2());
 			processor = new StringProcessor(
-				parser.build(expr)
+				parser.parse(SimpleTokenStream.from(expr).wrap()).poll()
 			);
 		}
-		var name = processor.process(tokens).value();
+		var name = processor.process(simple).value();
 		if(name.length() == 0){
 			throw new IllegalExpression(tokens);
 		}
-		tokens.read(TERMINATING_TOKEN);
-		return new Expression<>(){
-			@Override
-			public String reconstitute(){
-				return HEAD_TOKEN + name + TERMINATING_TOKEN;
-			}
-
-			@Override
-			public FSA build(RecursiveDescentBuildContext<FSA> context){
-				return context.named(name);
-			}
-		};
+		simple.read(TAIL_TOKEN);
+		return new LookupExpression(name);
 	}
 }

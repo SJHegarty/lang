@@ -20,7 +20,7 @@ public class Wrappers{
 
 		@Override
 		public SimpleToken next(){
-			return wrapped::next;
+			return new SimpleToken(wrapped().next());
 		}
 
 		public SimpleStream wrapped(){

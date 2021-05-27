@@ -1,11 +1,7 @@
 package majel.stream;
 
-public interface SimpleToken extends Token{
+import majel.lang.util.TokenStream;
 
-	@Override
-	default boolean eq(ObjectHack hack){
-		return (hack instanceof SimpleToken t) && t.character() == character();
-	}
+public record SimpleToken(char character) implements Token{
 
-	char character();
 }
