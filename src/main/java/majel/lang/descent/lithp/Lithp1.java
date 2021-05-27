@@ -75,6 +75,7 @@ TODO:
 	public static void main(String... args){
 		String lithpSrc = """
 			<(lower-case, [a...z])
+			<(ident, (<(word, *@LC;)?*('-'@W;)))
 			""";
 
 		var collapsed = lithpSrc.replaceAll("\n", "").replaceAll("\t", "");
