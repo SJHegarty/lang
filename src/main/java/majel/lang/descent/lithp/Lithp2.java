@@ -172,10 +172,10 @@ public class Lithp2 implements Parser<LithpExpression, FSA>{
 	@Override
 	public TokenStream<FSA> parse(TokenStream<LithpExpression> tokens){
 		return tokens.map(
-			expr -> {
-				var builder = builders.get(expr.getClass());
-				return builder.apply(expr);
-			}
+			expr ->
+				builders
+					.get(expr.getClass())
+					.apply(expr)
 		);
 	}
 }

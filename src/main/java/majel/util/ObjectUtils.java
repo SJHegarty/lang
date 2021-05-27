@@ -16,4 +16,8 @@ public class ObjectUtils{
 		Arrays.fill(rv, t);
 		return rv;
 	}
+
+	public static char lastChar(String content){
+		return content.charAt(content.length() - 1);
+	}
 }
