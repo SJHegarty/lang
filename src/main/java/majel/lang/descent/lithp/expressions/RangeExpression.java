@@ -1,6 +1,10 @@
 package majel.lang.descent.lithp.expressions;
 
 import majel.lang.descent.lithp.LithpExpression;
+import majel.lang.util.SimpleTokenStream;
+import majel.lang.util.TokenStream;
+import majel.stream.SimpleToken;
+import majel.util.functional.TokenStreamBuilder;
 
 public record RangeExpression(char c0, char cN) implements LithpExpression{
 
@@ -8,14 +12,20 @@ public record RangeExpression(char c0, char cN) implements LithpExpression{
 	public static final char CLOSING_BRACKET = ']';
 	public static final String DELIMITER = "...";
 
-	@Override
 	public String reconstitute(){
-		return new StringBuilder()
-			.append(OPENING_BRACKET)
-			.append(c0)
-			.append(DELIMITER)
-			.append(cN)
-			.append(CLOSING_BRACKET)
-			.toString();
+		return SimpleTokenStream.of(regress()).remaining();
+	}
+
+	@Override
+	public TokenStream<SimpleToken> regress(){
+		var builder = new TokenStreamBuilder();
+		builder
+			.feed(OPENING_BRACKET)
+			.feed(c0)
+			.feed(DELIMITER)
+			.feed(cN)
+			.feed(CLOSING_BRACKET);
+
+		return builder.immutableView().wrap();
 	}
 }

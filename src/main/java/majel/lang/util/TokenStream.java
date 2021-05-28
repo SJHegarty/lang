@@ -14,6 +14,29 @@ import java.util.function.Supplier;
 
 public interface TokenStream<T extends Token> extends Iterable<T>{
 
+	static <T extends Token> TokenStream<T> emptyStream(){
+		return new TokenStream<T>(){
+			@Override
+			public T peek(){
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public T poll(){
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public boolean empty(){
+				return true;
+			}
+
+			@Override
+			public Mark mark(){
+				return () -> {};
+			}
+		};
+	}
 	T peek();
 	T poll();
 	boolean empty();
@@ -89,6 +112,32 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 		};
 	}
 
+	static <T extends Token> TokenStream<T> from(Supplier<T> supplier){
+		return new TokenStream<T>(){
+			T next = supplier.get();
+			@Override
+			public T peek(){
+				return next;
+			}
+
+			@Override
+			public T poll(){
+				T rv = next;
+				next = supplier.get();
+				return rv;
+			}
+
+			@Override
+			public boolean empty(){
+				return next == null;
+			}
+
+			@Override
+			public Mark mark(){
+				throw new UnsupportedOperationException();
+			}
+		};
+	}
 	static <T extends Token> TokenStream<T> of(T... tokens){
 		return new TokenStream<T>(){
 			int index;
@@ -161,6 +210,48 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 			rv.add(t);
 		}
 		return rv;
+	}
+
+	default <D extends Token> TokenStream<D> unwrap(Function<T, TokenStream<D>> unwrapper){
+		return new TokenStream<D>(){
+			TokenStream<D> current = emptyStream();
+
+			TokenStream<D> current(){
+				if(current.empty()){
+					if(!TokenStream.this.empty()){
+						current = unwrapper.apply(TokenStream.this.poll());
+					}
+				}
+				return current;
+			}
+
+			@Override
+			public D peek(){
+				return current.peek();
+			}
+
+			@Override
+			public D poll(){
+				return current.poll();
+			}
+
+			@Override
+			public boolean empty(){
+				return current.empty();
+			}
+
+			@Override
+			public Mark mark(){
+				final var stream = current();
+				final var streamMark = stream.mark();
+				final var wrappedMark = TokenStream.this.mark();
+				return () -> {
+					current = stream;
+					streamMark.reset();
+					wrappedMark.reset();
+				};
+			}
+		};
 	}
 
 	static <T extends Token> TokenStream<T> from(List<T> elements){

@@ -1,15 +1,25 @@
 package majel.lang.descent.lithp.expressions;
 
 import majel.lang.descent.lithp.LithpExpression;
+import majel.lang.util.SimpleTokenStream;
+import majel.lang.util.TokenStream;
+import majel.stream.SimpleToken;
+import majel.util.functional.TokenStreamBuilder;
 
 public record LiteralExpression(String value) implements LithpExpression{
 
 	public static final char ENCLOSING_TOKEN = '\'';
-	@Override
+
 	public String reconstitute(){
-		var builder = new StringBuilder().append(ENCLOSING_TOKEN);
+		return SimpleTokenStream.of(regress()).remaining();
+	}
+
+	@Override
+	public TokenStream<SimpleToken> regress(){
+		var builder = new TokenStreamBuilder();
+		builder.feed(ENCLOSING_TOKEN);
 		for(char c : value.toCharArray()){
-			builder.append(
+			builder.feed(
 				switch(c){
 					case '\t' -> "\\t";
 					case '\n' -> "\\n";
@@ -18,8 +28,7 @@ public record LiteralExpression(String value) implements LithpExpression{
 				}
 			);
 		}
-		return builder.append(ENCLOSING_TOKEN).toString();
-
+		builder.feed(ENCLOSING_TOKEN);
+		return builder.immutableView().wrap();
 	}
-
 }

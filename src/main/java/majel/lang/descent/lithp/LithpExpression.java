@@ -1,15 +1,16 @@
 package majel.lang.descent.lithp;
 
-import majel.lang.descent.Expression;
+import majel.lang.descent.Reconstitutable;
 import majel.lang.util.SimpleTokenStream;
 import majel.lang.util.TokenStream;
 import majel.stream.SimpleToken;
+import majel.util.functional.TokenStreamBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public interface LithpExpression extends Expression{
+public interface LithpExpression extends Reconstitutable<SimpleToken>{
 	char CLOSING_PARENTHESIS = ')';
 	char OPENING_PARENTHESIS = '(';
 	String DELIMITER = ", ";
@@ -40,11 +41,11 @@ public interface LithpExpression extends Expression{
 			.append(OPENING_PARENTHESIS);
 
 		if(!expressions.isEmpty()){
-			builder.append(expressions.get(0).reconstitute());
+			builder.append(reconstituteSingle(expressions.get(0)));
 			for(int i = 1; i < expressions.size(); i++){
 				builder
 					.append(DELIMITER)
-					.append(expressions.get(i).reconstitute());
+					.append(reconstituteSingle(expressions.get(i)));
 			}
 		}
 
@@ -53,4 +54,25 @@ public interface LithpExpression extends Expression{
 			.toString();
 	}
 
+	static String reconstituteSingle(LithpExpression expression){
+		return SimpleTokenStream.of(expression.regress()).remaining();
+	}
+
+	static TokenStream<SimpleToken> streamList(List<? extends Reconstitutable<SimpleToken>> elements){
+		var builder = new TokenStreamBuilder();
+		builder
+			.feed(OPENING_PARENTHESIS);
+
+		if(!elements.isEmpty()){
+			builder.feed(elements.get(0).regress());
+			for(int i = 1; i < elements.size(); i++){
+				builder
+					.feed(DELIMITER)
+					.feed(elements.get(i).regress());
+			}
+		}
+
+		builder.feed(CLOSING_PARENTHESIS);
+		return builder.immutableView().wrap();
+	}
 }

@@ -1,12 +1,13 @@
 package majel.lang.descent.structure;
 
 import majel.lang.Parser;
+import majel.lang.ReversibleParser;
 import majel.lang.util.Mark;
 import majel.lang.util.SimpleTokenStream;
 import majel.lang.util.TokenStream;
 import majel.stream.SimpleToken;
 
-public class LinesParser implements Parser<SimpleToken, Line>{
+public class LinesParser implements ReversibleParser<SimpleToken, Line>{
 	public static void main(String...args){
 		String content = """
 			This is a test
@@ -82,6 +83,23 @@ public class LinesParser implements Parser<SimpleToken, Line>{
 			@Override
 			public Mark mark(){
 				return tokens.mark();
+			}
+		};
+	}
+
+	@Override
+	public ReversibleParser<Line, SimpleToken> reverse(){
+		return new ReversibleParser<>(){
+			@Override
+			public ReversibleParser<SimpleToken, Line> reverse(){
+				return LinesParser.this;
+			}
+
+			@Override
+			public TokenStream<SimpleToken> parse(TokenStream<Line> tokens){
+				return tokens.unwrap(
+					line -> SimpleTokenStream.from(line.reconstitute()).wrap()
+				);
 			}
 		};
 	}

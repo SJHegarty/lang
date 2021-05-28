@@ -2,6 +2,7 @@ package majel.lang.descent.lithp;
 
 import majel.lang.descent.Handler;
 import majel.lang.descent.LA1Selector;
+import majel.lang.descent.Reconstitutable;
 import majel.lang.descent.RecursiveDescentParser;
 import majel.lang.descent.lithp.handlers.*;
 import majel.lang.err.IllegalToken;
@@ -83,8 +84,9 @@ TODO:
 		var lithp1 = new Lithp1().parse(stream);
 		var lithp2 = new Lithp2().parse(lithp1);
 
-		for(var v: lithp2){
+		for(var v: lithp1){
 			System.err.println(v);
+			System.err.println(SimpleTokenStream.of(v.regress()).remaining());
 		}
 	}
 

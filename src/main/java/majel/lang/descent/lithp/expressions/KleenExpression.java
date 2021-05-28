@@ -1,13 +1,13 @@
 package majel.lang.descent.lithp.expressions;
 
 import majel.lang.descent.lithp.LithpExpression;
+import majel.lang.descent.lithp.PrefixLithpExpression;
 
-public record KleenExpression(LithpExpression wrapped) implements LithpExpression{
+public record KleenExpression(LithpExpression wrapped) implements PrefixLithpExpression{
 	public static final char HEAD_TOKEN = '*';
 
 	@Override
-	public String reconstitute(){
-		return HEAD_TOKEN + wrapped.reconstitute();
+	public char headToken(){
+		return HEAD_TOKEN;
 	}
-
 }

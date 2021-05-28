@@ -1,22 +1,27 @@
 package majel.lang.descent.lithp.expressions;
 
 import majel.lang.descent.lithp.LithpExpression;
+import majel.lang.util.SimpleTokenStream;
+import majel.lang.util.TokenStream;
+import majel.stream.SimpleToken;
+import majel.util.functional.TokenStreamBuilder;
 
 import java.util.List;
 
 public record ParenthesisExpression(List<LithpExpression> elements) implements LithpExpression{
 
-	@Override
 	public String reconstitute(){
-		var builder = new StringBuilder()
-			.append(OPENING_PARENTHESIS);
+		return SimpleTokenStream.of(regress()).remaining();
+	}
 
+	@Override
+	public TokenStream<SimpleToken> regress(){
+		var builder = new TokenStreamBuilder();
+		builder.feed(OPENING_PARENTHESIS);
 		for(var expr: elements){
-			builder.append(expr.reconstitute());
+			builder.feed(expr.regress());
 		}
-
-		return builder
-			.append(CLOSING_PARENTHESIS)
-			.toString();
+		builder.feed(CLOSING_PARENTHESIS);
+		return builder.immutableView().wrap();
 	}
 }

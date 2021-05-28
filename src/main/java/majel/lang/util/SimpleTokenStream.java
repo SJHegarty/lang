@@ -2,16 +2,26 @@ package majel.lang.util;
 
 import majel.lang.err.IllegalToken;
 import majel.stream.SimpleToken;
+import majel.util.functional.CharConsumer;
+import majel.util.functional.CharGobbler;
 import majel.util.functional.CharPredicate;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public interface SimpleTokenStream{
+
+
 	char peek();
 	char poll();
 	boolean empty();
 	Mark mark();
+
+	default void drain(CharConsumer consumer){
+		while(!empty()){
+			consumer.consume(poll());
+		}
+	}
 
 	static SimpleTokenStream from(String value){
 		return of(value.toCharArray());
@@ -98,7 +108,7 @@ public interface SimpleTokenStream{
 
 		@Override
 		public boolean empty(){
-			return wrap().empty();
+			return wrapped.empty();
 		}
 
 		@Override

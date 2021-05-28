@@ -110,7 +110,7 @@ public class Lithp2 implements Parser<LithpExpression, FSA>{
 				if(!(expr instanceof NegationExpression n)){
 					throw new IllegalStateException();
 				}
-				return parse(n.negated()).negate();
+				return parse(n.wrapped()).negate();
 			}
 		);
 		builders.put(
@@ -119,7 +119,7 @@ public class Lithp2 implements Parser<LithpExpression, FSA>{
 				if(!(expr instanceof OptionalExpression o)){
 					throw new IllegalStateException();
 				}
-				return parse(o.optional()).optional();
+				return parse(o.wrapped()).optional();
 			}
 		);
 		builders.put(

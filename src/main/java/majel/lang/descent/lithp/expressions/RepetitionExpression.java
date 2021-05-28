@@ -1,6 +1,9 @@
 package majel.lang.descent.lithp.expressions;
 
 import majel.lang.descent.lithp.LithpExpression;
+import majel.lang.util.TokenStream;
+import majel.stream.SimpleToken;
+import majel.util.functional.TokenStreamBuilder;
 
 public record RepetitionExpression(int lower, int upper, LithpExpression base) implements LithpExpression{
 
@@ -9,25 +12,30 @@ public record RepetitionExpression(int lower, int upper, LithpExpression base) i
 	public static final String CONTINUATION = "...";
 
 	@Override
-	public String reconstitute(){
-		var builder = new StringBuilder()
-			.append(HEAD_TOKEN)
-			.append(LithpExpression.OPENING_PARENTHESIS)
-			.append(lower);
+	public TokenStream<SimpleToken> regress(){
+		var builder = new TokenStreamBuilder();
+		builder
+			.feed(HEAD_TOKEN)
+			.feed(LithpExpression.OPENING_PARENTHESIS)
+			.feed(Integer.toString(lower));
 
 		if(upper != lower){
 			if(upper == Integer.MAX_VALUE){
-				builder.append(UNBOUND);
+				builder.feed(UNBOUND);
 			}
 			else{
-				builder.append(CONTINUATION).append(upper);
+				builder
+					.feed(CONTINUATION)
+					.feed(Integer.toString(upper));
 			}
 		}
 
-		return builder
-			.append(LithpExpression.DELIMITER)
-			.append(base.reconstitute())
-			.append(LithpExpression.CLOSING_PARENTHESIS)
-			.toString();
+		builder
+			.feed(LithpExpression.DELIMITER)
+			.feed(base.regress())
+			.feed(LithpExpression.CLOSING_PARENTHESIS);
+
+		return builder.immutableView().wrap();
 	}
+
 }
