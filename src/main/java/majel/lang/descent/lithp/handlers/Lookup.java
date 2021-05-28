@@ -16,29 +16,12 @@ import static majel.lang.descent.lithp.expressions.LookupExpression.TAIL_TOKEN;
 
 public class Lookup implements CharHandler<LithpExpression>{
 
-
 	@Override
 	public char headToken(){
 		return HEAD_TOKEN;
 	}
 
 	private transient StringProcessor processor;
-//
-//	@Override
-//	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
-//
-//		return new Expression<>(){
-//			@Override
-//			public String reconstitute(){
-//				return HEAD_TOKEN + name + TERMINATING_TOKEN;
-//			}
-//
-//			@Override
-//			public FSA build(RecursiveDescentBuildContext<FSA> context){
-//				return context.named(name);
-//			}
-//		};
-//	}
 
 	@Override
 	public LithpExpression parse(TokenStream<SimpleToken> tokens, TokenStream<LithpExpression> parsed){

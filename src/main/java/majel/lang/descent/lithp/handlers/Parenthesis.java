@@ -17,32 +17,6 @@ public class Parenthesis implements CharHandler<LithpExpression>{
 		return LithpExpression.OPENING_PARENTHESIS;
 	}
 
-//	@Override
-//	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
-//		checkHead(tokens);
-//		var expressions = parser.parseUntil(tokens, LithpExpression.CLOSING_PARENTHESIS);
-//		tokens.poll();
-//		return new Expression<>(){
-//			@Override
-//			public String reconstitute(){
-//				var builder = new StringBuilder().append(LithpExpression.OPENING_PARENTHESIS);
-//				for(var expr: expressions){
-//					builder.append(expr.reconstitute());
-//				}
-//				return builder.append(LithpExpression.CLOSING_PARENTHESIS).toString();
-//			}
-//
-//			/*@Override
-//			public FSA build(RecursiveDescentBuildContext<FSA> context){
-//				return FSA.concatenate(
-//					expressions.stream()
-//						.map(expr -> expr.build(context))
-//						.toArray(FSA[]::new)
-//				);
-//			}*/
-//		};
-//	}
-
 	@Override
 	public LithpExpression parse(TokenStream<SimpleToken> tokens, TokenStream<LithpExpression> parsed){
 		checkHead(tokens);

@@ -13,22 +13,6 @@ public class WildCard implements CharHandler<LithpExpression>{
 		return WildCardExpression.TOKEN;
 	}
 
-//	@Override
-//	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
-//		checkHead(tokens);
-//		return new Expression<>(){
-//			@Override
-//			public String reconstitute(){
-//				return Character.toString(headToken());
-//			}
-//
-//			/*@Override
-//			public FSA build(RecursiveDescentBuildContext<FSA> context){
-//				return new FSA(c -> true);
-//			}*/
-//		};
-//	}
-
 	@Override
 	public LithpExpression parse(TokenStream<SimpleToken> tokens, TokenStream<LithpExpression> parsed){
 		return new WildCardExpression();

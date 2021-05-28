@@ -12,23 +12,6 @@ public class Negation implements CharHandler<LithpExpression>{
 	public char headToken(){
 		return NegationExpression.HEAD_TOKEN;
 	}
-//
-//	@Override
-//	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
-//		checkHead(tokens);
-//		var base = parser.parse(tokens);
-//		return new Expression<>(){
-//			@Override
-//			public String reconstitute(){
-//				return HEAD_TOKEN + base.reconstitute();
-//			}
-//
-//			/*@Override
-//			public FSA build(RecursiveDescentBuildContext<FSA> context){
-//				return base.build(context).negate();
-//			}*/
-//		};
-//	}
 
 	@Override
 	public LithpExpression parse(TokenStream<SimpleToken> tokens, TokenStream<LithpExpression> parsed){

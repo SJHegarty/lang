@@ -13,37 +13,6 @@ public class Or implements CharHandler<LithpExpression>{
 		return OrExpression.HEAD_TOKEN;
 	}
 
-//	@Override
-//	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
-//		checkHead(tokens);
-//		List<Expression<FSA>> elements = parser.parseList(
-//			tokens,
-//			LithpExpression.OPENING_PARENTHESIS,
-//			LithpExpression.CLOSING_PARENTHESIS,
-//			LithpExpression.DELIMITER
-//		);
-//		return new Expression<>(){
-//			@Override
-//			public String reconstitute(){
-//				return HEAD_TOKEN + parser.reconstituteList(
-//					elements,
-//					LithpExpression.OPENING_PARENTHESIS,
-//					LithpExpression.CLOSING_PARENTHESIS,
-//					LithpExpression.DELIMITER
-//				);
-//			}
-//
-//			/*@Override
-//			public FSA build(RecursiveDescentBuildContext<FSA> context){
-//				return FSA.or(
-//					elements.stream()
-//						.map(expr -> expr.build(context))
-//						.toArray(FSA[]::new)
-//				);
-//			}*/
-//		};
-//	}
-
 	@Override
 	public LithpExpression parse(TokenStream<SimpleToken> tokens, TokenStream<LithpExpression> parsed){
 		checkHead(tokens);

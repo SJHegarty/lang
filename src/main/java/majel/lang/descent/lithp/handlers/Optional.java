@@ -8,28 +8,10 @@ import majel.stream.SimpleToken;
 
 public class Optional implements CharHandler<LithpExpression>{
 
-
 	@Override
 	public char headToken(){
 		return OptionalExpression.HEAD_TOKEN;
 	}
-
-//	@Override
-//	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
-//		checkHead(tokens);
-//		var base = parser.parse(tokens);
-//		return new Expression<>(){
-//			@Override
-//			public String reconstitute(){
-//				return HEAD_TOKEN + base.reconstitute();
-//			}
-//
-//			/*@Override
-//			public FSA build(RecursiveDescentBuildContext<FSA> context){
-//				return base.build(context).optional();
-//			}*/
-//		};
-//	}
 
 	@Override
 	public LithpExpression parse(TokenStream<SimpleToken> tokens, TokenStream<LithpExpression> parsed){

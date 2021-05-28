@@ -1,16 +1,14 @@
 package majel.lang.descent.structure;
 
 import majel.lang.Parser;
-import majel.lang.ReversibleParser;
 import majel.lang.descent.structure.indent.*;
 import majel.lang.util.Mark;
 import majel.lang.util.TokenStream;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IndentParser implements ReversibleParser<Line, IndentToken>{
+public class IndentParser implements Parser<Line, IndentToken>{
 
 	@Override
 	public TokenStream<IndentToken> parse(TokenStream<Line> tokens){
@@ -62,26 +60,4 @@ public class IndentParser implements ReversibleParser<Line, IndentToken>{
 		};
 	}
 
-	@Override
-	public ReversibleParser<IndentToken, Line> reverse(){
-		/*return new ReversibleParser<>(){
-			@Override
-			public ReversibleParser<Line, IndentToken> reverse(){
-				return IndentParser.this;
-			}
-
-			private TokenStream<Line> unwrap(IndentToken token){
-				if(token instanceof IndentTree t){
-					return TokenStream.concat(
-
-					)
-				}
-			}
-			@Override
-			public TokenStream<Line> parse(TokenStream<IndentToken> tokens){
-				return tokens.unwrap(this::unwrap);
-			}
-		};*/
-		throw new UnsupportedOperationException();
-	}
 }

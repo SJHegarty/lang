@@ -10,7 +10,6 @@ import majel.stream.SimpleToken;
 
 public class Literal implements CharHandler<LithpExpression>{
 
-
 	@Override
 	public char headToken(){
 		return LiteralExpression.ENCLOSING_TOKEN;

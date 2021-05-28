@@ -12,23 +12,7 @@ public class Kleene implements CharHandler<LithpExpression>{
 	public char headToken(){
 		return KleenExpression.HEAD_TOKEN;
 	}
-//
-//	@Override
-//	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
-//		checkHead(tokens);
-//		var base = parser.parse(tokens);
-//		return new Expression(){
-//			@Override
-//			public String reconstitute(){
-//				return headToken() + base.reconstitute();
-//			}
-//
-//			/*@Override
-//			public FSA build(RecursiveDescentBuildContext<FSA> context){
-//				return base.build(context).kleene();
-//			}*/
-//		};
-//	}
+
 	@Override
 	public LithpExpression parse(
 		TokenStream<SimpleToken> tokens,

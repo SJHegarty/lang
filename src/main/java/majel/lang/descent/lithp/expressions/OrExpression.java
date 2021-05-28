@@ -4,7 +4,6 @@ import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.util.SimpleTokenStream;
 import majel.lang.util.TokenStream;
 import majel.stream.SimpleToken;
-import majel.util.functional.TokenStreamBuilder;
 
 import java.util.List;
 

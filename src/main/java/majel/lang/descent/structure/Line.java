@@ -1,7 +1,6 @@
 package majel.lang.descent.structure;
 
 import majel.lang.descent.Reconstitutable;
-import majel.lang.util.SimpleTokenStream;
 import majel.lang.util.TokenStream;
 import majel.stream.SimpleToken;
 import majel.util.ObjectUtils;
@@ -11,11 +10,6 @@ public record Line(int indent, String content, boolean terminated) implements Re
 
 	public boolean empty(){
 		return content.length() == 0;
-	}
-
-	//@Override
-	public String reconstitute(){
-		return SimpleTokenStream.of(regress()).remaining();
 	}
 
 	@Override

@@ -25,36 +25,4 @@ public class AndNot implements CharHandler<LithpExpression>{
 		return new AndNotExpression(elements.get(0), elements.get(1));
 	}
 
-//	@Override
-//	public Expression<FSA> parse(RecursiveDescentParser<FSA> parser, TokenStream tokens){
-//		checkHead(tokens);
-//		var list = parser.parseList(
-//			tokens,
-//			LithpExpression.OPENING_PARENTHESIS,
-//			LithpExpression.CLOSING_PARENTHESIS,
-//			LithpExpression.DELIMITER
-//		);
-//		if(list.size() != 2){
-//			throw new IllegalExpression(tokens);
-//		}
-//		return new Expression<>(){
-//			@Override
-//			public String reconstitute(){
-//				return HEAD_TOKEN + parser.reconstituteList(
-//					list,
-//					LithpExpression.OPENING_PARENTHESIS,
-//					LithpExpression.CLOSING_PARENTHESIS,
-//					LithpExpression.DELIMITER
-//				);
-//			}
-//
-//			/*@Override
-//			public FSA build(RecursiveDescentBuildContext<FSA> context){
-//				return FSA.and(
-//					list.get(0).build(context),
-//					list.get(1).build(context).negate()
-//				);
-//			}*/
-//		};
-//	}
 }

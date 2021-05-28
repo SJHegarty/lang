@@ -8,11 +8,9 @@ import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.descent.lithp.expressions.NamedExpression;
 import majel.lang.util.SimpleTokenStream;
 import majel.lang.util.TokenStream;
-import majel.stream.SimpleStream;
 import majel.stream.SimpleToken;
 
 public class Named implements CharHandler<LithpExpression>{
-
 
 	@Override
 	public char headToken(){
