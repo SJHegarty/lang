@@ -11,7 +11,6 @@ import java.util.function.Consumer;
 
 public interface SimpleTokenStream{
 
-
 	char peek();
 	char poll();
 	boolean empty();

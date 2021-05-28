@@ -9,6 +9,9 @@ import majel.lang.err.IllegalToken;
 import majel.lang.util.SimpleTokenStream;
 import majel.lang.util.TokenStream;
 import majel.stream.SimpleToken;
+import majel.util.functional.TokenStreamBuilder;
+
+import java.util.ArrayList;
 
 public class Lithp1 extends RecursiveDescentParser<SimpleToken, LithpExpression>{
 	/*
@@ -79,15 +82,20 @@ TODO:
 			<(ident, (<(word, *@LC;)?*('-'@W;)))
 			""";
 
-		var collapsed = lithpSrc.replaceAll("\n", "").replaceAll("\t", "");
-		var stream = SimpleTokenStream.from(collapsed).wrap();
-		var lithp1 = new Lithp1().parse(stream);
-		var lithp2 = new Lithp2().parse(lithp1);
+		var source = lithpSrc.replaceAll("\n", "").replaceAll("\t", "");
+		var stream = SimpleTokenStream.from(source).wrap();
+		var mark = stream.mark();
+		var builder = new TokenStreamBuilder();
 
-		for(var v: lithp1){
-			System.err.println(v);
-			System.err.println(SimpleTokenStream.of(v.regress()).remaining());
-		}
+		/*new Lithp1().parse(stream).forEach(
+			e -> builder.feed(e.regress())
+		);*/
+		builder.feed(new Lithp1().parse(stream).unwrap(Reconstitutable::regress));
+
+		mark.reset();
+		System.err.println("0: " + source);
+		System.err.println("1: " + SimpleTokenStream.of(stream).remaining());
+		System.err.println("2: " + builder.remaining());
 	}
 
 	public Lithp1(){

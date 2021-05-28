@@ -227,17 +227,17 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 
 			@Override
 			public D peek(){
-				return current.peek();
+				return current().peek();
 			}
 
 			@Override
 			public D poll(){
-				return current.poll();
+				return current().poll();
 			}
 
 			@Override
 			public boolean empty(){
-				return current.empty();
+				return current().empty();
 			}
 
 			@Override

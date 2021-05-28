@@ -2,6 +2,7 @@ package majel.lang.descent.structure;
 
 import majel.lang.Parser;
 import majel.lang.ReversibleParser;
+import majel.lang.descent.structure.indent.IndentToken;
 import majel.lang.util.Mark;
 import majel.lang.util.SimpleTokenStream;
 import majel.lang.util.TokenStream;
@@ -19,20 +20,16 @@ public class LinesParser implements ReversibleParser<SimpleToken, Line>{
 			More things
 			""";
 		System.err.println(content);
-		var builder = new StringBuilder();
-		for(var l:
+
 			new IndentParser().parse(
 				new LinesParser().parse(
 					SimpleTokenStream.from(content).wrap()
 				)
 			)
-		){
-			System.err.println(l);
-			builder.append(l.reconstitute());
-		}
-		if(!builder.toString().equals(content)){
-			throw new IllegalStateException();
-		}
+			.unwrap(IndentToken::regress)
+			.forEach(System.err::println);
+
+
 	}
 
 	@Override
