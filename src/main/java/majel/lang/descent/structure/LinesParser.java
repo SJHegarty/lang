@@ -21,14 +21,19 @@ public class LinesParser implements ReversibleParser<SimpleToken, Line>{
 			""";
 		System.err.println(content);
 
+		String reconstructed = SimpleTokenStream.of(
 			new IndentParser().parse(
 				new LinesParser().parse(
 					SimpleTokenStream.from(content).wrap()
 				)
 			)
 			.unwrap(IndentToken::regress)
-			.forEach(System.err::println);
+			.unwrap(Line::regress)
+		)
+		.remaining();
 
+		System.err.println(reconstructed);
+		System.err.println(content.equals(reconstructed));
 
 	}
 
