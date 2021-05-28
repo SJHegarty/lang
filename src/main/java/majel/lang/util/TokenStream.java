@@ -1,10 +1,7 @@
 package majel.lang.util;
 
-import majel.lang.automata.fsa.FSA;
 import majel.lang.err.IllegalToken;
-import majel.stream.SimpleToken;
 import majel.stream.Token;
-import majel.util.functional.CharPredicate;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -276,6 +273,85 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 			public Mark mark(){
 				final int mark = index;
 				return () -> index = mark;
+			}
+		};
+	}
+/*
+	default TokenStream<T> incorporate(TokenStream<IndexedToken<T>> indexedStream){
+		return new TokenStream<T>(){
+			IndexedToken<T> indexed;
+			int index;
+			@Override
+			public T peek(){
+				return null;
+			}
+
+			@Override
+			public T poll(){
+				return null;
+			}
+
+			@Override
+			public boolean empty(){
+				return false;
+			}
+
+			@Override
+			public Mark mark(){
+				return null;
+			}
+		}
+	}
+*/
+	record IndexedToken<T>(T token, int index) implements Token{
+
+	}
+	default TokenStream<T> retain(Predicate<T> predicate, Consumer<IndexedToken<T>> sink){
+		return new TokenStream<T>(){
+			T next = null;
+			int index;
+			int sinkIndex;
+
+			@Override
+			public T peek(){
+				while(next == null){
+					if(TokenStream.this.empty()){
+						break;
+					}
+					var n = TokenStream.this.poll();
+					if(predicate.test(n)){
+						next = n;
+					}
+					else if(index > sinkIndex){
+						sink.accept(new IndexedToken<>(n, index));
+						sinkIndex = index;
+					}
+					index++;
+				}
+				return next;
+			}
+
+			@Override
+			public T poll(){
+				var rv = peek();
+				next = null;
+				return rv;
+			}
+
+			@Override
+			public boolean empty(){
+				return peek() == null;
+			}
+
+			@Override
+			public Mark mark(){
+				var i = index;
+				var m = TokenStream.this.mark();
+
+				return () -> {
+					index = i;
+					m.reset();
+				};
 			}
 		};
 	}

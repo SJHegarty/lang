@@ -27,7 +27,7 @@ public class IndentParser implements Parser<Line, IndentToken>{
 				final List<IndentToken> children = new ArrayList<>();
 				final int depth = head.indent();
 
-				for(;;){
+				while(!tokens.empty()){
 					final var next = tokens.peek();
 					final int indent = next.indent();
 
@@ -40,7 +40,6 @@ public class IndentParser implements Parser<Line, IndentToken>{
 						child = new IndentHidden(child);
 					}
 					children.add(child);
-
 				}
 				if(children.isEmpty()){
 					return new IndentLine(head.content(), head.terminated());

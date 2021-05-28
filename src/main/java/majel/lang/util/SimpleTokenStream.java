@@ -122,11 +122,16 @@ public interface SimpleTokenStream{
 
 	default String remaining(){
 		var mark = mark();
+		var rv = drain();
+		mark.reset();
+		return rv;
+	}
+
+	default String drain(){
 		var builder = new StringBuilder();
 		while(!empty()){
 			builder.append(poll());
 		}
-		mark.reset();
 		return builder.toString();
 	}
 

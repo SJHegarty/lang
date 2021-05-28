@@ -7,6 +7,8 @@ import majel.lang.util.SimpleTokenStream;
 import majel.lang.util.TokenStream;
 import majel.stream.SimpleToken;
 
+import java.util.ArrayList;
+
 public class LinesParser implements Parser<SimpleToken, Line>{
 	public static void main(String...args){
 		String content = """
@@ -14,23 +16,27 @@ public class LinesParser implements Parser<SimpleToken, Line>{
 				this is a line
 					yo
 					foo
+					
 					bar
 				back
 			More things
 			""";
 		System.err.println(content);
-
+		var sink = new ArrayList<TokenStream.IndexedToken<Line>>();
 		String reconstructed = SimpleTokenStream.of(
 			new IndentParser().parse(
 				new LinesParser().parse(
 					SimpleTokenStream.from(content).wrap()
 				)
+				.retain(l -> !l.empty(), sink::add)
 			)
 			.unwrap(IndentToken::regress)
+			//.incorporate(TokenStream.from(sink))
 			.unwrap(Line::regress)
 		)
 		.remaining();
 
+		System.err.println(sink);
 		System.err.println(reconstructed);
 		System.err.println(content.equals(reconstructed));
 
