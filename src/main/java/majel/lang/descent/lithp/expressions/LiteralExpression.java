@@ -11,11 +11,11 @@ public record LiteralExpression(String value) implements LithpExpression{
 	public static final char ENCLOSING_TOKEN = '\'';
 
 	public String reconstitute(){
-		return SimpleTokenStream.of(regress()).remaining();
+		return SimpleTokenStream.of(decompose()).remaining();
 	}
 
 	@Override
-	public TokenStream<SimpleToken> regress(){
+	public TokenStream<SimpleToken> decompose(){
 		var builder = new TokenStreamBuilder();
 		builder.feed(ENCLOSING_TOKEN);
 		for(char c : value.toCharArray()){

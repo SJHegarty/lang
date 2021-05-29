@@ -1,17 +1,13 @@
 package majel.lang.descent.lithp;
 
-import majel.lang.descent.Handler;
 import majel.lang.descent.LA1Selector;
-import majel.lang.descent.Reconstitutable;
+import majel.lang.descent.Decomposable;
 import majel.lang.descent.RecursiveDescentParser;
 import majel.lang.descent.lithp.handlers.*;
 import majel.lang.err.IllegalToken;
 import majel.lang.util.SimpleTokenStream;
-import majel.lang.util.TokenStream;
 import majel.stream.SimpleToken;
 import majel.util.functional.TokenStreamBuilder;
-
-import java.util.ArrayList;
 
 public class Lithp1 extends RecursiveDescentParser<SimpleToken, LithpExpression>{
 	/*
@@ -90,7 +86,7 @@ TODO:
 		/*new Lithp1().parse(stream).forEach(
 			e -> builder.feed(e.regress())
 		);*/
-		builder.feed(new Lithp1().parse(stream).unwrap(Reconstitutable::regress));
+		builder.feed(new Lithp1().parse(stream).unwrap(Decomposable::decompose));
 
 		mark.reset();
 		System.err.println("0: " + source);

@@ -1,6 +1,6 @@
 package majel.lang.descent.lithp;
 
-import majel.lang.descent.Reconstitutable;
+import majel.lang.descent.Decomposable;
 import majel.lang.util.SimpleTokenStream;
 import majel.lang.util.TokenStream;
 import majel.stream.SimpleToken;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public interface LithpExpression extends Reconstitutable<SimpleToken>{
+public interface LithpExpression extends Decomposable<SimpleToken>{
 	char CLOSING_PARENTHESIS = ')';
 	char OPENING_PARENTHESIS = '(';
 	String DELIMITER = ", ";
@@ -55,20 +55,20 @@ public interface LithpExpression extends Reconstitutable<SimpleToken>{
 	}
 
 	static String reconstituteSingle(LithpExpression expression){
-		return SimpleTokenStream.of(expression.regress()).remaining();
+		return SimpleTokenStream.of(expression.decompose()).remaining();
 	}
 
-	static TokenStream<SimpleToken> streamList(List<? extends Reconstitutable<SimpleToken>> elements){
+	static TokenStream<SimpleToken> streamList(List<? extends Decomposable<SimpleToken>> elements){
 		var builder = new TokenStreamBuilder();
 		builder
 			.feed(OPENING_PARENTHESIS);
 
 		if(!elements.isEmpty()){
-			builder.feed(elements.get(0).regress());
+			builder.feed(elements.get(0).decompose());
 			for(int i = 1; i < elements.size(); i++){
 				builder
 					.feed(DELIMITER)
-					.feed(elements.get(i).regress());
+					.feed(elements.get(i).decompose());
 			}
 		}
 

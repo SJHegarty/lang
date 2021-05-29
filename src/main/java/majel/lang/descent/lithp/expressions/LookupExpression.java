@@ -14,7 +14,7 @@ public record LookupExpression(String identifier) implements LithpExpression{
 	}
 
 	@Override
-	public TokenStream<SimpleToken> regress(){
+	public TokenStream<SimpleToken> decompose(){
 		var builder = new TokenStreamBuilder();
 		builder
 			.feed(HEAD_TOKEN)

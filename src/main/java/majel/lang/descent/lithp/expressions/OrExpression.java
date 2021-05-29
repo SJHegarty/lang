@@ -11,11 +11,11 @@ public record OrExpression(List<LithpExpression> elements) implements LithpExpre
 	public static final char HEAD_TOKEN = '+';
 
 	public String reconstitute(){
-		return SimpleTokenStream.of(regress()).remaining();
+		return SimpleTokenStream.of(decompose()).remaining();
 	}
 
 	@Override
-	public TokenStream<SimpleToken> regress(){
+	public TokenStream<SimpleToken> decompose(){
 		return SimpleTokenStream.of(HEAD_TOKEN).wrap()
 			.concat(() -> LithpExpression.streamList(elements));
 	}

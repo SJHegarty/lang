@@ -12,7 +12,7 @@ public record RepetitionExpression(int lower, int upper, LithpExpression base) i
 	public static final String CONTINUATION = "...";
 
 	@Override
-	public TokenStream<SimpleToken> regress(){
+	public TokenStream<SimpleToken> decompose(){
 		var builder = new TokenStreamBuilder();
 		builder
 			.feed(HEAD_TOKEN)
@@ -32,7 +32,7 @@ public record RepetitionExpression(int lower, int upper, LithpExpression base) i
 
 		builder
 			.feed(LithpExpression.DELIMITER)
-			.feed(base.regress())
+			.feed(base.decompose())
 			.feed(LithpExpression.CLOSING_PARENTHESIS);
 
 		return builder.immutableView().wrap();

@@ -8,9 +8,9 @@ public interface PrefixLithpExpression extends LithpExpression{
 	char headToken();
 	LithpExpression wrapped();
 	@Override
-	default TokenStream<SimpleToken> regress(){
+	default TokenStream<SimpleToken> decompose(){
 		return SimpleTokenStream.of(headToken())
 			.wrap()
-			.concat(wrapped()::regress);
+			.concat(wrapped()::decompose);
 	}
 }

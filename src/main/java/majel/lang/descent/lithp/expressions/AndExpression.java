@@ -11,7 +11,7 @@ public record AndExpression(List<LithpExpression> expressions) implements LithpE
 	public static final char HEAD_TOKEN = '&';
 
 	@Override
-	public TokenStream<SimpleToken> regress(){
+	public TokenStream<SimpleToken> decompose(){
 		return SimpleTokenStream.of(HEAD_TOKEN).wrap()
 			.concat(() -> LithpExpression.streamList(expressions));
 	}

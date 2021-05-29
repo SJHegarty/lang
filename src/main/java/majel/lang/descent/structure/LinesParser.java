@@ -14,6 +14,7 @@ public class LinesParser implements Parser<SimpleToken, Line>{
 		String content = """
 			This is a test
 				this is a line
+						overdent
 					yo
 					foo
 					
@@ -30,9 +31,9 @@ public class LinesParser implements Parser<SimpleToken, Line>{
 				)
 				.retain(l -> !l.empty(), sink::add)
 			)
-			.unwrap(IndentToken::regress)
-			//.incorporate(TokenStream.from(sink))
-			.unwrap(Line::regress)
+			.unwrap(IndentToken::decompose)
+			.incorporate(TokenStream.from(sink))
+			.unwrap(Line::decompose)
 		)
 		.remaining();
 

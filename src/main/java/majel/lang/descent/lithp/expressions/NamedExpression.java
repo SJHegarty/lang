@@ -10,18 +10,18 @@ public record NamedExpression(String name, LithpExpression wrapped) implements L
 	public static final char HEAD_TOKEN = '<';
 
 	public String reconstitute(){
-		return SimpleTokenStream.of(regress()).remaining();
+		return SimpleTokenStream.of(decompose()).remaining();
 	}
 
 	@Override
-	public TokenStream<SimpleToken> regress(){
+	public TokenStream<SimpleToken> decompose(){
 		var builder = new TokenStreamBuilder();
 		builder
 			.feed(HEAD_TOKEN)
 			.feed(LithpExpression.OPENING_PARENTHESIS)
 			.feed(name)
 			.feed(DELIMITER)
-			.feed(wrapped.regress())
+			.feed(wrapped.decompose())
 			.feed(CLOSING_PARENTHESIS);
 
 		return builder.immutableView().wrap();

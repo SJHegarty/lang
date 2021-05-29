@@ -13,11 +13,11 @@ public record RangeExpression(char c0, char cN) implements LithpExpression{
 	public static final String DELIMITER = "...";
 
 	public String reconstitute(){
-		return SimpleTokenStream.of(regress()).remaining();
+		return SimpleTokenStream.of(decompose()).remaining();
 	}
 
 	@Override
-	public TokenStream<SimpleToken> regress(){
+	public TokenStream<SimpleToken> decompose(){
 		var builder = new TokenStreamBuilder();
 		builder
 			.feed(OPENING_BRACKET)

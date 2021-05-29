@@ -276,36 +276,61 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 			}
 		};
 	}
-/*
-	default TokenStream<T> incorporate(TokenStream<IndexedToken<T>> indexedStream){
+
+	default TokenStream<T> incorporate(TokenStream<IndexedToken<T>> stream){
 		return new TokenStream<T>(){
-			IndexedToken<T> indexed;
 			int index;
+
 			@Override
 			public T peek(){
-				return null;
+				var mark = mark();
+				var rv = poll();
+				mark.reset();
+				return rv;
 			}
 
 			@Override
 			public T poll(){
-				return null;
+				final T rv;
+				block:{
+					if(!stream.empty()){
+						var peek = stream.peek();
+						if(peek.index < index){
+							throw new IllegalStateException();
+						}
+						if(peek.index == index){
+							stream.poll();
+							rv = peek.token;
+							break block;
+						}
+					}
+					rv = TokenStream.this.poll();
+				}
+				index += 1;
+				return rv;
 			}
 
 			@Override
 			public boolean empty(){
-				return false;
+				return TokenStream.this.empty() && stream.empty();
 			}
 
 			@Override
 			public Mark mark(){
-				return null;
+				var m0 = TokenStream.this.mark();
+				var m1 = stream.mark();
+				return () -> {
+					m0.reset();
+					m1.reset();
+				};
 			}
-		}
+		};
 	}
-*/
+
 	record IndexedToken<T>(T token, int index) implements Token{
 
 	}
+
 	default TokenStream<T> retain(Predicate<T> predicate, Consumer<IndexedToken<T>> sink){
 		return new TokenStream<T>(){
 			T next = null;

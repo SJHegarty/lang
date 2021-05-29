@@ -1,19 +1,19 @@
 package majel.lang.descent.structure;
 
-import majel.lang.descent.Reconstitutable;
+import majel.lang.descent.Decomposable;
 import majel.lang.util.TokenStream;
 import majel.stream.SimpleToken;
 import majel.util.ObjectUtils;
 import majel.util.functional.TokenStreamBuilder;
 
-public record Line(int indent, String content, boolean terminated) implements Reconstitutable<SimpleToken>{
+public record Line(int indent, String content, boolean terminated) implements Decomposable<SimpleToken>{
 
 	public boolean empty(){
 		return content.length() == 0;
 	}
 
 	@Override
-	public TokenStream<SimpleToken> regress(){
+	public TokenStream<SimpleToken> decompose(){
 		var builder = new TokenStreamBuilder();
 
 		builder

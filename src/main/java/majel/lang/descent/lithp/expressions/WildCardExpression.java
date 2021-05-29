@@ -18,7 +18,7 @@ public class WildCardExpression implements LithpExpression{
 	}
 
 	@Override
-	public TokenStream<SimpleToken> regress(){
+	public TokenStream<SimpleToken> decompose(){
 		return SimpleTokenStream.of('.').wrap();
 	}
 }

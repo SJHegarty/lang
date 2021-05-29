@@ -39,12 +39,12 @@ implements IndentToken{
 	}
 
 	@Override
-	public TokenStream<Line> regress(){
+	public TokenStream<Line> decompose(){
 		return TokenStream
 			.of(new Line(0, content, true))
 			.concat(
 				() -> TokenStream.of(children)
-					.unwrap(IndentToken::regress)
+					.unwrap(IndentToken::decompose)
 					.map(
 						line -> new Line(
 							line.indent() + 1,
@@ -55,15 +55,4 @@ implements IndentToken{
 			);
 	}
 
-	@Override
-	public void reconstitute(StringBuilder builder, int depth){
-		builder
-			.append(new String(ObjectUtils.repeating('\t', depth)))
-			.append(content)
-			.append('\n');
-
-		for(var c: children){
-			c.reconstitute(builder, depth + 1);
-		}
-	}
 }

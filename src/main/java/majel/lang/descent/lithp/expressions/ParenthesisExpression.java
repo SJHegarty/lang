@@ -11,15 +11,15 @@ import java.util.List;
 public record ParenthesisExpression(List<LithpExpression> elements) implements LithpExpression{
 
 	public String reconstitute(){
-		return SimpleTokenStream.of(regress()).remaining();
+		return SimpleTokenStream.of(decompose()).remaining();
 	}
 
 	@Override
-	public TokenStream<SimpleToken> regress(){
+	public TokenStream<SimpleToken> decompose(){
 		var builder = new TokenStreamBuilder();
 		builder.feed(OPENING_PARENTHESIS);
 		for(var expr: elements){
-			builder.feed(expr.regress());
+			builder.feed(expr.decompose());
 		}
 		builder.feed(CLOSING_PARENTHESIS);
 		return builder.immutableView().wrap();

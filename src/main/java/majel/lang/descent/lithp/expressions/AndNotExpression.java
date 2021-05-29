@@ -8,7 +8,7 @@ public record AndNotExpression(LithpExpression expr0, LithpExpression expr1) imp
 	public static final char HEAD_TOKEN = '-';
 
 	@Override
-	public TokenStream<SimpleToken> regress(){
+	public TokenStream<SimpleToken> decompose(){
 		return null;
 	}
 }
