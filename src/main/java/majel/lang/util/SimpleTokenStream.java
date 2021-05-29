@@ -3,9 +3,11 @@ package majel.lang.util;
 import majel.lang.err.IllegalToken;
 import majel.stream.SimpleToken;
 import majel.util.functional.CharConsumer;
-import majel.util.functional.CharGobbler;
 import majel.util.functional.CharPredicate;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
@@ -50,6 +52,52 @@ public interface SimpleTokenStream{
 			public Mark mark(){
 				final int mark = index;
 				return () -> index = mark;
+			}
+		};
+	}
+
+
+	static SimpleTokenStream of(InputStream stream){
+
+		return new SimpleTokenStream(){
+			char next = 0xffff;
+			@Override
+			public char peek(){
+				if(next == 0xffff){
+					try{
+						final int read = stream.read();
+						if((read & 0xffffff00) != 0){
+							throw new IllegalStateException();
+						}
+						next = (char)read;
+					}
+					catch(IOException e){
+						throw new UncheckedIOException(e);
+					}
+				}
+				return next;
+			}
+
+			@Override
+			public char poll(){
+				var rv = peek();
+				next = 0xffff;
+				return rv;
+			}
+
+			@Override
+			public boolean empty(){
+				try{
+					return next == 0xffff && stream.available() == 0;
+				}
+				catch(IOException e){
+					throw new UncheckedIOException(e);
+				}
+			}
+
+			@Override
+			public Mark mark(){
+				throw new UnsupportedOperationException();
 			}
 		};
 	}

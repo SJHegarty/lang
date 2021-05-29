@@ -7,38 +7,31 @@ import majel.lang.util.SimpleTokenStream;
 import majel.lang.util.TokenStream;
 import majel.stream.SimpleToken;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class LinesParser implements Parser<SimpleToken, Line>{
-	public static void main(String...args){
-		String content = """
-			This is a test
-				this is a line
-						overdent
-					yo
-					foo
-					
-					bar
-				back
-			More things
-			""";
-		System.err.println(content);
+	public static void main(String...args) throws IOException{
+		var resource = Thread.currentThread().getContextClassLoader().getResource(".bspl/Test.bspl");
+		final String content = SimpleTokenStream.of(resource.openStream()).drain();
 		var sink = new ArrayList<TokenStream.IndexedToken<Line>>();
+		var returns = new ArrayList<TokenStream.IndexedToken<SimpleToken>>();
+
 		String reconstructed = SimpleTokenStream.of(
 			new IndentParser().parse(
 				new LinesParser().parse(
 					SimpleTokenStream.from(content).wrap()
+						.retain(t -> t.character() != '\r', returns::add)
 				)
 				.retain(l -> !l.empty(), sink::add)
 			)
 			.unwrap(IndentToken::decompose)
 			.incorporate(TokenStream.from(sink))
 			.unwrap(Line::decompose)
+			.incorporate(TokenStream.from(returns))
 		)
 		.remaining();
 
-		System.err.println(sink);
-		System.err.println(reconstructed);
 		System.err.println(content.equals(reconstructed));
 
 	}
