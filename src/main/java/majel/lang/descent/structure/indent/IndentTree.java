@@ -5,6 +5,7 @@ import majel.lang.util.TokenStream;
 import majel.util.ObjectUtils;
 
 public record IndentTree(
+	int lineNumber,
 	String content,
 	IndentToken[] children
 )
@@ -41,12 +42,13 @@ implements IndentToken{
 	@Override
 	public TokenStream<Line> decompose(){
 		return TokenStream
-			.of(new Line(0, content, true))
+			.of(new Line(lineNumber, 0, content, true))
 			.concat(
 				() -> TokenStream.of(children)
 					.unwrap(IndentToken::decompose)
 					.map(
 						line -> new Line(
+							line.lineNumber(),
 							line.indent() + 1,
 							line.content(),
 							line.terminated()
@@ -55,4 +57,7 @@ implements IndentToken{
 			);
 	}
 
+	public int childCount(){
+		return children.length;
+	}
 }

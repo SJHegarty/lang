@@ -42,9 +42,9 @@ public class IndentParser implements Parser<Line, IndentToken>{
 					children.add(child);
 				}
 				if(children.isEmpty()){
-					return new IndentLine(head.content(), head.terminated());
+					return new IndentLine(head.lineNumber(), head.content(), head.terminated());
 				}
-				return new IndentTree(head.content(), children.toArray(IndentToken[]::new));
+				return new IndentTree(head.lineNumber(), head.content(), children.toArray(IndentToken[]::new));
 			};
 
 			@Override

@@ -8,8 +8,11 @@ public record IndentHidden(IndentToken wrapped) implements IndentToken{
 	@Override
 	public TokenStream<Line> decompose(){
 		return wrapped.decompose().map(
-			line -> new Line(line.indent() + 1, line.content(), line.terminated())
+			line -> new Line(line.lineNumber(), line.indent() + 1, line.content(), line.terminated())
 		);
 	}
 
+	public int lineNumber(){
+		return wrapped.lineNumber();
+	}
 }

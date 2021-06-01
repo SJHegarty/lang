@@ -8,4 +8,6 @@ public interface IndentToken extends Decomposable<Line>{
 
 	@Override
 	TokenStream<Line> decompose();
+
+	int lineNumber();
 }

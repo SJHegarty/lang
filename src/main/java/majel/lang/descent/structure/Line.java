@@ -6,7 +6,7 @@ import majel.stream.SimpleToken;
 import majel.util.ObjectUtils;
 import majel.util.functional.TokenStreamBuilder;
 
-public record Line(int indent, String content, boolean terminated) implements Decomposable<SimpleToken>{
+public record Line(int lineNumber, int indent, String content, boolean terminated) implements Decomposable<SimpleToken>{
 
 	public boolean empty(){
 		return content.length() == 0;

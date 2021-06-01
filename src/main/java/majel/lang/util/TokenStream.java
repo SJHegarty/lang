@@ -39,6 +39,14 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 	boolean empty();
 	Mark mark();
 
+	default void indexedForEach(Consumer<IndexedToken<T>> op){
+		int index = 0;
+		while(!empty()){
+			op.accept(new IndexedToken<>(poll(), index));
+			index = index + 1;
+		}
+	}
+
 	default T read(Predicate<T> predicate){
 		var token = poll();
 		if(!predicate.test(token)){
@@ -176,6 +184,36 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 		};
 	}
 
+	default TokenStream<IndexedToken<T>> indexed(){
+		return new TokenStream<>(){
+			int index;
+
+			@Override
+			public IndexedToken<T> peek(){
+				return new IndexedToken<>(TokenStream.this.peek(), index);
+			}
+
+			@Override
+			public IndexedToken<T> poll(){
+				return new IndexedToken<>(TokenStream.this.poll(), index++);
+			}
+
+			@Override
+			public boolean empty(){
+				return TokenStream.this.empty();
+			}
+
+			@Override
+			public Mark mark(){
+				final int m0 = index;
+				final var m1 = TokenStream.this.mark();
+				return () -> {
+					index = m0;
+					m1.reset();
+				};
+			}
+		};
+	}
 	default <D extends Token> TokenStream<D> map(Function<T, D> mapper){
 		var wrapped = this;
 		return new TokenStream<D>(){
@@ -295,12 +333,12 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 				block:{
 					if(!stream.empty()){
 						var peek = stream.peek();
-						if(peek.index < index){
+						if(peek.index() < index){
 							throw new IllegalStateException();
 						}
-						if(peek.index == index){
+						if(peek.index() == index){
 							stream.poll();
-							rv = peek.token;
+							rv = peek.token();
 							break block;
 						}
 					}
@@ -327,8 +365,8 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 		};
 	}
 
-	record IndexedToken<T>(T token, int index) implements Token{
-
+	default TokenStream<T> retain(Predicate<T> predicate){
+		return retain(predicate, t -> {});
 	}
 
 	default TokenStream<T> retain(Predicate<T> predicate, Consumer<IndexedToken<T>> sink){
