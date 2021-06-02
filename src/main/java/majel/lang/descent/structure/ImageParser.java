@@ -15,48 +15,27 @@ import java.util.function.Function;
 public class ImageParser implements Parser<IndentToken, Image>{
 
 	public Image parseSingle(IndentToken token){
-			if(token instanceof IndentTree t){
-				/*Image header = new Image.ColourBlock(t.content().length(), 1, 0xff0080ff);
-				Image[] children;
+		if(token instanceof IndentLine line){
+			return new Image.BlockImage(0, 0, line.content().length(), 1, 0xff0080ff);
+		}
+		if(token instanceof IndentTree tree){
+			var head = new Image.BlockImage(0, 0, tree.content().length(), 1, 0xffff8000);
+			var elements = TokenStream.of((Image)head).concat(
+				() -> Y_LAYOUT
+					.parse(
+						TokenStream.of(tree.children())
+							.map(this::parseSingle)
+					)
+					.map(i -> i.offset(4, 1))
+			)
+				.collect(ArrayList::new);
 
-				Y_LAYOUT.parse(
-					TokenStream.of(t.children()).map(this::parseSingle)
-				);
-
-				TokenStream.of(t.children()).indexed().map(
-					indexed -> {
-						int index = indexed.index();
-						return parseSingle(t.children()[index]);
-
-					}
-				);*/
-			}
-			if(token instanceof IndentLine line){
-				return new Image.BlockImage(0, 0, line.content().length(), 1, 0xff0080ff);
-			}
-			if(token instanceof IndentTree tree){
-				var head = new Image.BlockImage(0, 0, tree.content().length(), 1, 0xffff8000);
-				var elements = TokenStream.of((Image)head).concat(
-					() -> Y_LAYOUT
-						.parse(
-							TokenStream.of(tree.children())
-								.map(this::parseSingle)
-						)
-						.map(i -> i.offset(4, 1))
-				)
-					.collect(ArrayList::new);
-
-				for(var e: elements){
-					System.err.println("??? " + e.y0() + " " + e.x0());
-				}
-				var rv = new Image.CompositeImage(elements);
-				System.err.println("..........." + rv.height());
-				return rv;
-			}
-			if(token instanceof IndentHidden h){
-				return parseSingle(h.wrapped()).offset(4, 0);
-			}
-			throw new UnsupportedOperationException(token.getClass().toString());
+			return new Image.CompositeImage(elements);
+		}
+		if(token instanceof IndentHidden h){
+			return parseSingle(h.wrapped()).offset(4, 0);
+		}
+		throw new UnsupportedOperationException(token.getClass().toString());
 	}
 	@Override
 	public TokenStream<Image> parse(TokenStream<IndentToken> tokens){

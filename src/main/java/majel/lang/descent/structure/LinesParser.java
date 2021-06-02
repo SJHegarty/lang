@@ -61,42 +61,21 @@ public class LinesParser implements Parser<SimpleToken, Line>{
 	public static void main(String...args) throws IOException{
 		var resource = Thread.currentThread().getContextClassLoader().getResource(".bspl/Test.bspl");
 
-		final String content = SimpleTokenStream.of(
-			SimpleTokenStream.of(resource.openStream())
-				.wrap()
-				.retain(c -> c.character() != '\r')
-		)
-		.drain();
 		var sink = new ArrayList<IndexedToken<Line>>();
 
-		String reconstructed = SimpleTokenStream.of(
-			new IndentParser().parse(
-				new LinesParser().parse(
-					SimpleTokenStream.from(content).wrap()
-				)
-				.retain(l -> !l.empty(), sink::add)
-			)
-			.unwrap(IndentToken::decompose)
-			.incorporate(TokenStream.from(sink))
-			.unwrap(Line::decompose)
-		)
-		.remaining();
+		var parser = Parser.<SimpleToken>empty()
+			.exclude(c -> c.character() == '\r')
+			.andThen(new LinesParser())
+			.exclude(Line::empty, sink::add)
+			.andThen(new IndentParser())
+			.andThen(new ImageParser())
+			.andThen(Y_LAYOUT)
+			.map(i -> i.scale(6))
+			.andThen(new ImageRenderer());
 
-		new ImageRenderer().parse(
-		Y_LAYOUT.parse(
-			new ImageParser().parse(
-				new IndentParser().parse(
-					new LinesParser().parse(
-						SimpleTokenStream.from(content).wrap()
-					)
-		//		)
-			)//.map(i -> i.scale(6))
-		).map(i -> i.scale(4))
-		)
-		).forEach(System.err::println);
+		final var stream = SimpleTokenStream.of(resource.openStream()).wrap();
 
-		System.err.println(content.equals(reconstructed));
-
+		parser.parse(stream).forEach(System.err::println);
 	}
 
 	@Override
