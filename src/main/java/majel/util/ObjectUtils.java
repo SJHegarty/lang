@@ -17,6 +17,22 @@ public class ObjectUtils{
 		return rv;
 	}
 
+	public static String escape(String s){
+		var builder = new StringBuilder();
+		for(char c: s.toCharArray()){
+			builder.append(
+				switch(c){
+					case '\n' -> "\\n";
+					case '\t' -> "\\t";
+					case '\r' -> "\\r";
+					case ' ' -> "\\s";
+					default -> Character.toString(c);
+				}
+			);
+		}
+		return builder.toString();
+	}
+
 	public static char lastChar(String content){
 		return content.charAt(content.length() - 1);
 	}
