@@ -1,6 +1,6 @@
 package majel.lang.descent;
 
-import majel.lang.Parser;
+import majel.lang.util.Pipe;
 import majel.lang.err.IllegalToken;
 import majel.lang.util.Mark;
 import majel.lang.util.TokenStream;
@@ -16,7 +16,7 @@ import majel.stream.Token;
  			Likewise @some-name; should not lookup some-name until later in the process.
  			The context containing a Map<name:String, Expression> should not be accessible until semantic processing is occurring.
  */
-public class RecursiveDescentParser<S extends Token, T extends Token> implements Parser<S, T>{
+public class RecursiveDescentParser<S extends Token, T extends Token> implements Pipe<S, T>{
 
 	private final HandlerSelector<S, T> selector;
 	public RecursiveDescentParser(HandlerSelector<S, T> selector){

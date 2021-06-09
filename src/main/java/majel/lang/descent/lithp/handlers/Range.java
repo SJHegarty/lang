@@ -4,9 +4,9 @@ import majel.lang.descent.CharHandler;
 import majel.lang.descent.lithp.Lithp1;
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.descent.lithp.expressions.RangeExpression;
-import majel.lang.util.SimpleTokenStream;
+import majel.lang.util.TokenStream$Char;
 import majel.lang.util.TokenStream;
-import majel.stream.SimpleToken;
+import majel.stream.Token$Char;
 
 import static majel.lang.descent.lithp.expressions.RangeExpression.*;
 
@@ -18,9 +18,9 @@ public class Range implements CharHandler<LithpExpression>{
 	}
 
 	@Override
-	public LithpExpression parse(TokenStream<SimpleToken> tokens, TokenStream<LithpExpression> parsed){
+	public LithpExpression parse(TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
 		checkHead(tokens);
-		var simple = SimpleTokenStream.of(tokens);
+		var simple = TokenStream$Char.of(tokens);
 		char c0 = Lithp1.parseLiteral(simple);
 		simple.read(DELIMITER);
 		char c1 = Lithp1.parseLiteral(simple);

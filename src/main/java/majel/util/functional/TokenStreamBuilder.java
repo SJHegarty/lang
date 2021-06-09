@@ -1,9 +1,10 @@
 package majel.util.functional;
 
 import majel.lang.util.Mark;
-import majel.lang.util.SimpleTokenStream;
+import majel.lang.util.TokenStream$Char;
+import majel.util.MathUtils;
 
-public class TokenStreamBuilder implements CharGobbler, SimpleTokenStream{
+public class TokenStreamBuilder implements CharGobbler, TokenStream$Char{
 
 	record Bounds(int head, int tail){
 		Bounds{
@@ -44,24 +45,17 @@ public class TokenStreamBuilder implements CharGobbler, SimpleTokenStream{
 		return this;
 	}
 
-	private void ensureCapacity(int size){
+	private void ensureCapacity(int minSize){
 		final int tsize = bounds.tail();
-		if(tsize < size){
-			if((size & (size - 1)) != 0){
-				size |= size >> 0x01;
-				size |= size >> 0x02;
-				size |= size >> 0x04;
-				size |= size >> 0x08;
-				size |= size >> 0x10;
-				size += 1;
-			}
-			final char[] buffernew = new char[size];
+		if(tsize < minSize){
+			final char[] buffernew = new char[MathUtils.nextPowerOfTwo(minSize)];
 			for(int i = 0; i < tsize; i++){
 				buffernew[i] = buffer[i];
 			}
 			buffer = buffernew;
 		}
 	}
+
 	@Override
 	public CharGobbler feed(char[] chars){
 		ensureCapacity(bounds.tail() + chars.length);
@@ -98,8 +92,8 @@ public class TokenStreamBuilder implements CharGobbler, SimpleTokenStream{
 		return () -> bounds = bounds.withHead(head);
 	}
 
-	public SimpleTokenStream immutableView(){
-		return new SimpleTokenStream(){
+	public TokenStream$Char immutableView(){
+		return new TokenStream$Char(){
 			@Override
 			public char peek(){
 				return TokenStreamBuilder.this.peek();

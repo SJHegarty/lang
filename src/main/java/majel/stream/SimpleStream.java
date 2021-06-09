@@ -2,7 +2,7 @@ package majel.stream;
 
 public interface SimpleStream{
 
-	default MajelStream<SimpleToken> wrap(){
+	default MajelStream<Token$Char> wrap(){
 		return new Wrappers.WrappedSimpleStream(this);
 	}
 

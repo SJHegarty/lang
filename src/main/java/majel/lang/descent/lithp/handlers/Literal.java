@@ -4,9 +4,9 @@ import majel.lang.descent.CharHandler;
 import majel.lang.descent.lithp.Lithp1;
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.descent.lithp.expressions.LiteralExpression;
-import majel.lang.util.SimpleTokenStream;
+import majel.lang.util.TokenStream$Char;
 import majel.lang.util.TokenStream;
-import majel.stream.SimpleToken;
+import majel.stream.Token$Char;
 
 public class Literal implements CharHandler<LithpExpression>{
 
@@ -16,12 +16,12 @@ public class Literal implements CharHandler<LithpExpression>{
 	}
 
 	@Override
-	public LithpExpression parse(TokenStream<SimpleToken> tokens, TokenStream<LithpExpression> parsed){
+	public LithpExpression parse(TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
 		checkHead(tokens);
 		final String str;
 		outer:{
 			var builder = new StringBuilder();
-			var simple = SimpleTokenStream.of(tokens);
+			var simple = TokenStream$Char.of(tokens);
 			for(;;){
 				switch(simple.peek()){
 					case LiteralExpression.ENCLOSING_TOKEN -> {

@@ -1,9 +1,9 @@
 package majel.lang.descent.lithp;
 
-import majel.lang.Parser;
+import majel.lang.util.Pipe;
 import majel.lang.automata.fsa.FSA;
 import majel.lang.descent.lithp.expressions.*;
-import majel.lang.util.SimpleTokenStream;
+import majel.lang.util.TokenStream$Char;
 import majel.lang.util.TokenStream;
 
 import java.util.Arrays;
@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class Lithp2 implements Parser<LithpExpression, FSA>{
+public class Lithp2 implements Pipe<LithpExpression, FSA>{
 
 	final Map<Class<? extends LithpExpression>, Function<LithpExpression, FSA>> builders;
 	final Map<String, FSA> named;
@@ -59,7 +59,7 @@ public class Lithp2 implements Parser<LithpExpression, FSA>{
 				var rv = base.named(lower);
 
 				var shortForm = new StringBuilder();
-				for(String s: SimpleTokenStream.from(name).split('-')){
+				for(String s: TokenStream$Char.from(name).split('-')){
 					final char segchar;
 					final char[] chars = s.toCharArray();
 					block:{

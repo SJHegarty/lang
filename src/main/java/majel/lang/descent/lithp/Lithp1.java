@@ -5,11 +5,11 @@ import majel.lang.descent.Decomposable;
 import majel.lang.descent.RecursiveDescentParser;
 import majel.lang.descent.lithp.handlers.*;
 import majel.lang.err.IllegalToken;
-import majel.lang.util.SimpleTokenStream;
-import majel.stream.SimpleToken;
+import majel.lang.util.TokenStream$Char;
+import majel.stream.Token$Char;
 import majel.util.functional.TokenStreamBuilder;
 
-public class Lithp1 extends RecursiveDescentParser<SimpleToken, LithpExpression>{
+public class Lithp1 extends RecursiveDescentParser<Token$Char, LithpExpression>{
 	/*
 TODO:
 	Language Feature:
@@ -79,7 +79,7 @@ TODO:
 			""";
 
 		var source = lithpSrc.replaceAll("\n", "").replaceAll("\t", "");
-		var stream = SimpleTokenStream.from(source).wrap();
+		var stream = TokenStream$Char.from(source).wrap();
 		var mark = stream.mark();
 		var builder = new TokenStreamBuilder();
 
@@ -90,7 +90,7 @@ TODO:
 
 		mark.reset();
 		System.err.println("0: " + source);
-		System.err.println("1: " + SimpleTokenStream.of(stream).remaining());
+		System.err.println("1: " + TokenStream$Char.of(stream).remaining());
 		System.err.println("2: " + builder.remaining());
 	}
 
@@ -116,7 +116,7 @@ TODO:
 		);
 	}
 
-	public static char parseLiteral(SimpleTokenStream tokens){
+	public static char parseLiteral(TokenStream$Char tokens){
 		var mark = tokens.mark();
 		char token = tokens.poll();
 		return switch(token){
@@ -128,6 +128,7 @@ TODO:
 				yield switch(tokens.poll()){
 					case 't' -> '\t';
 					case 'n' -> '\n';
+					case '\'' -> '\'';
 					case '\\' -> '\\';
 					default -> throw new IllegalToken(tokens.wrap());
 				};

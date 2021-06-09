@@ -1,0 +1,122 @@
+<@unification ~ Task :< {
+	There should be feature parity between TokenStream$Char and TokenStream<Token>
+		- Eventually the Char part should be rephrased; the Token isn't really a char.
+
+		Snack(byte value){
+			3^5 = 243;
+			2^8 = 256;
+			(256 - 243) = remainder = 13;//Control space
+			Address spaces:{
+				remn{
+					...13 values and mappings to meanings
+				}
+				3^4 = 81
+				256 - 81 = 175
+				175 - 81 = 94
+				94 - 81 = 13
+				if(value < 13){
+					int ctrl = value;
+					switch(ctrl){
+						case 0: Null-Value
+						case 1: Null-Op
+						case 2: Child-Ptr
+						case 3: Undefined-Value
+						case 4:
+						case 5:
+						case 6:
+						case 7:
+						case 8:
+						case 9:
+						case 10:
+						case 11:
+						case 12: Undefined-Funct
+						case 13: Error
+					}
+				}
+				else if(value < 94){
+					int tableValue = value - 13;
+					//table symbolic - Alphanumeric + Standard programming and Meta-Symbols
+					if(tableValue < 27){
+						if(tableValue == 26){
+							return '.';
+						}
+						return 'a' + tableValue;
+					}
+					else if(tableValue < 54){
+						if(tableValue == 53){
+							return ';';
+						}
+						return 'A' + tableValue - 27;
+					}
+					else if(tableValue < 81){
+
+						if(tableValue < 89){
+						switch(tableValue - 54){
+							case 0: return '[';
+							case 1: return ']';
+							case 2: return '{';
+							case 3: return '};
+							case 4: return ')';
+							case 5: return '(';
+							case 6: return '<';
+							case 7: return '>';
+							case 8: return BRACKETS_NULL
+						}
+					}
+					else{
+
+					}
+				}
+				else if(value < 175){
+					int tableValue = value - 94;
+				}
+				else{
+					int tableValue = value - 174;
+				}
+				tern(3^5){
+					three lookup spaces:
+					symbolic(3^4){
+						symbolic-a = +([a...z], '.')
+						sybm
+					}
+					numeric(3^4);
+					expanded(3^4);
+				}
+			}
+			We need two (3^3 = 27) lookup spaces for the upper and lower case alphabets:
+
+			{
+
+			}
+		}
+
+	addresses:{
+		control: [0..13]{
+			case 0: start-of-stream
+			case 1: end-of-stream
+
+			default: boom
+		}
+		symbolic: [13..(13 + 81) = 94]
+			switch-poly(x - 13){
+				case [0..26]: return [a...z];
+				case [26..52]: return [A...Z];
+				case [52..60]: return ['(', '{', '[', '<', '>', ']', '}', ')'];
+
+			}
+			Alphabetic and programmer codes.
+		numeric: [94..(94 + 81) = 175]
+			return value - (94 + 40);//[-40...+40]
+		extended: [175...255];
+
+
+		extended://
+			byte-0:{
+				control: [0...12]{
+					0: unexpected pipe close
+				}
+			}
+			[byte-1, byte-2]: codec-defined
+		three more bites after stream end. can explode for now.
+	}
+}

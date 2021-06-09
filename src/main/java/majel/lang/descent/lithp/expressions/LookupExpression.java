@@ -2,7 +2,7 @@ package majel.lang.descent.lithp.expressions;
 
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.util.TokenStream;
-import majel.stream.SimpleToken;
+import majel.stream.Token$Char;
 import majel.util.functional.TokenStreamBuilder;
 
 public record LookupExpression(String identifier) implements LithpExpression{
@@ -14,7 +14,7 @@ public record LookupExpression(String identifier) implements LithpExpression{
 	}
 
 	@Override
-	public TokenStream<SimpleToken> decompose(){
+	public TokenStream<Token$Char> decompose(){
 		var builder = new TokenStreamBuilder();
 		builder
 			.feed(HEAD_TOKEN)

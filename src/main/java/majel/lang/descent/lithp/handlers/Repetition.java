@@ -4,9 +4,9 @@ import majel.lang.descent.CharHandler;
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.descent.lithp.expressions.RepetitionExpression;
 import majel.lang.err.IllegalToken;
-import majel.lang.util.SimpleTokenStream;
+import majel.lang.util.TokenStream$Char;
 import majel.lang.util.TokenStream;
-import majel.stream.SimpleToken;
+import majel.stream.Token$Char;
 import majel.util.functional.CharPredicate;
 
 import java.util.function.IntSupplier;
@@ -24,9 +24,9 @@ public class Repetition implements CharHandler<LithpExpression>{
 	}
 
 	@Override
-	public LithpExpression parse(TokenStream<SimpleToken> tokens, TokenStream<LithpExpression> parsed){
+	public LithpExpression parse(TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
 		checkHead(tokens);
-		var simple = SimpleTokenStream.of(tokens);
+		var simple = TokenStream$Char.of(tokens);
 		simple.read(LithpExpression.OPENING_PARENTHESIS);
 		IntSupplier intReader = () -> {
 			var builder = new StringBuilder();

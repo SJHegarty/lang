@@ -7,9 +7,9 @@ import majel.lang.descent.lithp.Lithp2;
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.descent.lithp.expressions.LookupExpression;
 import majel.lang.err.IllegalExpression;
-import majel.lang.util.SimpleTokenStream;
+import majel.lang.util.TokenStream$Char;
 import majel.lang.util.TokenStream;
-import majel.stream.SimpleToken;
+import majel.stream.Token$Char;
 
 import static majel.lang.descent.lithp.expressions.LookupExpression.HEAD_TOKEN;
 import static majel.lang.descent.lithp.expressions.LookupExpression.TAIL_TOKEN;
@@ -24,9 +24,9 @@ public class Lookup implements CharHandler<LithpExpression>{
 	private transient StringProcessor processor;
 
 	@Override
-	public LithpExpression parse(TokenStream<SimpleToken> tokens, TokenStream<LithpExpression> parsed){
+	public LithpExpression parse(TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
 		checkHead(tokens);
-		var simple = SimpleTokenStream.of(tokens);
+		var simple = TokenStream$Char.of(tokens);
 		/*if(simple.peek() == '.'){
 			final String body = ".;";
 			tokens.read(body);
@@ -45,7 +45,7 @@ public class Lookup implements CharHandler<LithpExpression>{
 			var expr = "+(" + exprLC + ", " + exprUC + ")";
 			var parser = new Lithp1().andThen(new Lithp2());
 			processor = new StringProcessor(
-				parser.parse(SimpleTokenStream.from(expr).wrap()).poll()
+				parser.parse(TokenStream$Char.from(expr).wrap()).poll()
 			);
 		}
 		var name = processor.process(simple).value();

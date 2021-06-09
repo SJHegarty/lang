@@ -1,17 +1,21 @@
 package majel.lang.automata.fsa;
 
-import majel.lang.util.SimpleTokenStream;
+import majel.lang.err.IllegalToken;
+import majel.lang.util.Mark;
+import majel.lang.util.Pipe;
+import majel.lang.util.TokenStream$Char;
 import majel.lang.util.TokenStream;
-import majel.stream.Token;
+import majel.stream.Token$Char;
+import majel.stream.StringToken;
 
-public class StringProcessor implements Token{
+public class StringProcessor implements Pipe<Token$Char, StringToken>{
 	private final FSA automaton;
 
 	public StringProcessor(FSA automaton){
 		this.automaton = automaton.dfa();
 	}
 
-	public Blah process(SimpleTokenStream tokens){
+	public Result process(TokenStream$Char tokens){
 		var last = automaton.entryPoint;
 		var node = automaton.entryPoint;
 		var builder = new StringBuilder();
@@ -35,16 +39,46 @@ public class StringProcessor implements Token{
 			}
 		}
 		mark.reset();
-		return new Blah(builder.toString(), last);
+		return new Result(builder.toString(), last);
 	}
 
-	public Blah process(String value){
-		return process(SimpleTokenStream.from(value));
-	}
 
-	public record Blah(String value, Node node){
+	public record Result(String value, Node node){
 
 	}
+
+	public Result process(String value){
+		return process(TokenStream$Char.from(value));
+	}
+
+	@Override
+	public TokenStream<StringToken> parse(TokenStream<Token$Char> tokens){
+		var simple = TokenStream$Char.of(tokens);
+		return new TokenStream<>(){
+			@Override
+			public StringToken poll(){
+				var result = process(simple);
+				if(!result.node.terminating()){
+					throw new IllegalToken(tokens);
+				}
+				return new StringToken(
+					result.value,
+					result.node.labels()
+				);
+			}
+
+			@Override
+			public boolean empty(){
+				return tokens.empty();
+			}
+
+			@Override
+			public Mark mark(){
+				return tokens.mark();
+			}
+		};
+	}
+
 
 	public FSA automaton(){
 		return automaton;

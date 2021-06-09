@@ -1,0 +1,22 @@
+<@some-string ~ String :< {
+	This string is not parsed.
+}
+<@name ~ String :< "some-name";
+
+<@some-string ~ String :< ~{
+	This string should be parsed:
+		The dude's name is @name;.
+}
+?~(some-string, ?*.'some-name'?*.){
+	<<~ match found: @some-string;
+}
+
+<@a ~ Int-8 :< 12;
+<@b ~ Int-8 :< 17;
+
+?=(a, b){
+	<<: This doesn't seem right.
+}
+&!{
+	<<: Hopefully.
+}

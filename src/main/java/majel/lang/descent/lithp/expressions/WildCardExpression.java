@@ -1,9 +1,9 @@
 package majel.lang.descent.lithp.expressions;
 
 import majel.lang.descent.lithp.LithpExpression;
-import majel.lang.util.SimpleTokenStream;
+import majel.lang.util.TokenStream$Char;
 import majel.lang.util.TokenStream;
-import majel.stream.SimpleToken;
+import majel.stream.Token$Char;
 
 public class WildCardExpression implements LithpExpression{
 	public static final char TOKEN = '.';
@@ -18,7 +18,7 @@ public class WildCardExpression implements LithpExpression{
 	}
 
 	@Override
-	public TokenStream<SimpleToken> decompose(){
-		return SimpleTokenStream.of('.').wrap();
+	public TokenStream<Token$Char> decompose(){
+		return TokenStream$Char.of('.').wrap();
 	}
 }

@@ -4,7 +4,7 @@ import majel.lang.descent.CharHandler;
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.descent.lithp.expressions.OrExpression;
 import majel.lang.util.TokenStream;
-import majel.stream.SimpleToken;
+import majel.stream.Token$Char;
 
 public class Or implements CharHandler<LithpExpression>{
 
@@ -14,7 +14,7 @@ public class Or implements CharHandler<LithpExpression>{
 	}
 
 	@Override
-	public LithpExpression parse(TokenStream<SimpleToken> tokens, TokenStream<LithpExpression> parsed){
+	public LithpExpression parse(TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
 		checkHead(tokens);
 		return new OrExpression(LithpExpression.readList(tokens, parsed));
 	}

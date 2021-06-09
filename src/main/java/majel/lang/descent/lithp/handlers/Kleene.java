@@ -4,7 +4,7 @@ import majel.lang.descent.CharHandler;
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.descent.lithp.expressions.KleenExpression;
 import majel.lang.util.TokenStream;
-import majel.stream.SimpleToken;
+import majel.stream.Token$Char;
 
 public class Kleene implements CharHandler<LithpExpression>{
 
@@ -15,7 +15,7 @@ public class Kleene implements CharHandler<LithpExpression>{
 
 	@Override
 	public LithpExpression parse(
-		TokenStream<SimpleToken> tokens,
+		TokenStream<Token$Char> tokens,
 		TokenStream<LithpExpression> expressions
 	){
 		checkHead(tokens);

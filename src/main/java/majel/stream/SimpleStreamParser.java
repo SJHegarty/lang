@@ -9,10 +9,10 @@ public interface SimpleStreamParser<D extends Token>{
 	MajelStream<D> parse(SimpleStream stream);
 	UnsimpleStreamParser<D> reverse();
 
-	default StreamParser<SimpleToken, D> wrap(){
+	default StreamParser<Token$Char, D> wrap(){
 		return new StreamParser<>(){
 			@Override
-			public MajelStream<D> parse(MajelStream<SimpleToken> source){
+			public MajelStream<D> parse(MajelStream<Token$Char> source){
 				final SimpleStream simple;
 				if(source instanceof Wrappers.WrappedSimpleStream wrapped){
 					simple = wrapped.wrapped();
@@ -25,17 +25,17 @@ public interface SimpleStreamParser<D extends Token>{
 			}
 
 			@Override
-			public StreamParser<D, SimpleToken> reverse(){
+			public StreamParser<D, Token$Char> reverse(){
 				var unsimple = SimpleStreamParser.this.reverse();
 				var reverseReverse = this;
 				return new StreamParser<>(){
 					@Override
-					public MajelStream<SimpleToken> parse(MajelStream<D> source){
+					public MajelStream<Token$Char> parse(MajelStream<D> source){
 						return new Wrappers.WrappedSimpleStream(unsimple.parse(source));
 					}
 
 					@Override
-					public StreamParser<SimpleToken, D> reverse(){
+					public StreamParser<Token$Char, D> reverse(){
 						return reverseReverse;
 					}
 				};

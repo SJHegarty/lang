@@ -1,7 +1,7 @@
 package majel.stream;
 
 public class Wrappers{
-	public static class WrappedSimpleStream implements MajelStream<SimpleToken>{
+	public static class WrappedSimpleStream implements MajelStream<Token$Char>{
 		private final SimpleStream wrapped;
 
 		public WrappedSimpleStream(SimpleStream wrapped){
@@ -19,8 +19,8 @@ public class Wrappers{
 		}
 
 		@Override
-		public SimpleToken next(){
-			return new SimpleToken(wrapped().next());
+		public Token$Char next(){
+			return new Token$Char(wrapped().next());
 		}
 
 		public SimpleStream wrapped(){
@@ -29,14 +29,14 @@ public class Wrappers{
 	}
 
 	public static class WrappedMajelStream implements SimpleStream{
-		private final MajelStream<SimpleToken> wrapped;
+		private final MajelStream<Token$Char> wrapped;
 
-		public WrappedMajelStream(MajelStream<SimpleToken> wrapped){
+		public WrappedMajelStream(MajelStream<Token$Char> wrapped){
 			this.wrapped = wrapped;
 		}
 		@Override
 		public char next(){
-			return wrapped.next().character();
+			return wrapped.next().value();
 		}
 
 		@Override

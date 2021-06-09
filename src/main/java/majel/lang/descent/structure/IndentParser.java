@@ -1,6 +1,6 @@
 package majel.lang.descent.structure;
 
-import majel.lang.Parser;
+import majel.lang.util.Pipe;
 import majel.lang.descent.structure.indent.*;
 import majel.lang.util.Mark;
 import majel.lang.util.TokenStream;
@@ -8,18 +8,11 @@ import majel.lang.util.TokenStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IndentParser implements Parser<Line, IndentToken>{
+public class IndentParser implements Pipe<Line, IndentToken>{
 
 	@Override
 	public TokenStream<IndentToken> parse(TokenStream<Line> tokens){
 		return new TokenStream<>(){
-			@Override
-			public IndentToken peek(){
-				var mark = mark();
-				var rv = poll();
-				mark.reset();
-				return rv;
-			}
 
 			@Override
 			public IndentToken poll(){

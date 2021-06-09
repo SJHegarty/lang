@@ -1,15 +1,15 @@
 package majel.lang.descent;
 
 import majel.lang.automata.fsa.StringProcessor;
-import majel.lang.util.SimpleTokenStream;
+import majel.lang.util.TokenStream$Char;
 import majel.lang.util.TokenStream;
-import majel.stream.SimpleToken;
+import majel.stream.Token$Char;
 import majel.stream.Token;
 
-public interface ExpressionHandler<T extends Token> extends Handler<SimpleToken, T>{
+public interface ExpressionHandler<T extends Token> extends Handler<Token$Char, T>{
 	@Override
-	default boolean supportsHead(TokenStream<SimpleToken> tokens){
-		return headProcessor().process(SimpleTokenStream.of(tokens)).node().terminating();
+	default boolean supportsHead(TokenStream<Token$Char> tokens){
+		return headProcessor().process(TokenStream$Char.of(tokens)).node().terminating();
 	}
 
 	StringProcessor headProcessor();

@@ -1,6 +1,6 @@
 package majel.lang.descent.structure;
 
-import majel.lang.Parser;
+import majel.lang.util.Pipe;
 import majel.lang.descent.structure.indent.IndentHidden;
 import majel.lang.descent.structure.indent.IndentLine;
 import majel.lang.descent.structure.indent.IndentToken;
@@ -12,7 +12,7 @@ import majel.lang.util.TokenStream;
 import java.util.ArrayList;
 import java.util.function.Function;
 
-public class ImageParser implements Parser<IndentToken, Image>{
+public class ImageParser implements Pipe<IndentToken, Image>{
 
 	public Image parseSingle(IndentToken token){
 		if(token instanceof IndentLine line){
@@ -42,10 +42,10 @@ public class ImageParser implements Parser<IndentToken, Image>{
 		return tokens.map(this::parseSingle);
 	}
 
-	public static final Parser<Image, Image> Y_LAYOUT = new Deltad(i -> new Delta(0, i.height()));
-	private static final Parser<Image, Image> X_LAYOUT = new Deltad(i -> new Delta(i.width(), 0));
+	public static final Pipe<Image, Image> Y_LAYOUT = new Deltad(i -> new Delta(0, i.height()));
+	private static final Pipe<Image, Image> X_LAYOUT = new Deltad(i -> new Delta(i.width(), 0));
 
-	private static final class Deltad implements Parser<Image, Image>{
+	private static final class Deltad implements Pipe<Image, Image>{
 		private final Function<Image, Delta> deltasBuilder;
 
 		public Deltad(Function<Image, Delta> deltasBuilder){

@@ -1,8 +1,10 @@
 package majel.lang.util;
 
 import majel.lang.err.IllegalToken;
+import majel.stream.Token$Char;
 import majel.stream.Token;
 
+import java.io.InputStream;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -34,7 +36,14 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 			}
 		};
 	}
-	T peek();
+
+	default T peek(){
+		var mark = mark();
+		var rv = poll();
+		mark.reset();
+		return rv;
+	}
+
 	T poll();
 	boolean empty();
 	Mark mark();
@@ -115,6 +124,14 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 				return source().mark();
 			}
 		};
+	}
+
+	static TokenStream<Token$Char> from(String s){
+		return TokenStream$Char.from(s).wrap();
+	}
+
+	static TokenStream<Token$Char> from(InputStream stream){
+		return TokenStream$Char.of(stream).wrap();
 	}
 
 	static <T extends Token> TokenStream<T> from(Supplier<T> supplier){
@@ -371,39 +388,44 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 
 	default TokenStream<T> retain(Predicate<T> predicate, Consumer<IndexedToken<T>> sink){
 		return new TokenStream<T>(){
-			T next = null;
 			int index;
 			int sinkIndex;
 
-			@Override
-			public T peek(){
-				while(next == null){
-					if(TokenStream.this.empty()){
+			private void findNext(){
+				if(TokenStream.this.empty()){
+					return;
+				}
+				for(;;){
+					var mark = TokenStream.this.mark();
+					var token = TokenStream.this.poll();
+					if(predicate.test(token)){
+						mark.reset();
+						index += 1;
 						break;
 					}
-					var n = TokenStream.this.poll();
-					if(predicate.test(n)){
-						next = n;
-					}
-					else if(index > sinkIndex){
-						sink.accept(new IndexedToken<>(n, index));
+					if(index > sinkIndex){
+						sink.accept(new IndexedToken<>(token, index));
 						sinkIndex = index;
 					}
-					index++;
+					index += 1;
 				}
-				return next;
+			}
+			@Override
+			public T peek(){
+				findNext();
+				return TokenStream.this.peek();
 			}
 
 			@Override
 			public T poll(){
-				var rv = peek();
-				next = null;
-				return rv;
+				findNext();
+				return TokenStream.this.poll();
 			}
 
 			@Override
 			public boolean empty(){
-				return peek() == null;
+				findNext();
+				return TokenStream.this.empty();
 			}
 
 			@Override
@@ -417,5 +439,32 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 				};
 			}
 		};
+	}
+
+	default <D extends Token> TokenStream<D> polymap(Function<TokenStream<T>, D> mapper){
+		return new TokenStream<D>(){
+			@Override
+			public D poll(){
+				return mapper.apply(TokenStream.this);
+			}
+
+			@Override
+			public boolean empty(){
+				return TokenStream.this.empty();
+			}
+
+			@Override
+			public Mark mark(){
+				return TokenStream.this.mark();
+			}
+		};
+	}
+
+	default T only(Predicate<T> predicate){
+		var results = retain(predicate).collect(ArrayList::new);
+		if(results.size() != 0){
+			throw new IllegalStateException(results + ".size() != 1");
+		}
+		return results.get(0);
 	}
 }

@@ -1,12 +1,4 @@
-column: (*'\t'?' - '?*[a...z]?';')
-
-column's got some number of half indents.
-first parser:
-	semi-colon separated values.
-	'\n' - newline, '\t' - indent, '\h' - semicolon
-
-This, for example allows one to distingu
-$?~(std-in, <(long-buffer, #(1...4096, .))){
+?~(std-in, <(long-buffer, #(1...4096, .))){
 	~ <(line, /<(content, *!'\n')'\n');
 
 	-- an idea around asserts:

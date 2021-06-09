@@ -1,85 +1,106 @@
 package majel.lang.descent.structure;
 
-import majel.lang.Parser;
+import majel.lang.automata.fsa.FSA;
+import majel.lang.automata.fsa.StringProcessor;
+import majel.lang.descent.lithp.Lithp1;
+import majel.lang.descent.lithp.Lithp2;
+import majel.lang.util.Pipe;
 import majel.lang.descent.structure.indent.IndentToken;
-import majel.lang.descent.structure.render.image.Image;
+import majel.lang.descent.structure.indent.IndentTree;
 import majel.lang.util.IndexedToken;
 import majel.lang.util.Mark;
-import majel.lang.util.SimpleTokenStream;
+import majel.lang.util.TokenStream$Char;
 import majel.lang.util.TokenStream;
-import majel.stream.SimpleToken;
+import majel.stream.Token$Char;
 import majel.stream.Token;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static majel.lang.descent.structure.ImageParser.Y_LAYOUT;
-
-public class LinesParser implements Parser<SimpleToken, Line>{
-	record RenderResult() implements Token{}
-	static class ImageRenderer implements Parser<Image, RenderResult>{
-		private final BufferedImage content;
-		private final Function<Image, RenderResult> renderer;
-		ImageRenderer(){
-			this.content = new BufferedImage(1600, 1200, BufferedImage.TYPE_INT_RGB);
-			final var panel = new JPanel(){
-				@Override
-				public void paint(Graphics g){
-					g.drawImage(content, 0, 0, this);
-				}
-			};
-			final var frame = new JFrame();
-			renderer = i -> {
-				for(int dx = 0; dx < i.width(); dx++){
-					for(int dy = 0; dy < i.height(); dy++){
-						int x = i.x0() + dx;
-						int y = i.y0() + dy;
-						if(i.contains(x, y)){
-							content.setRGB(x, y, i.colourAt(x, y));
-						}
-					}
-				}
-				return new RenderResult();
-				//throw new UnsupportedOperationException(i.toString());
-			};
-			frame.getContentPane().add(panel);
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.setVisible(true);
-		}
-
-
-		@Override
-		public TokenStream<RenderResult> parse(TokenStream<Image> tokens){
-			return tokens.map(renderer);
-		}
-	}
+public class LinesParser implements Pipe<Token$Char, Line>{
 	public static void main(String...args) throws IOException{
-		var resource = Thread.currentThread().getContextClassLoader().getResource(".bspl/Test.bspl");
+		Function<String, TokenStream$Char> streams = path -> {
+			try{
+				return TokenStream$Char.of(
+					Thread.currentThread()
+						.getContextClassLoader()
+						.getResource(path)
+						.openStream()
+						.readAllBytes()
+				);
+			}
+			catch(IOException e){
+				throw new UncheckedIOException(e);
+			}
+		};
+		var rootPipe = Pipe.<Token$Char>nop().retain(t -> t.value() != '\r');
+		var lithpPipe = rootPipe.retain(t -> t.value() != '\n')
+			.andThen(new Lithp1())
+			.andThen(new Lithp2());
+
+		var lithpSrc = streams.apply(".lithp/Test.lithp");
+		var lithp = lithpPipe.parse(lithpSrc.wrap());
+		var all = FSA.or(lithp.collect(ArrayList::new));
+
+		var fooPipe = rootPipe.andThen(new StringProcessor(all));
+		fooPipe.parse(
+			streams.apply(".bspl/Simple.bspl").withHead('\n').wrap()
+		)
+		.forEach(System.err::println);
+
+		System.exit(0);
+		var resource = Thread.currentThread().getContextClassLoader().getResource(".bspl/Simple.bspl");
 
 		var sink = new ArrayList<IndexedToken<Line>>();
 
-		var parser = Parser.<SimpleToken>empty()
-			.exclude(c -> c.character() == '\r')
+		/*
+		TODO:
+			create or enhance tree structure parsing to incorporate recursive descent into the head for brackets parsing.
+			[({<>})]
+		 */
+		interface TToken extends Token{}
+		var headParser = new HeadParser();
+		var parser = Pipe.<Token$Char>nop()
+			.exclude(c -> c.value() == '\r')
 			.andThen(new LinesParser())
 			.exclude(Line::empty, sink::add)
 			.andThen(new IndentParser())
-			.andThen(new ImageParser())
-			.andThen(Y_LAYOUT)
-			.map(i -> i.scale(6))
-			.andThen(new ImageRenderer());
+			.andThen(new Pipe<IndentToken, TToken>(){
+				@Override
+				public TokenStream<TToken> parse(TokenStream<IndentToken> tokens){
+					return new TokenStream<TToken>(){
+						@Override
+						public TToken poll(){
+							var head = tokens.poll();
+							if(head instanceof IndentTree t){
+								headParser.parse(TokenStream.from(t.content())).poll();
+							}
+							throw new UnsupportedOperationException(head.getClass().getSimpleName());
+						}
 
-		final var stream = SimpleTokenStream.of(resource.openStream()).wrap();
+						@Override
+						public boolean empty(){
+							return tokens.empty();
+						}
 
-		parser.parse(stream).forEach(System.err::println);
+						@Override
+						public Mark mark(){
+							return tokens.mark();
+						}
+					};
+				}
+			});
+
 	}
 
 	@Override
-	public TokenStream<Line> parse(TokenStream<SimpleToken> tokens){
+	public TokenStream<Line> parse(TokenStream<Token$Char> tokens){
+		/*
+		TODO:
+			Spilt stream at target token, return lazy evaluated result
+		 */
 		return new TokenStream<>(){
 			int lineNumber;
 			@Override
@@ -92,7 +113,7 @@ public class LinesParser implements Parser<SimpleToken, Line>{
 
 			@Override
 			public Line poll(){
-				final var simple = SimpleTokenStream.of(tokens);
+				final var simple = TokenStream$Char.of(tokens);
 				final int indent;
 				{
 					int count = 0;

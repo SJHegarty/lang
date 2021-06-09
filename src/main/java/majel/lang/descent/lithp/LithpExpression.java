@@ -1,26 +1,26 @@
 package majel.lang.descent.lithp;
 
 import majel.lang.descent.Decomposable;
-import majel.lang.util.SimpleTokenStream;
+import majel.lang.util.TokenStream$Char;
 import majel.lang.util.TokenStream;
-import majel.stream.SimpleToken;
+import majel.stream.Token$Char;
 import majel.util.functional.TokenStreamBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public interface LithpExpression extends Decomposable<SimpleToken>{
+public interface LithpExpression extends Decomposable<Token$Char>{
 	char CLOSING_PARENTHESIS = ')';
 	char OPENING_PARENTHESIS = '(';
 	String DELIMITER = ", ";
 
 	static List<LithpExpression> readList(
-		TokenStream<SimpleToken> tokens,
+		TokenStream<Token$Char> tokens,
 		TokenStream<LithpExpression> parsed
 	){
 
-		var simple = SimpleTokenStream.of(tokens);
+		var simple = TokenStream$Char.of(tokens);
 		simple.read(OPENING_PARENTHESIS);
 		var elements = new ArrayList<LithpExpression>();
 		if(simple.peek() != CLOSING_PARENTHESIS){
@@ -55,10 +55,10 @@ public interface LithpExpression extends Decomposable<SimpleToken>{
 	}
 
 	static String reconstituteSingle(LithpExpression expression){
-		return SimpleTokenStream.of(expression.decompose()).remaining();
+		return TokenStream$Char.of(expression.decompose()).remaining();
 	}
 
-	static TokenStream<SimpleToken> streamList(List<? extends Decomposable<SimpleToken>> elements){
+	static TokenStream<Token$Char> streamList(List<? extends Decomposable<Token$Char>> elements){
 		var builder = new TokenStreamBuilder();
 		builder
 			.feed(OPENING_PARENTHESIS);
