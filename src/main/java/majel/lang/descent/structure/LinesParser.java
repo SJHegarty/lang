@@ -21,6 +21,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 
 public class LinesParser{
 	public static void main(String...args) throws IOException{
@@ -48,11 +49,14 @@ public class LinesParser{
 		var all = FSA.or(lithp.collect(ArrayList::new));
 
 		interface FooToken extends Token{
-
+			int depth();
 		}
 
-		record Line(StringToken token, List<StringToken> elements) implements FooToken{
-
+		record SimpleTree(StringToken token, List<StringToken> elements, List<FooToken> children) implements FooToken{
+			@Override
+			public int depth(){
+				return token.value().length() - 1;
+			}
 		}
 
 		class LineParser implements Pipe<NullContext, StringToken, FooToken>{
@@ -68,8 +72,20 @@ public class LinesParser{
 							mark.reset();
 							throw new IllegalToken(tokens);
 						}
-						var substream = tokens.until(l -> l.labels().contains(lineHead));
-						return new Line(head, substream.collect(ArrayList::new));
+						var elements = tokens
+							.until(l -> l.labels().contains(lineHead))
+							.collect(ArrayList::new);
+
+
+						final int headLength = head.length();
+						var children = parse(
+							NullContext.instance,
+							tokens
+								.until(t -> t.labels().contains(lineHead) && t.length() <= headLength)
+						)
+						.collect(ArrayList::new);
+
+						return new SimpleTree(head, elements, children);
 					}
 
 					@Override

@@ -8,4 +8,8 @@ public record StringToken(String value, Set<String> labels) implements Token{
 	public StringToken{
 		value = ObjectUtils.escape(value);
 	}
+
+	public int length(){
+		return value.length();
+	}
 }
