@@ -1,7 +1,7 @@
 package majel.util.functional;
 
 import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.stream.Token$Char;
 
 public interface CharGobbler{
@@ -17,7 +17,7 @@ public interface CharGobbler{
 		return this;
 	}
 
-	default CharGobbler feed(TokenStream<Token$Char> tokens){
+	default CharGobbler feed(TokenStream$Obj<Token$Char> tokens){
 		feed(TokenStream$Char.of(tokens));
 		return this;
 	}

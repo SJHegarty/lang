@@ -14,9 +14,9 @@ public interface Pipe<Context, S extends Token, T extends Token>{
 		return (context, tokens) -> tokens;
 	}
 
-	TokenStream<T> parse(Context context, TokenStream<S> tokens);
+	TokenStream$Obj<T> parse(Context context, TokenStream$Obj<S> tokens);
 
-	default T parseSingle(Context context, TokenStream<S> tokens){
+	default T parseSingle(Context context, TokenStream$Obj<S> tokens){
 		var stream = parse(context, tokens);
 		var result = stream.poll();
 		if(!stream.empty()){
@@ -26,7 +26,7 @@ public interface Pipe<Context, S extends Token, T extends Token>{
 	}
 
 	default List<T> parse(Context context, List<S> elements){
-		var stream = TokenStream.from(elements);
+		var stream = TokenStream$Obj.from(elements);
 		var rv = parse(context, stream).collect(ArrayList::new);
 		if(!stream.empty()){
 			throw new IllegalArgumentException();
@@ -60,7 +60,7 @@ public interface Pipe<Context, S extends Token, T extends Token>{
 		return (context, tokens) -> Pipe.this.parse(context, tokens).map(mapper);
 	}
 
-	default <D extends Token> Pipe<Context, S, D> polymap(Function<TokenStream<T>, D> mapper){
+	default <D extends Token> Pipe<Context, S, D> polymap(Function<TokenStream$Obj<T>, D> mapper){
 		return (context, tokens) -> Pipe.this.parse(context, tokens).polymap(mapper);
 	}
 

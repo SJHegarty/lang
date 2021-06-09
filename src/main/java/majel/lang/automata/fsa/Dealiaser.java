@@ -3,16 +3,16 @@ package majel.lang.automata.fsa;
 import majel.lang.descent.context.NullContext;
 import majel.lang.util.Mark;
 import majel.lang.util.Pipe;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.stream.Token;
 
 import java.util.HashMap;
 
 public class Dealiaser<T extends Token> implements Pipe<NullContext, T, T>{
 	@Override
-	public TokenStream<T> parse(NullContext ignored, TokenStream<T> tokens){
+	public TokenStream$Obj<T> parse(NullContext ignored, TokenStream$Obj<T> tokens){
 		final HashMap<T, T> elements = new HashMap<>();
-		return new TokenStream<T>(){
+		return new TokenStream$Obj<T>(){
 			@Override
 			public T poll(){
 				var result = tokens.poll();

@@ -5,7 +5,7 @@ import majel.lang.util.Pipe;
 import majel.lang.automata.fsa.FSA;
 import majel.lang.descent.lithp.expressions.*;
 import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -110,7 +110,7 @@ public class Lithp2 implements Pipe<NullContext, LithpExpression, FSA>{
 		);
 	}
 	@Override
-	public TokenStream<FSA> parse(NullContext ignored, TokenStream<LithpExpression> tokens){
+	public TokenStream$Obj<FSA> parse(NullContext ignored, TokenStream$Obj<LithpExpression> tokens){
 		return tokens.map(
 			expr ->
 				builders

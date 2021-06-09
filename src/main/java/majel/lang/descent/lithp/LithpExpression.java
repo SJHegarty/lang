@@ -2,7 +2,7 @@ package majel.lang.descent.lithp;
 
 import majel.lang.descent.Decomposable;
 import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.stream.Token$Char;
 import majel.util.functional.TokenStreamBuilder;
 
@@ -16,8 +16,8 @@ public interface LithpExpression extends Decomposable<Token$Char>{
 	String DELIMITER = ", ";
 
 	static List<LithpExpression> readList(
-		TokenStream<Token$Char> tokens,
-		TokenStream<LithpExpression> parsed
+		TokenStream$Obj<Token$Char> tokens,
+		TokenStream$Obj<LithpExpression> parsed
 	){
 
 		var simple = TokenStream$Char.of(tokens);
@@ -58,7 +58,7 @@ public interface LithpExpression extends Decomposable<Token$Char>{
 		return TokenStream$Char.of(expression.decompose()).remaining();
 	}
 
-	static TokenStream<Token$Char> streamList(List<? extends Decomposable<Token$Char>> elements){
+	static TokenStream$Obj<Token$Char> streamList(List<? extends Decomposable<Token$Char>> elements){
 		var builder = new TokenStreamBuilder();
 		builder
 			.feed(OPENING_PARENTHESIS);

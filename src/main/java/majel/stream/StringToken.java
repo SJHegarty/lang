@@ -1,7 +1,7 @@
 package majel.stream;
 
 import majel.lang.descent.Decomposable;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.lang.util.TokenStream$Char;
 import majel.util.ObjectUtils;
 
@@ -17,7 +17,7 @@ public record StringToken(String value, Set<String> labels) implements Decomposa
 	}
 
 	@Override
-	public TokenStream<Token$Char> decompose(){
+	public TokenStream$Obj<Token$Char> decompose(){
 		return TokenStream$Char
 			.from(ObjectUtils.descape(value))
 			.wrap();

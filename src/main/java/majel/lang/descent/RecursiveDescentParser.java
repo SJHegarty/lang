@@ -3,7 +3,7 @@ package majel.lang.descent;
 import majel.lang.util.Pipe;
 import majel.lang.err.IllegalToken;
 import majel.lang.util.Mark;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.stream.Token;
 
 /*
@@ -24,8 +24,8 @@ public class RecursiveDescentParser<Context, S extends Token, T extends Token> i
 	}
 
 	@Override
-	public TokenStream<T> parse(Context context, TokenStream<S> tokens){
-		return new TokenStream<T>(){
+	public TokenStream$Obj<T> parse(Context context, TokenStream$Obj<S> tokens){
+		return new TokenStream$Obj<T>(){
 			@Override
 			public T peek(){
 				var mark = tokens.mark();

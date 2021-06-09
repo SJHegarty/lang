@@ -1,12 +1,11 @@
 package majel.lang.descent.structure.render.image;
 
 import majel.lang.descent.structure.Delta;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.stream.Token;
 
 import java.util.List;
 import java.util.function.IntBinaryOperator;
-import java.util.function.IntFunction;
 import java.util.function.ToIntFunction;
 
 public interface Image extends Token{
@@ -204,7 +203,7 @@ public interface Image extends Token{
 			return false;
 		}
 	}
-	default Image reduce(TokenStream<Image> images){
+	default Image reduce(TokenStream$Obj<Image> images){
 		throw new UnsupportedOperationException();
 	}
 }

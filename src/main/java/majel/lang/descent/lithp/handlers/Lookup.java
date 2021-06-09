@@ -9,7 +9,7 @@ import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.descent.lithp.expressions.LookupExpression;
 import majel.lang.err.IllegalExpression;
 import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.stream.Token$Char;
 
 import static majel.lang.descent.lithp.expressions.LookupExpression.HEAD_TOKEN;
@@ -25,7 +25,7 @@ public class Lookup implements CharHandler<LithpExpression>{
 	private transient StringProcessor processor;
 
 	@Override
-	public LithpExpression parse(NullContext ignored, TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
+	public LithpExpression parse(NullContext ignored, TokenStream$Obj<Token$Char> tokens, TokenStream$Obj<LithpExpression> parsed){
 		checkHead(tokens);
 		var simple = TokenStream$Char.of(tokens);
 		/*if(simple.peek() == '.'){

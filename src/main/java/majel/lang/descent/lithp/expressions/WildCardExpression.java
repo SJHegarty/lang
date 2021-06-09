@@ -2,7 +2,7 @@ package majel.lang.descent.lithp.expressions;
 
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.stream.Token$Char;
 
 public class WildCardExpression implements LithpExpression{
@@ -18,7 +18,7 @@ public class WildCardExpression implements LithpExpression{
 	}
 
 	@Override
-	public TokenStream<Token$Char> decompose(){
+	public TokenStream$Obj<Token$Char> decompose(){
 		return TokenStream$Char.of('.').wrap();
 	}
 }

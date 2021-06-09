@@ -1,7 +1,7 @@
 package majel.lang.descent.structure.indent;
 
 import majel.lang.descent.structure.Line;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.util.ObjectUtils;
 
 public record IndentTree(
@@ -40,11 +40,11 @@ implements IndentToken{
 	}
 
 	@Override
-	public TokenStream<Line> decompose(){
-		return TokenStream
+	public TokenStream$Obj<Line> decompose(){
+		return TokenStream$Obj
 			.of(new Line(lineNumber, 0, content, true))
 			.concat(
-				() -> TokenStream.of(children)
+				() -> TokenStream$Obj.of(children)
 					.unwrap(IndentToken::decompose)
 					.map(
 						line -> new Line(

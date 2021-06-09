@@ -8,7 +8,7 @@ import majel.lang.descent.lithp.Lithp2;
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.descent.lithp.expressions.NamedExpression;
 import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.stream.Token$Char;
 
 public class Named implements CharHandler<LithpExpression>{
@@ -21,7 +21,7 @@ public class Named implements CharHandler<LithpExpression>{
 	private transient StringProcessor processor;
 
 	@Override
-	public LithpExpression parse(NullContext ignored, TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
+	public LithpExpression parse(NullContext ignored, TokenStream$Obj<Token$Char> tokens, TokenStream$Obj<LithpExpression> parsed){
 		if(processor == null){
 			var word = "(*[a...z]?[A...Z]?*[a...z])";
 			var expr = new StringBuilder()

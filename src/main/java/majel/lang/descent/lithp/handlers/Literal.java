@@ -6,7 +6,7 @@ import majel.lang.descent.lithp.Lithp1;
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.descent.lithp.expressions.LiteralExpression;
 import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.stream.Token$Char;
 
 public class Literal implements CharHandler<LithpExpression>{
@@ -17,7 +17,7 @@ public class Literal implements CharHandler<LithpExpression>{
 	}
 
 	@Override
-	public LithpExpression parse(NullContext ignored, TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
+	public LithpExpression parse(NullContext ignored, TokenStream$Obj<Token$Char> tokens, TokenStream$Obj<LithpExpression> parsed){
 		checkHead(tokens);
 		final String str;
 		outer:{

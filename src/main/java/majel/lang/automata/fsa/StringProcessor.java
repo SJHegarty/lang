@@ -5,7 +5,7 @@ import majel.lang.err.IllegalToken;
 import majel.lang.util.Mark;
 import majel.lang.util.Pipe;
 import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.stream.Token$Char;
 import majel.stream.StringToken;
 
@@ -53,9 +53,9 @@ public class StringProcessor implements Pipe<NullContext, Token$Char, StringToke
 	}
 
 	@Override
-	public TokenStream<StringToken> parse(NullContext ignored, TokenStream<Token$Char> tokens){
+	public TokenStream$Obj<StringToken> parse(NullContext ignored, TokenStream$Obj<Token$Char> tokens){
 		var simple = TokenStream$Char.of(tokens);
-		return new TokenStream<>(){
+		return new TokenStream$Obj<>(){
 			@Override
 			public StringToken poll(){
 				var result = process(simple);

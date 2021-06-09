@@ -12,7 +12,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-public interface TokenStream$Char{
+public interface TokenStream$Char extends TokenStream{
 
 	default char peek(){
 		var mark = mark();
@@ -22,9 +22,6 @@ public interface TokenStream$Char{
 	}
 
 	char poll();
-	boolean touched();
-	boolean empty();
-	Mark mark();
 
 	default void drain(CharConsumer consumer){
 		while(!empty()){
@@ -152,14 +149,14 @@ public interface TokenStream$Char{
 			}
 		};
 	}
-	static TokenStream$Char of(TokenStream<Token$Char> stream){
+	static TokenStream$Char of(TokenStream$Obj<Token$Char> stream){
 		if(stream instanceof WrappedTokenStream wrapped){
 			return wrapped.wrapped;
 		}
 		return new WrappedSimpleTokenStream(stream);
 	}
 
-	class WrappedTokenStream implements TokenStream<Token$Char>{
+	class WrappedTokenStream implements TokenStream$Obj<Token$Char>{
 		final TokenStream$Char wrapped;
 		WrappedTokenStream(TokenStream$Char wrapped){
 			this.wrapped = wrapped;
@@ -192,9 +189,9 @@ public interface TokenStream$Char{
 	}
 
 	class WrappedSimpleTokenStream implements TokenStream$Char{
-		final TokenStream<Token$Char> wrapped;
+		final TokenStream$Obj<Token$Char> wrapped;
 
-		public WrappedSimpleTokenStream(TokenStream<Token$Char> wrapped){
+		public WrappedSimpleTokenStream(TokenStream$Obj<Token$Char> wrapped){
 			this.wrapped = wrapped;
 		}
 
@@ -224,7 +221,7 @@ public interface TokenStream$Char{
 		}
 	}
 
-	default TokenStream<Token$Char> wrap(){
+	default TokenStream$Obj<Token$Char> wrap(){
 		return new WrappedTokenStream(this);
 	}
 

@@ -2,7 +2,7 @@ package majel.lang.descent;
 
 import majel.lang.descent.context.NullContext;
 import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.stream.Token$Char;
 import majel.stream.Token;
 
@@ -18,7 +18,7 @@ public class LA1Selector<T extends Token> implements HandlerSelector<NullContext
 	}
 
 	@Override
-	public Handler<NullContext, Token$Char, T> handlerFor(TokenStream<Token$Char> tokens){
+	public Handler<NullContext, Token$Char, T> handlerFor(TokenStream$Obj<Token$Char> tokens){
 		return handlers[tokens.poll().value()];
 	}
 

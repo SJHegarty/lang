@@ -2,7 +2,7 @@ package majel.lang.descent.lithp.expressions;
 
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.stream.Token$Char;
 import majel.util.functional.TokenStreamBuilder;
 
@@ -15,7 +15,7 @@ public record ParenthesisExpression(List<LithpExpression> elements) implements L
 	}
 
 	@Override
-	public TokenStream<Token$Char> decompose(){
+	public TokenStream$Obj<Token$Char> decompose(){
 		var builder = new TokenStreamBuilder();
 		builder.feed(OPENING_PARENTHESIS);
 		for(var expr: elements){

@@ -11,7 +11,7 @@ import majel.lang.util.Pipe;
 import majel.lang.util.IndexedToken;
 import majel.lang.util.Mark;
 import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.stream.StringToken;
 import majel.stream.Token$Char;
 import majel.stream.Token;
@@ -21,7 +21,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.IntFunction;
+import java.util.function.Supplier;
 
 public class LinesParser{
 	public static void main(String...args) throws IOException{
@@ -58,20 +58,27 @@ public class LinesParser{
 				return token.value().length() - 1;
 			}
 		}
+/*
 
+ */
 		class LineParser implements Pipe<NullContext, StringToken, FooToken>{
 			private static final String lineHead = "line-head";
 			@Override
-			public TokenStream<FooToken> parse(NullContext context, TokenStream<StringToken> tokens){
-				return new TokenStream<>(){
+			public TokenStream$Obj<FooToken> parse(NullContext context, TokenStream$Obj<StringToken> tokens){
+				return new TokenStream$Obj<>(){
 					@Override
 					public FooToken poll(){
-						var mark = tokens.mark();
-						var head = tokens.poll();
-						if(!head.labels().contains(lineHead)){
-							mark.reset();
-							throw new IllegalToken(tokens);
-						}
+						final Supplier<Opt<StringToken>> witchDoctor = () -> {
+							var mark = tokens.mark();
+							var head = tokens.poll();
+							if(!head.labels().contains(lineHead)){
+								mark.reset();
+								throw new IllegalToken(tokens);
+							}
+							return head;
+						};
+						final StringToken head = witchDoctor.get();
+
 						var elements = tokens
 							.until(l -> l.labels().contains(lineHead))
 							.collect(ArrayList::new);
@@ -84,7 +91,8 @@ public class LinesParser{
 								.until(t -> t.labels().contains(lineHead) && t.length() <= headLength)
 						)
 						.collect(ArrayList::new);
-
+						var mark = tokens.mark();
+						var nextLine = tokens.poll();
 						return new SimpleTree(head, elements, children);
 					}
 

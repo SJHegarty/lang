@@ -1,7 +1,7 @@
 package majel.lang.descent.structure;
 
 import majel.lang.descent.Decomposable;
-import majel.lang.util.TokenStream;
+import majel.lang.util.TokenStream$Obj;
 import majel.stream.Token$Char;
 import majel.util.ObjectUtils;
 import majel.util.functional.TokenStreamBuilder;
@@ -13,7 +13,7 @@ public record Line(int lineNumber, int indent, String content, boolean terminate
 	}
 
 	@Override
-	public TokenStream<Token$Char> decompose(){
+	public TokenStream$Obj<Token$Char> decompose(){
 		var builder = new TokenStreamBuilder();
 
 		builder
