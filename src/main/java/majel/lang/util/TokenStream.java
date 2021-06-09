@@ -536,4 +536,28 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 		}
 		return results.get(0);
 	}
+
+	default TokenStream<T> until(Predicate<T> terminator){
+		return new TokenStream<T>(){
+			@Override
+			public T poll(){
+				return TokenStream.this.poll();
+			}
+
+			@Override
+			public boolean touched(){
+				return TokenStream.this.touched();
+			}
+
+			@Override
+			public boolean empty(){
+				return TokenStream.this.empty() || terminator.test(TokenStream.this.peek());
+			}
+
+			@Override
+			public Mark mark(){
+				return TokenStream.this.mark();
+			}
+		};
+	}
 }

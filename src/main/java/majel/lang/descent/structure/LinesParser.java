@@ -6,9 +6,8 @@ import majel.lang.automata.fsa.StringProcessor;
 import majel.lang.descent.context.NullContext;
 import majel.lang.descent.lithp.Lithp1;
 import majel.lang.descent.lithp.Lithp2;
+import majel.lang.err.IllegalToken;
 import majel.lang.util.Pipe;
-import majel.lang.descent.structure.indent.IndentToken;
-import majel.lang.descent.structure.indent.IndentTree;
 import majel.lang.util.IndexedToken;
 import majel.lang.util.Mark;
 import majel.lang.util.TokenStream$Char;
@@ -48,11 +47,54 @@ public class LinesParser{
 		var lithp = lithpPipe.parse(NullContext.instance, lithpSrc.wrap());
 		var all = FSA.or(lithp.collect(ArrayList::new));
 
+		interface FooToken extends Token{
+
+		}
+
+		record Line(StringToken token, List<StringToken> elements) implements FooToken{
+
+		}
+
+		class LineParser implements Pipe<NullContext, StringToken, FooToken>{
+			private static final String lineHead = "line-head";
+			@Override
+			public TokenStream<FooToken> parse(NullContext context, TokenStream<StringToken> tokens){
+				return new TokenStream<>(){
+					@Override
+					public FooToken poll(){
+						var mark = tokens.mark();
+						var head = tokens.poll();
+						if(!head.labels().contains(lineHead)){
+							mark.reset();
+							throw new IllegalToken(tokens);
+						}
+						var substream = tokens.until(l -> l.labels().contains(lineHead));
+						return new Line(head, substream.collect(ArrayList::new));
+					}
+
+					@Override
+					public boolean touched(){
+						return tokens.touched();
+					}
+
+					@Override
+					public boolean empty(){
+						return tokens.empty();
+					}
+
+					@Override
+					public Mark mark(){
+						return tokens.mark();
+					}
+				};
+			}
+		}
 		List<IndexedToken<StringToken>> whitespace = new ArrayList<>();
 		var fooPipe = rootPipe
 			.andThen(new StringProcessor(all))
 			.andThen(new Dealiaser<>())
-			.exclude(t -> t.labels().contains("white-space"), whitespace::add);
+			.exclude(t -> t.labels().contains("white-space"), whitespace::add)
+			.andThen(new LineParser());
 /*
 TODO:
 	At some point, buffering should be introduced.
