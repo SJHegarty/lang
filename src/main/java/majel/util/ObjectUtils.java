@@ -1,5 +1,8 @@
 package majel.util;
 
+import majel.lang.err.IllegalToken;
+import majel.lang.util.TokenStream$Char;
+
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
@@ -15,6 +18,34 @@ public class ObjectUtils{
 		T[] rv = (T[])Array.newInstance(t.getClass(), count);
 		Arrays.fill(rv, t);
 		return rv;
+	}
+
+	public static String descape(String s){
+		TokenStream$Char stream = TokenStream$Char.from(s);
+		var builder = new StringBuilder();
+		while(!stream.empty()){
+			char c = stream.poll();
+			if(c != '\\'){
+				builder.append(c);
+			}
+			else{
+				var mark = stream.mark();
+				char e = stream.poll();
+				builder.append(
+					switch(e){
+						case 'n' -> '\n';
+						case 't' -> '\t';
+						case 'r' -> '\r';
+						case 's' -> ' ';
+						default -> {
+							mark.reset();
+							throw new IllegalToken(stream.wrap());
+						}
+					}
+				);
+			}
+		}
+		return builder.toString();
 	}
 
 	public static String escape(String s){

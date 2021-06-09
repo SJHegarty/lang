@@ -161,7 +161,6 @@ TODO:
 		)
 		.forEach(System.err::println);
 
-		System.err.println(whitespace.size());
 		System.exit(0);
 	}
 
