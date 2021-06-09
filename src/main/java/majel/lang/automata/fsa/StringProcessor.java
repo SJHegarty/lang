@@ -4,8 +4,8 @@ import majel.lang.descent.context.NullContext;
 import majel.lang.err.IllegalToken;
 import majel.lang.util.Mark;
 import majel.lang.util.Pipe;
-import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream$Obj;
+import majel.lang.util.TokenStream_Char;
+import majel.lang.util.TokenStream_Obj;
 import majel.stream.Token$Char;
 import majel.stream.StringToken;
 
@@ -16,7 +16,7 @@ public class StringProcessor implements Pipe<NullContext, Token$Char, StringToke
 		this.automaton = automaton.dfa();
 	}
 
-	public Result process(TokenStream$Char tokens){
+	public Result process(TokenStream_Char tokens){
 		var last = automaton.entryPoint;
 		var node = automaton.entryPoint;
 		var builder = new StringBuilder();
@@ -49,13 +49,13 @@ public class StringProcessor implements Pipe<NullContext, Token$Char, StringToke
 	}
 
 	public Result process(String value){
-		return process(TokenStream$Char.from(value));
+		return process(TokenStream_Char.from(value));
 	}
 
 	@Override
-	public TokenStream$Obj<StringToken> parse(NullContext ignored, TokenStream$Obj<Token$Char> tokens){
-		var simple = TokenStream$Char.of(tokens);
-		return new TokenStream$Obj<>(){
+	public TokenStream_Obj<StringToken> parse(NullContext ignored, TokenStream_Obj<Token$Char> tokens){
+		var simple = TokenStream_Char.of(tokens);
+		return new TokenStream_Obj<>(){
 			@Override
 			public StringToken poll(){
 				var result = process(simple);

@@ -14,9 +14,9 @@ public interface Pipe<Context, S extends Token, T extends Token>{
 		return (context, tokens) -> tokens;
 	}
 
-	TokenStream$Obj<T> parse(Context context, TokenStream$Obj<S> tokens);
+	TokenStream_Obj<T> parse(Context context, TokenStream_Obj<S> tokens);
 
-	default T parseSingle(Context context, TokenStream$Obj<S> tokens){
+	default T parseSingle(Context context, TokenStream_Obj<S> tokens){
 		var stream = parse(context, tokens);
 		var result = stream.poll();
 		if(!stream.empty()){
@@ -26,7 +26,7 @@ public interface Pipe<Context, S extends Token, T extends Token>{
 	}
 
 	default List<T> parse(Context context, List<S> elements){
-		var stream = TokenStream$Obj.from(elements);
+		var stream = TokenStream_Obj.from(elements);
 		var rv = parse(context, stream).collect(ArrayList::new);
 		if(!stream.empty()){
 			throw new IllegalArgumentException();
@@ -52,6 +52,26 @@ public interface Pipe<Context, S extends Token, T extends Token>{
 		return retain(filter.negate());
 	}
 
+
+	default Pipe<Context, S, T> exclude(
+		int lookahead,
+		Predicate<TokenStream_Obj<T>> filter
+	){
+		return exclude(lookahead, filter, t -> {});
+	}
+
+	default Pipe<Context, S, T> exclude(
+		int lookahead,
+		Predicate<TokenStream_Obj<T>> filter,
+		Consumer<IndexedToken<T>> sink
+	){
+		return new Pipe<Context, S, T>(){
+			@Override
+			public TokenStream_Obj<T> parse(Context context, TokenStream_Obj<S> tokens){
+				return Pipe.this.parse(context, tokens).exclude(lookahead, filter, sink);
+			}
+		};
+	}
 	default Pipe<Context, S, T> exclude(Predicate<T> filter, Consumer<IndexedToken<T>> sink){
 		return retain(filter.negate(), sink);
 	}
@@ -60,7 +80,7 @@ public interface Pipe<Context, S extends Token, T extends Token>{
 		return (context, tokens) -> Pipe.this.parse(context, tokens).map(mapper);
 	}
 
-	default <D extends Token> Pipe<Context, S, D> polymap(Function<TokenStream$Obj<T>, D> mapper){
+	default <D extends Token> Pipe<Context, S, D> polymap(Function<TokenStream_Obj<T>, D> mapper){
 		return (context, tokens) -> Pipe.this.parse(context, tokens).polymap(mapper);
 	}
 

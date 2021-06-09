@@ -1,8 +1,8 @@
 package majel.lang.descent;
 
 import majel.lang.descent.context.NullContext;
-import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream$Obj;
+import majel.lang.util.TokenStream_Char;
+import majel.lang.util.TokenStream_Obj;
 import majel.stream.Token$Char;
 import majel.stream.Token;
 
@@ -18,7 +18,7 @@ public class LA1Selector<T extends Token> implements HandlerSelector<NullContext
 	}
 
 	@Override
-	public Handler<NullContext, Token$Char, T> handlerFor(TokenStream$Obj<Token$Char> tokens){
+	public Handler<NullContext, Token$Char, T> handlerFor(TokenStream_Obj<Token$Char> tokens){
 		return handlers[tokens.poll().value()];
 	}
 
@@ -26,7 +26,7 @@ public class LA1Selector<T extends Token> implements HandlerSelector<NullContext
 		Handler<NullContext, Token$Char, T> h = builder.get();
 		for(int i = 0; i < TABLE_SIZE; i++){
 			char headToken = (char)i;
-			if(h.supportsHead(TokenStream$Char.of(headToken).wrap())){
+			if(h.supportsHead(TokenStream_Char.of(headToken).wrap())){
 				if(handlers[headToken] != null){
 					throw new UnsupportedOperationException(
 						String.format(

@@ -1,8 +1,8 @@
 package majel.lang.descent.lithp.expressions;
 
 import majel.lang.descent.lithp.LithpExpression;
-import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream$Obj;
+import majel.lang.util.TokenStream_Char;
+import majel.lang.util.TokenStream_Obj;
 import majel.stream.Token$Char;
 import majel.util.functional.TokenStreamBuilder;
 
@@ -13,11 +13,11 @@ public record RangeExpression(char c0, char cN) implements LithpExpression{
 	public static final String DELIMITER = "...";
 
 	public String reconstitute(){
-		return TokenStream$Char.of(decompose()).remaining();
+		return TokenStream_Char.of(decompose()).remaining();
 	}
 
 	@Override
-	public TokenStream$Obj<Token$Char> decompose(){
+	public TokenStream_Obj<Token$Char> decompose(){
 		var builder = new TokenStreamBuilder();
 		builder
 			.feed(OPENING_BRACKET)

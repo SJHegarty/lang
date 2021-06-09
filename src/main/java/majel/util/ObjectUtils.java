@@ -1,7 +1,7 @@
 package majel.util;
 
 import majel.lang.err.IllegalToken;
-import majel.lang.util.TokenStream$Char;
+import majel.lang.util.TokenStream_Char;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -21,7 +21,7 @@ public class ObjectUtils{
 	}
 
 	public static String descape(String s){
-		TokenStream$Char stream = TokenStream$Char.from(s);
+		TokenStream_Char stream = TokenStream_Char.from(s);
 		var builder = new StringBuilder();
 		while(!stream.empty()){
 			char c = stream.poll();

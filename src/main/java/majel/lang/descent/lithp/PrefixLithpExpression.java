@@ -1,15 +1,15 @@
 package majel.lang.descent.lithp;
 
-import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream$Obj;
+import majel.lang.util.TokenStream_Char;
+import majel.lang.util.TokenStream_Obj;
 import majel.stream.Token$Char;
 
 public interface PrefixLithpExpression extends LithpExpression{
 	char headToken();
 	LithpExpression wrapped();
 	@Override
-	default TokenStream$Obj<Token$Char> decompose(){
-		return TokenStream$Char.of(headToken())
+	default TokenStream_Obj<Token$Char> decompose(){
+		return TokenStream_Char.of(headToken())
 			.wrap()
 			.concat(wrapped()::decompose);
 	}

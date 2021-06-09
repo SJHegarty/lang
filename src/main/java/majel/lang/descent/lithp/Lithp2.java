@@ -4,8 +4,8 @@ import majel.lang.descent.context.NullContext;
 import majel.lang.util.Pipe;
 import majel.lang.automata.fsa.FSA;
 import majel.lang.descent.lithp.expressions.*;
-import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream$Obj;
+import majel.lang.util.TokenStream_Char;
+import majel.lang.util.TokenStream_Obj;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -61,7 +61,7 @@ public class Lithp2 implements Pipe<NullContext, LithpExpression, FSA>{
 				var rv = base.named(lower);
 
 				var shortForm = new StringBuilder();
-				for(String s: TokenStream$Char.from(name).split('-')){
+				for(String s: TokenStream_Char.from(name).split('-')){
 					final char segchar;
 					final char[] chars = s.toCharArray();
 					block:{
@@ -110,7 +110,7 @@ public class Lithp2 implements Pipe<NullContext, LithpExpression, FSA>{
 		);
 	}
 	@Override
-	public TokenStream$Obj<FSA> parse(NullContext ignored, TokenStream$Obj<LithpExpression> tokens){
+	public TokenStream_Obj<FSA> parse(NullContext ignored, TokenStream_Obj<LithpExpression> tokens){
 		return tokens.map(
 			expr ->
 				builders

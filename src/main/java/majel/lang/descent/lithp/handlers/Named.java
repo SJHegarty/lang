@@ -7,8 +7,8 @@ import majel.lang.descent.lithp.Lithp1;
 import majel.lang.descent.lithp.Lithp2;
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.descent.lithp.expressions.NamedExpression;
-import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream$Obj;
+import majel.lang.util.TokenStream_Char;
+import majel.lang.util.TokenStream_Obj;
 import majel.stream.Token$Char;
 
 public class Named implements CharHandler<LithpExpression>{
@@ -21,7 +21,7 @@ public class Named implements CharHandler<LithpExpression>{
 	private transient StringProcessor processor;
 
 	@Override
-	public LithpExpression parse(NullContext ignored, TokenStream$Obj<Token$Char> tokens, TokenStream$Obj<LithpExpression> parsed){
+	public LithpExpression parse(NullContext ignored, TokenStream_Obj<Token$Char> tokens, TokenStream_Obj<LithpExpression> parsed){
 		if(processor == null){
 			var word = "(*[a...z]?[A...Z]?*[a...z])";
 			var expr = new StringBuilder()
@@ -32,11 +32,11 @@ public class Named implements CharHandler<LithpExpression>{
 
 			var parser = new Lithp1().andThen(new Lithp2());
 			processor = new StringProcessor(
-				parser.parse(ignored, TokenStream$Char.from(expr.toString()).wrap()).poll()
+				parser.parse(ignored, TokenStream_Char.from(expr.toString()).wrap()).poll()
 			);
 		}
 		checkHead(tokens);
-		var simple = TokenStream$Char.of(tokens);
+		var simple = TokenStream_Char.of(tokens);
 		simple.read(LithpExpression.OPENING_PARENTHESIS);
 		var name = processor.process(simple).value();
 		simple.read(LithpExpression.DELIMITER);

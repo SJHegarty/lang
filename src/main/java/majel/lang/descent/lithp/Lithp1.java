@@ -1,12 +1,11 @@
 package majel.lang.descent.lithp;
 
 import majel.lang.descent.LA1Selector;
-import majel.lang.descent.Decomposable;
 import majel.lang.descent.RecursiveDescentParser;
 import majel.lang.descent.context.NullContext;
 import majel.lang.descent.lithp.handlers.*;
 import majel.lang.err.IllegalToken;
-import majel.lang.util.TokenStream$Char;
+import majel.lang.util.TokenStream_Char;
 import majel.stream.Token$Char;
 import majel.util.functional.TokenStreamBuilder;
 
@@ -80,7 +79,7 @@ TODO:
 			""";
 
 		var source = lithpSrc.replaceAll("\n", "").replaceAll("\t", "");
-		var stream = TokenStream$Char.from(source).wrap();
+		var stream = TokenStream_Char.from(source).wrap();
 		var mark = stream.mark();
 		var builder = new TokenStreamBuilder();
 
@@ -111,7 +110,7 @@ TODO:
 		);
 	}
 
-	public static char parseLiteral(TokenStream$Char tokens){
+	public static char parseLiteral(TokenStream_Char tokens){
 		var mark = tokens.mark();
 		char token = tokens.poll();
 		return switch(token){

@@ -1,7 +1,7 @@
 package majel.lang.descent.structure.render.image;
 
 import majel.lang.descent.structure.Delta;
-import majel.lang.util.TokenStream$Obj;
+import majel.lang.util.TokenStream_Obj;
 import majel.stream.Token;
 
 import java.util.List;
@@ -203,7 +203,7 @@ public interface Image extends Token{
 			return false;
 		}
 	}
-	default Image reduce(TokenStream$Obj<Image> images){
+	default Image reduce(TokenStream_Obj<Image> images){
 		throw new UnsupportedOperationException();
 	}
 }

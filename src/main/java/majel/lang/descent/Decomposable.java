@@ -1,8 +1,8 @@
 package majel.lang.descent;
 
-import majel.lang.util.TokenStream$Obj;
+import majel.lang.util.TokenStream_Obj;
 import majel.stream.Token;
 
 public interface Decomposable<LastType extends Token> extends Token{
-	TokenStream$Obj<LastType> decompose();
+	TokenStream_Obj<LastType> decompose();
 }

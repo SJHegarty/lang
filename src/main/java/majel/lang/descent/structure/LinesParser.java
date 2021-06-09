@@ -6,28 +6,26 @@ import majel.lang.automata.fsa.StringProcessor;
 import majel.lang.descent.context.NullContext;
 import majel.lang.descent.lithp.Lithp1;
 import majel.lang.descent.lithp.Lithp2;
-import majel.lang.err.IllegalToken;
+import majel.lang.descent.structure.indent2.LineParser;
 import majel.lang.util.Pipe;
 import majel.lang.util.IndexedToken;
-import majel.lang.util.Mark;
-import majel.lang.util.TokenStream$Char;
-import majel.lang.util.TokenStream$Obj;
+import majel.lang.util.TokenStream_Char;
 import majel.stream.StringToken;
 import majel.stream.Token$Char;
-import majel.stream.Token;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.Supplier;
+
+import static majel.lang.descent.structure.indent2.LineParser.LINE_HEAD;
 
 public class LinesParser{
 	public static void main(String...args) throws IOException{
-		Function<String, TokenStream$Char> streams = path -> {
+		Function<String, TokenStream_Char> streams = path -> {
 			try{
-				return TokenStream$Char.of(
+				return TokenStream_Char.of(
 					Thread.currentThread()
 						.getContextClassLoader()
 						.getResource(path)
@@ -48,76 +46,28 @@ public class LinesParser{
 		var lithp = lithpPipe.parse(NullContext.instance, lithpSrc.wrap());
 		var all = FSA.or(lithp.collect(ArrayList::new));
 
-		interface FooToken extends Token{
-			int depth();
-		}
 
-		record SimpleTree(StringToken token, List<StringToken> elements, List<FooToken> children) implements FooToken{
-			@Override
-			public int depth(){
-				return token.value().length() - 1;
-			}
-		}
+
 /*
+TODO: remove empty lines. This requires look-ahead two filtering, a later Yak to shave
 
+TODO: Nowish: Add filtering of empty lines.
+  At the moment they are being factored into the building of the tree structure,
+  which can cause premature EOT (end-of-tree).
  */
-		class LineParser implements Pipe<NullContext, StringToken, FooToken>{
-			private static final String lineHead = "line-head";
-			@Override
-			public TokenStream$Obj<FooToken> parse(NullContext context, TokenStream$Obj<StringToken> tokens){
-				return new TokenStream$Obj<>(){
-					@Override
-					public FooToken poll(){
-						final Supplier<Opt<StringToken>> witchDoctor = () -> {
-							var mark = tokens.mark();
-							var head = tokens.poll();
-							if(!head.labels().contains(lineHead)){
-								mark.reset();
-								throw new IllegalToken(tokens);
-							}
-							return head;
-						};
-						final StringToken head = witchDoctor.get();
 
-						var elements = tokens
-							.until(l -> l.labels().contains(lineHead))
-							.collect(ArrayList::new);
-
-
-						final int headLength = head.length();
-						var children = parse(
-							NullContext.instance,
-							tokens
-								.until(t -> t.labels().contains(lineHead) && t.length() <= headLength)
-						)
-						.collect(ArrayList::new);
-						var mark = tokens.mark();
-						var nextLine = tokens.poll();
-						return new SimpleTree(head, elements, children);
-					}
-
-					@Override
-					public boolean touched(){
-						return tokens.touched();
-					}
-
-					@Override
-					public boolean empty(){
-						return tokens.empty();
-					}
-
-					@Override
-					public Mark mark(){
-						return tokens.mark();
-					}
-				};
-			}
-		}
 		List<IndexedToken<StringToken>> whitespace = new ArrayList<>();
 		var fooPipe = rootPipe
 			.andThen(new StringProcessor(all))
 			.andThen(new Dealiaser<>())
 			.exclude(t -> t.labels().contains("white-space"), whitespace::add)
+			.exclude(2, tokens -> {
+				var t = tokens.poll();
+				if(tokens.empty() || !t.labels().contains(LINE_HEAD)){
+					return false;
+				}
+				return tokens.poll().labels().contains(LINE_HEAD);
+			})
 			.andThen(new LineParser());
 /*
 TODO:

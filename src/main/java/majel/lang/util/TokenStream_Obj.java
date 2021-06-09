@@ -11,10 +11,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<T>{
+public interface TokenStream_Obj<T extends Token> extends TokenStream, Iterable<T>{
 
-	static <T extends Token> TokenStream$Obj<T> emptyStream(){
-		return new TokenStream$Obj<T>(){
+	static <T extends Token> TokenStream_Obj<T> emptyStream(){
+		return new TokenStream_Obj<T>(){
 			@Override
 			public T peek(){
 				throw new UnsupportedOperationException();
@@ -87,13 +87,13 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 		read(t -> t.equals(expected));
 	}
 
-	default TokenStream$Obj<T> concat(Supplier<TokenStream$Obj<T>> continuation){
+	default TokenStream_Obj<T> concat(Supplier<TokenStream_Obj<T>> continuation){
 		final var wrapped = this;
-		return new TokenStream$Obj<T>(){
+		return new TokenStream_Obj<T>(){
 			boolean touched;
-			TokenStream$Obj<T> built;
+			TokenStream_Obj<T> built;
 
-			TokenStream$Obj<T> source(){
+			TokenStream_Obj<T> source(){
 				if(built == null){
 					if(wrapped.empty()){
 						built = continuation.get();
@@ -141,16 +141,16 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 		};
 	}
 
-	static TokenStream$Obj<Token$Char> from(String s){
-		return TokenStream$Char.from(s).wrap();
+	static TokenStream_Obj<Token$Char> from(String s){
+		return TokenStream_Char.from(s).wrap();
 	}
 
-	static TokenStream$Obj<Token$Char> from(InputStream stream){
-		return TokenStream$Char.of(stream).wrap();
+	static TokenStream_Obj<Token$Char> from(InputStream stream){
+		return TokenStream_Char.of(stream).wrap();
 	}
 
-	static <T extends Token> TokenStream$Obj<T> from(Supplier<T> supplier){
-		return new TokenStream$Obj<T>(){
+	static <T extends Token> TokenStream_Obj<T> from(Supplier<T> supplier){
+		return new TokenStream_Obj<T>(){
 			T next = supplier.get();
 			@Override
 			public T peek(){
@@ -182,8 +182,8 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 			}
 		};
 	}
-	static <T extends Token> TokenStream$Obj<T> of(T... tokens){
-		return new TokenStream$Obj<T>(){
+	static <T extends Token> TokenStream_Obj<T> of(T... tokens){
+		return new TokenStream_Obj<T>(){
 			int index;
 			@Override
 			public T peek(){
@@ -218,44 +218,44 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 		return new Iterator<>(){
 			@Override
 			public boolean hasNext(){
-				return !TokenStream$Obj.this.empty();
+				return !TokenStream_Obj.this.empty();
 			}
 
 			@Override
 			public T next(){
-				return TokenStream$Obj.this.poll();
+				return TokenStream_Obj.this.poll();
 			}
 		};
 	}
 
-	default TokenStream$Obj<IndexedToken<T>> indexed(){
-		return new TokenStream$Obj<>(){
+	default TokenStream_Obj<IndexedToken<T>> indexed(){
+		return new TokenStream_Obj<>(){
 			int index;
 
 			@Override
 			public IndexedToken<T> peek(){
-				return new IndexedToken<>(TokenStream$Obj.this.peek(), index);
+				return new IndexedToken<>(TokenStream_Obj.this.peek(), index);
 			}
 
 			@Override
 			public IndexedToken<T> poll(){
-				return new IndexedToken<>(TokenStream$Obj.this.poll(), index++);
+				return new IndexedToken<>(TokenStream_Obj.this.poll(), index++);
 			}
 
 			@Override
 			public boolean touched(){
-				return TokenStream$Obj.this.touched();
+				return TokenStream_Obj.this.touched();
 			}
 
 			@Override
 			public boolean empty(){
-				return TokenStream$Obj.this.empty();
+				return TokenStream_Obj.this.empty();
 			}
 
 			@Override
 			public Mark mark(){
 				final int m0 = index;
-				final var m1 = TokenStream$Obj.this.mark();
+				final var m1 = TokenStream_Obj.this.mark();
 				return () -> {
 					index = m0;
 					m1.reset();
@@ -263,9 +263,9 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 			}
 		};
 	}
-	default <D extends Token> TokenStream$Obj<D> map(Function<T, D> mapper){
+	default <D extends Token> TokenStream_Obj<D> map(Function<T, D> mapper){
 		var wrapped = this;
-		return new TokenStream$Obj<D>(){
+		return new TokenStream_Obj<D>(){
 			@Override
 			public D peek(){
 				return mapper.apply(wrapped.peek());
@@ -301,15 +301,15 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 		return rv;
 	}
 
-	default <D extends Token> TokenStream$Obj<D> unwrap(Function<T, TokenStream$Obj<D>> unwrapper){
-		return new TokenStream$Obj<D>(){
+	default <D extends Token> TokenStream_Obj<D> unwrap(Function<T, TokenStream_Obj<D>> unwrapper){
+		return new TokenStream_Obj<D>(){
 			boolean touched;
-			TokenStream$Obj<D> current = emptyStream();
+			TokenStream_Obj<D> current = emptyStream();
 
-			TokenStream$Obj<D> current(){
+			TokenStream_Obj<D> current(){
 				if(current.empty()){
-					if(!TokenStream$Obj.this.empty()){
-						current = unwrapper.apply(TokenStream$Obj.this.poll());
+					if(!TokenStream_Obj.this.empty()){
+						current = unwrapper.apply(TokenStream_Obj.this.poll());
 					}
 				}
 				return current;
@@ -341,7 +341,7 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 				final var touched = this.touched;
 				final var stream = current();
 				final var streamMark = stream.mark();
-				final var wrappedMark = TokenStream$Obj.this.mark();
+				final var wrappedMark = TokenStream_Obj.this.mark();
 				return () -> {
 					current = stream;
 					streamMark.reset();
@@ -352,8 +352,8 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 		};
 	}
 
-	static <T extends Token> TokenStream$Obj<T> from(List<T> elements){
-		return new TokenStream$Obj<T>(){
+	static <T extends Token> TokenStream_Obj<T> from(List<T> elements){
+		return new TokenStream_Obj<T>(){
 			int index;
 			@Override
 			public T peek(){
@@ -383,8 +383,8 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 		};
 	}
 
-	default TokenStream$Obj<T> incorporate(TokenStream$Obj<IndexedToken<T>> stream){
-		return new TokenStream$Obj<T>(){
+	default TokenStream_Obj<T> incorporate(TokenStream_Obj<IndexedToken<T>> stream){
+		return new TokenStream_Obj<T>(){
 			int index;
 
 			@Override
@@ -410,7 +410,7 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 							break block;
 						}
 					}
-					rv = TokenStream$Obj.this.poll();
+					rv = TokenStream_Obj.this.poll();
 				}
 				index += 1;
 				return rv;
@@ -423,12 +423,12 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 
 			@Override
 			public boolean empty(){
-				return TokenStream$Obj.this.empty() && stream.empty();
+				return TokenStream_Obj.this.empty() && stream.empty();
 			}
 
 			@Override
 			public Mark mark(){
-				var m0 = TokenStream$Obj.this.mark();
+				var m0 = TokenStream_Obj.this.mark();
 				var m1 = stream.mark();
 				return () -> {
 					m0.reset();
@@ -438,22 +438,121 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 		};
 	}
 
-	default TokenStream$Obj<T> retain(Predicate<T> predicate){
+	default TokenStream_Obj<T> limit(int maxSize){
+		return new TokenStream_Obj<T>(){
+			int size;
+			@Override
+			public T poll(){
+				return TokenStream_Obj.this.poll();
+			}
+
+			@Override
+			public boolean touched(){
+				return TokenStream_Obj.this.touched();
+			}
+
+			@Override
+			public boolean empty(){
+				return size >= maxSize || TokenStream_Obj.this.empty();
+			}
+
+			@Override
+			public Mark mark(){
+				return TokenStream_Obj.this.mark();
+			}
+		};
+	}
+	default TokenStream_Obj<T> retain(Predicate<T> predicate){
 		return retain(predicate, t -> {});
 	}
 
-	default TokenStream$Obj<T> retain(Predicate<T> predicate, Consumer<IndexedToken<T>> sink){
-		return new TokenStream$Obj<T>(){
+
+	default TokenStream_Obj<T> exclude(
+		int lookahead,
+		Predicate<TokenStream_Obj<T>> predicate,
+		Consumer<IndexedToken<T>> sink
+	){
+		return retain(lookahead, predicate.negate(), sink);
+	}
+
+	default TokenStream_Obj<T> retain(
+		int lookahead,
+		Predicate<TokenStream_Obj<T>> predicate,
+		Consumer<IndexedToken<T>> sink
+	){
+		return new TokenStream_Obj<T>(){
 			int index;
 			int sinkIndex;
 
 			private void findNext(){
-				if(TokenStream$Obj.this.empty()){
+				if(TokenStream_Obj.this.empty()){
 					return;
 				}
 				for(;;){
-					var mark = TokenStream$Obj.this.mark();
-					var token = TokenStream$Obj.this.poll();
+					var mark = TokenStream_Obj.this.mark();
+					var substream = TokenStream_Obj.this.limit(lookahead);
+					boolean include = predicate.test(substream);
+					mark.reset();
+					if(include){
+						index += 1;
+						break;
+					}
+					var token = TokenStream_Obj.this.poll();
+					if(index > sinkIndex){
+						sink.accept(new IndexedToken<>(token, index));
+						sinkIndex = index;
+					}
+					index += 1;
+				}
+			}
+			@Override
+			public T peek(){
+				findNext();
+				return TokenStream_Obj.this.peek();
+			}
+
+			@Override
+			public T poll(){
+				findNext();
+				return TokenStream_Obj.this.poll();
+			}
+
+			@Override
+			public boolean touched(){
+				return index != 0;
+			}
+
+			@Override
+			public boolean empty(){
+				findNext();
+				return TokenStream_Obj.this.empty();
+			}
+
+			@Override
+			public Mark mark(){
+				var i = index;
+				var m = TokenStream_Obj.this.mark();
+
+				return () -> {
+					index = i;
+					m.reset();
+				};
+			}
+		};
+	}
+
+	default TokenStream_Obj<T> retain(Predicate<T> predicate, Consumer<IndexedToken<T>> sink){
+		return new TokenStream_Obj<T>(){
+			int index;
+			int sinkIndex;
+
+			private void findNext(){
+				if(TokenStream_Obj.this.empty()){
+					return;
+				}
+				for(;;){
+					var mark = TokenStream_Obj.this.mark();
+					var token = TokenStream_Obj.this.poll();
 					if(predicate.test(token)){
 						mark.reset();
 						index += 1;
@@ -469,13 +568,13 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 			@Override
 			public T peek(){
 				findNext();
-				return TokenStream$Obj.this.peek();
+				return TokenStream_Obj.this.peek();
 			}
 
 			@Override
 			public T poll(){
 				findNext();
-				return TokenStream$Obj.this.poll();
+				return TokenStream_Obj.this.poll();
 			}
 
 			@Override
@@ -486,13 +585,13 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 			@Override
 			public boolean empty(){
 				findNext();
-				return TokenStream$Obj.this.empty();
+				return TokenStream_Obj.this.empty();
 			}
 
 			@Override
 			public Mark mark(){
 				var i = index;
-				var m = TokenStream$Obj.this.mark();
+				var m = TokenStream_Obj.this.mark();
 
 				return () -> {
 					index = i;
@@ -502,26 +601,26 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 		};
 	}
 
-	default <D extends Token> TokenStream$Obj<D> polymap(Function<TokenStream$Obj<T>, D> mapper){
-		return new TokenStream$Obj<D>(){
+	default <D extends Token> TokenStream_Obj<D> polymap(Function<TokenStream_Obj<T>, D> mapper){
+		return new TokenStream_Obj<D>(){
 			@Override
 			public D poll(){
-				return mapper.apply(TokenStream$Obj.this);
+				return mapper.apply(TokenStream_Obj.this);
 			}
 
 			@Override
 			public boolean touched(){
-				return TokenStream$Obj.this.touched();
+				return TokenStream_Obj.this.touched();
 			}
 
 			@Override
 			public boolean empty(){
-				return TokenStream$Obj.this.empty();
+				return TokenStream_Obj.this.empty();
 			}
 
 			@Override
 			public Mark mark(){
-				return TokenStream$Obj.this.mark();
+				return TokenStream_Obj.this.mark();
 			}
 		};
 	}
@@ -534,27 +633,28 @@ public interface TokenStream$Obj<T extends Token> extends TokenStream, Iterable<
 		return results.get(0);
 	}
 
-	default TokenStream$Obj<T> until(Predicate<T> terminator){
-		return new TokenStream$Obj<T>(){
+	default TokenStream_Obj<T> until(Predicate<T> terminator){
+		return new TokenStream_Obj<T>(){
 			@Override
 			public T poll(){
-				return TokenStream$Obj.this.poll();
+				return TokenStream_Obj.this.poll();
 			}
 
 			@Override
 			public boolean touched(){
-				return TokenStream$Obj.this.touched();
+				return TokenStream_Obj.this.touched();
 			}
 
 			@Override
 			public boolean empty(){
-				return TokenStream$Obj.this.empty() || terminator.test(TokenStream$Obj.this.peek());
+				return TokenStream_Obj.this.empty() || terminator.test(TokenStream_Obj.this.peek());
 			}
 
 			@Override
 			public Mark mark(){
-				return TokenStream$Obj.this.mark();
+				return TokenStream_Obj.this.mark();
 			}
 		};
 	}
+
 }

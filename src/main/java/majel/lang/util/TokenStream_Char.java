@@ -12,7 +12,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
-public interface TokenStream$Char extends TokenStream{
+public interface TokenStream_Char extends TokenStream{
 
 	default char peek(){
 		var mark = mark();
@@ -29,12 +29,12 @@ public interface TokenStream$Char extends TokenStream{
 		}
 	}
 
-	static TokenStream$Char from(String value){
+	static TokenStream_Char from(String value){
 		return of(value.toCharArray());
 	}
 
-	static TokenStream$Char of(byte...tokens){
-		return new TokenStream$Char(){
+	static TokenStream_Char of(byte...tokens){
+		return new TokenStream_Char(){
 			private int index;
 
 			@Override
@@ -64,9 +64,9 @@ public interface TokenStream$Char extends TokenStream{
 			}
 		};
 	}
-	static TokenStream$Char of(char...tokens){
+	static TokenStream_Char of(char...tokens){
 
-		return new TokenStream$Char(){
+		return new TokenStream_Char(){
 			private int index;
 
 			@Override
@@ -98,9 +98,9 @@ public interface TokenStream$Char extends TokenStream{
 	}
 
 
-	static TokenStream$Char of(InputStream stream){
+	static TokenStream_Char of(InputStream stream){
 		var buffered = new BufferedInputStream(stream);
-		return new TokenStream$Char(){
+		return new TokenStream_Char(){
 			char next = 0xffff;
 			@Override
 			public char peek(){
@@ -149,16 +149,16 @@ public interface TokenStream$Char extends TokenStream{
 			}
 		};
 	}
-	static TokenStream$Char of(TokenStream$Obj<Token$Char> stream){
+	static TokenStream_Char of(TokenStream_Obj<Token$Char> stream){
 		if(stream instanceof WrappedTokenStream wrapped){
 			return wrapped.wrapped;
 		}
 		return new WrappedSimpleTokenStream(stream);
 	}
 
-	class WrappedTokenStream implements TokenStream$Obj<Token$Char>{
-		final TokenStream$Char wrapped;
-		WrappedTokenStream(TokenStream$Char wrapped){
+	class WrappedTokenStream implements TokenStream_Obj<Token$Char>{
+		final TokenStream_Char wrapped;
+		WrappedTokenStream(TokenStream_Char wrapped){
 			this.wrapped = wrapped;
 		}
 
@@ -188,10 +188,10 @@ public interface TokenStream$Char extends TokenStream{
 		}
 	}
 
-	class WrappedSimpleTokenStream implements TokenStream$Char{
-		final TokenStream$Obj<Token$Char> wrapped;
+	class WrappedSimpleTokenStream implements TokenStream_Char{
+		final TokenStream_Obj<Token$Char> wrapped;
 
-		public WrappedSimpleTokenStream(TokenStream$Obj<Token$Char> wrapped){
+		public WrappedSimpleTokenStream(TokenStream_Obj<Token$Char> wrapped){
 			this.wrapped = wrapped;
 		}
 
@@ -221,7 +221,7 @@ public interface TokenStream$Char extends TokenStream{
 		}
 	}
 
-	default TokenStream$Obj<Token$Char> wrap(){
+	default TokenStream_Obj<Token$Char> wrap(){
 		return new WrappedTokenStream(this);
 	}
 
@@ -259,22 +259,22 @@ public interface TokenStream$Char extends TokenStream{
 		}
 	}
 
-	default TokenStream$Char withHead(char c){
-		return withHead(TokenStream$Char.of(c));
+	default TokenStream_Char withHead(char c){
+		return withHead(TokenStream_Char.of(c));
 	}
 
-	default TokenStream$Char withHead(TokenStream$Char head){
-		return new TokenStream$Char(){
+	default TokenStream_Char withHead(TokenStream_Char head){
+		return new TokenStream_Char(){
 
 			boolean touched;
 			@Override
 			public char poll(){
 				if(head.empty()){
-					return TokenStream$Char.this.poll();
+					return TokenStream_Char.this.poll();
 				}
 				char target = head.poll();
-				if(TokenStream$Char.this.peek() == target){
-					return TokenStream$Char.this.poll();
+				if(TokenStream_Char.this.peek() == target){
+					return TokenStream_Char.this.poll();
 				}
 				touched = true;
 				return target;
@@ -287,12 +287,12 @@ public interface TokenStream$Char extends TokenStream{
 
 			@Override
 			public boolean empty(){
-				return TokenStream$Char.this.empty() && head.empty();
+				return TokenStream_Char.this.empty() && head.empty();
 			}
 
 			@Override
 			public Mark mark(){
-				var m0 = TokenStream$Char.this.mark();
+				var m0 = TokenStream_Char.this.mark();
 				var m1 = head.mark();
 				var m2 = touched;
 				return () -> {
@@ -330,23 +330,23 @@ public interface TokenStream$Char extends TokenStream{
 		return results.toArray(String[]::new);
 	}
 
-	default TokenStream$Char exclude(char c){
+	default TokenStream_Char exclude(char c){
 		return retain(cn -> cn != c);
 	}
 
-	default TokenStream$Char exclude(CharPredicate predicate){
+	default TokenStream_Char exclude(CharPredicate predicate){
 		return retain(predicate.negate());
 	}
-	default TokenStream$Char retain(CharPredicate predicate){
+	default TokenStream_Char retain(CharPredicate predicate){
 		return retain(predicate, t -> {});
 	}
 
-	default TokenStream$Char exclude(CharPredicate predicate, Consumer<IndexedChar> sink){
+	default TokenStream_Char exclude(CharPredicate predicate, Consumer<IndexedChar> sink){
 		return retain(predicate.negate(), sink);
 	}
 
-	default TokenStream$Char retain(CharPredicate predicate, Consumer<IndexedChar> sink){
-		return new TokenStream$Char(){
+	default TokenStream_Char retain(CharPredicate predicate, Consumer<IndexedChar> sink){
+		return new TokenStream_Char(){
 			char next = 0xffff;
 			int index;
 			int sinkIndex;
@@ -354,10 +354,10 @@ public interface TokenStream$Char extends TokenStream{
 			@Override
 			public char peek(){
 				while(next == 0xffff){
-					if(TokenStream$Char.this.empty()){
+					if(TokenStream_Char.this.empty()){
 						break;
 					}
-					var n = TokenStream$Char.this.poll();
+					var n = TokenStream_Char.this.poll();
 					if(predicate.test(n)){
 						next = n;
 					}
@@ -393,7 +393,7 @@ public interface TokenStream$Char extends TokenStream{
 			public Mark mark(){
 				var i = index;
 				var t = touched;
-				var m = TokenStream$Char.this.mark();
+				var m = TokenStream_Char.this.mark();
 
 				return () -> {
 					index = i;

@@ -1,10 +1,10 @@
 package majel.util.functional;
 
 import majel.lang.util.Mark;
-import majel.lang.util.TokenStream$Char;
+import majel.lang.util.TokenStream_Char;
 import majel.util.MathUtils;
 
-public class TokenStreamBuilder implements CharGobbler, TokenStream$Char{
+public class TokenStreamBuilder implements CharGobbler, TokenStream_Char{
 
 	record Bounds(int head, int tail){
 		Bounds{
@@ -103,8 +103,8 @@ public class TokenStreamBuilder implements CharGobbler, TokenStream$Char{
 		};
 	}
 
-	public TokenStream$Char immutableView(){
-		return new TokenStream$Char(){
+	public TokenStream_Char immutableView(){
+		return new TokenStream_Char(){
 			@Override
 			public char peek(){
 				return TokenStreamBuilder.this.peek();
