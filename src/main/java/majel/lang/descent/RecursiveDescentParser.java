@@ -16,15 +16,15 @@ import majel.stream.Token;
  			Likewise @some-name; should not lookup some-name until later in the process.
  			The context containing a Map<name:String, Expression> should not be accessible until semantic processing is occurring.
  */
-public class RecursiveDescentParser<S extends Token, T extends Token> implements Pipe<S, T>{
+public class RecursiveDescentParser<Context, S extends Token, T extends Token> implements Pipe<Context, S, T>{
 
-	private final HandlerSelector<S, T> selector;
-	public RecursiveDescentParser(HandlerSelector<S, T> selector){
+	private final HandlerSelector<Context, S, T> selector;
+	public RecursiveDescentParser(HandlerSelector<Context, S, T> selector){
 		this.selector = selector;
 	}
 
 	@Override
-	public TokenStream<T> parse(TokenStream<S> tokens){
+	public TokenStream<T> parse(Context context, TokenStream<S> tokens){
 		return new TokenStream<T>(){
 			@Override
 			public T peek(){
@@ -40,7 +40,12 @@ public class RecursiveDescentParser<S extends Token, T extends Token> implements
 				if(handler == null){
 					throw new IllegalToken(tokens);
 				}
-				return handler.parse(tokens, this);
+				return handler.parse(context, tokens, this);
+			}
+
+			@Override
+			public boolean touched(){
+				return false;
 			}
 
 			@Override

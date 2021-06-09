@@ -8,16 +8,16 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface Pipe<S extends Token, T extends Token>{
+public interface Pipe<Context, S extends Token, T extends Token>{
 
-	static <S extends Token> Pipe<S, S> nop(){
-		return tokens -> tokens;
+	static <Context, S extends Token> Pipe<Context, S, S> nop(){
+		return (context, tokens) -> tokens;
 	}
 
-	TokenStream<T> parse(TokenStream<S> tokens);
+	TokenStream<T> parse(Context context, TokenStream<S> tokens);
 
-	default T parseSingle(TokenStream<S> tokens){
-		var stream = parse(tokens);
+	default T parseSingle(Context context, TokenStream<S> tokens){
+		var stream = parse(context, tokens);
 		var result = stream.poll();
 		if(!stream.empty()){
 			throw new IllegalStateException();
@@ -25,48 +25,48 @@ public interface Pipe<S extends Token, T extends Token>{
 		return result;
 	}
 
-	default List<T> parse(List<S> elements){
+	default List<T> parse(Context context, List<S> elements){
 		var stream = TokenStream.from(elements);
-		var rv = parse(stream).collect(ArrayList::new);
+		var rv = parse(context, stream).collect(ArrayList::new);
 		if(!stream.empty()){
 			throw new IllegalArgumentException();
 		}
 		return rv;
 	}
 
-	default T parse(S s){
-		return parse(List.of(s)).get(0);
+	default T parse(Context context, S s){
+		return parse(context, List.of(s)).get(0);
 	}
 
-	default <D extends Token> Pipe<S, D> andThen(Pipe<T, D> next){
+	default <D extends Token> Pipe<Context, S, D> andThen(Pipe<Context, T, D> next){
 		final var wrapped = this;
-		return tokens -> next.parse(wrapped.parse(tokens));
+		return (context, tokens) -> next.parse(context, wrapped.parse(context, tokens));
 	}
 
 
-	default Pipe<S, T> retain(Predicate<T> filter){
+	default Pipe<Context, S, T> retain(Predicate<T> filter){
 		return retain(filter, dropped -> {});
 	}
 
-	default Pipe<S, T> exclude(Predicate<T> filter){
+	default Pipe<Context, S, T> exclude(Predicate<T> filter){
 		return retain(filter.negate());
 	}
 
-	default Pipe<S, T> exclude(Predicate<T> filter, Consumer<IndexedToken<T>> sink){
+	default Pipe<Context, S, T> exclude(Predicate<T> filter, Consumer<IndexedToken<T>> sink){
 		return retain(filter.negate(), sink);
 	}
 
-	default <D extends Token> Pipe<S, D> map(Function<T, D> mapper){
-		return tokens -> Pipe.this.parse(tokens).map(mapper);
+	default <D extends Token> Pipe<Context, S, D> map(Function<T, D> mapper){
+		return (context, tokens) -> Pipe.this.parse(context, tokens).map(mapper);
 	}
 
-	default <D extends Token> Pipe<S, D> polymap(Function<TokenStream<T>, D> mapper){
-		return tokens -> Pipe.this.parse(tokens).polymap(mapper);
+	default <D extends Token> Pipe<Context, S, D> polymap(Function<TokenStream<T>, D> mapper){
+		return (context, tokens) -> Pipe.this.parse(context, tokens).polymap(mapper);
 	}
 
-	default Pipe<S, T> retain(Predicate<T> filter, Consumer<IndexedToken<T>> sink){
-		return tokens -> Pipe.this
-			.parse(tokens)
+	default Pipe<Context, S, T> retain(Predicate<T> filter, Consumer<IndexedToken<T>> sink){
+		return (context, tokens) -> Pipe.this
+			.parse(context, tokens)
 			.retain(filter, sink);
 	}
 }

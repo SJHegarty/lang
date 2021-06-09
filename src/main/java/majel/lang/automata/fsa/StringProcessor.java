@@ -1,5 +1,6 @@
 package majel.lang.automata.fsa;
 
+import majel.lang.descent.context.NullContext;
 import majel.lang.err.IllegalToken;
 import majel.lang.util.Mark;
 import majel.lang.util.Pipe;
@@ -8,7 +9,7 @@ import majel.lang.util.TokenStream;
 import majel.stream.Token$Char;
 import majel.stream.StringToken;
 
-public class StringProcessor implements Pipe<Token$Char, StringToken>{
+public class StringProcessor implements Pipe<NullContext, Token$Char, StringToken>{
 	private final FSA automaton;
 
 	public StringProcessor(FSA automaton){
@@ -52,7 +53,7 @@ public class StringProcessor implements Pipe<Token$Char, StringToken>{
 	}
 
 	@Override
-	public TokenStream<StringToken> parse(TokenStream<Token$Char> tokens){
+	public TokenStream<StringToken> parse(NullContext ignored, TokenStream<Token$Char> tokens){
 		var simple = TokenStream$Char.of(tokens);
 		return new TokenStream<>(){
 			@Override
@@ -67,6 +68,12 @@ public class StringProcessor implements Pipe<Token$Char, StringToken>{
 				);
 			}
 
+			boolean touched;
+			@Override
+			public boolean touched(){
+				return touched;
+			}
+
 			@Override
 			public boolean empty(){
 				return tokens.empty();
@@ -74,7 +81,12 @@ public class StringProcessor implements Pipe<Token$Char, StringToken>{
 
 			@Override
 			public Mark mark(){
-				return tokens.mark();
+				var m0 = touched;
+				var m1 = tokens.mark();
+				return () -> {
+					touched = m0;
+					m1.reset();
+				};
 			}
 		};
 	}

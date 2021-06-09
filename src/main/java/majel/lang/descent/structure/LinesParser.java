@@ -3,6 +3,7 @@ package majel.lang.descent.structure;
 import majel.lang.automata.fsa.Dealiaser;
 import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
+import majel.lang.descent.context.NullContext;
 import majel.lang.descent.lithp.Lithp1;
 import majel.lang.descent.lithp.Lithp2;
 import majel.lang.util.Pipe;
@@ -22,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class LinesParser implements Pipe<Token$Char, Line>{
+public class LinesParser{
 	public static void main(String...args) throws IOException{
 		Function<String, TokenStream$Char> streams = path -> {
 			try{
@@ -38,13 +39,13 @@ public class LinesParser implements Pipe<Token$Char, Line>{
 				throw new UncheckedIOException(e);
 			}
 		};
-		var rootPipe = Pipe.<Token$Char>nop().retain(t -> t.value() != '\r');
+		var rootPipe = Pipe.<NullContext, Token$Char>nop().retain(t -> t.value() != '\r');
 		var lithpPipe = rootPipe.retain(t -> t.value() != '\n')
 			.andThen(new Lithp1())
 			.andThen(new Lithp2());
 
 		var lithpSrc = streams.apply(".lithp/Test.lithp");
-		var lithp = lithpPipe.parse(lithpSrc.wrap());
+		var lithp = lithpPipe.parse(NullContext.instance, lithpSrc.wrap());
 		var all = FSA.or(lithp.collect(ArrayList::new));
 
 		List<IndexedToken<StringToken>> whitespace = new ArrayList<>();
@@ -52,121 +53,58 @@ public class LinesParser implements Pipe<Token$Char, Line>{
 			.andThen(new StringProcessor(all))
 			.andThen(new Dealiaser<>())
 			.exclude(t -> t.labels().contains("white-space"), whitespace::add);
+/*
+TODO:
+	At some point, buffering should be introduced.
+		Every time that any stream is reset, all of the parsers in the pipe-line are rerun.
+			This is despite the fact that universally they will all return the same results when re-executed.
+			This could be optimised, but it does not break the API. It's a delayable yak.
+	There should be context aware parsers:
+		The next parser level should operate on the line head,
+		 - from here, it generates a LineContext object,
+		  - the lineContext should be a record containing the token depth
+			(
+				it should need nothing else,
+				 however additional context aware parsers can be arbitrarily introduced at greater depths
+			)
+		  - It can be fed in as a parameter to LineHandlers
+		  	The subparser is fed a substream that terminates at the first line-head token
+		  	SimpleHandler: Everything that's not a bracket.
+		  	BracketHandlers
+		  	 - Complexity here revolves around the requirement to also read the tail if the brackets are not terminated in the head.
+		  	 The sub-parser that empties the head keeps the children.
+		  		The children are those elements that have a greater indent than the line context,
+		  			halting at the first element that does not.
+		  		The tail is the first element after the children if it has the same indent as the context.
+		  		If the tail is required but is not there, an explosion occurs - tail expected but was not present, unclosed Brackets.
+		  		If the tail is untouched, the head was self-closing, there is no tail - so it is left as a peeked item.
+		  		If the tail is touched, it is expected to be fully consumed and it is polled.
+		  			(
+						That the result is valid should be enforced rather effectively by premature ends of streams
+							The error messaging in these situations could be improved significantly.
+		  				A more bespoke implementation could provide a message similar to the one above:
+		  					end of tail reached unexpectedly, unclosed brackets (opened @ index:x), expected e.g.: ']'
+		  			)
+		  		This is fairly elegant, other than that I need to universally implement the touched method.
+		  			This would be a quicker job if all of my wrapper classes used some sort of proxy instead.
+		  			But they don't.
+		  				And I'm happy to waste a bit of time implementing pain in the arse functionality, knowing that I'll do it better later.
+		  				I'm not in the mood to shave that yak right now.
+		So:
+			Implement touched.
+			Brackets parsers.
+			Simple Parsers.
 
-		System.err.println(TokenStream$Char.from("bceghijk").withHead(TokenStream$Char.from("abcdefg")).drain());
+ */
 		var foo = streams.apply(".bspl/Simple.bspl").withHead('\n');
 		fooPipe.parse(
+			NullContext.instance,
 			foo.wrap()
 		)
 		.forEach(System.err::println);
 
 		System.err.println(whitespace.size());
 		System.exit(0);
-		var resource = Thread.currentThread().getContextClassLoader().getResource(".bspl/Simple.bspl");
-
-		var sink = new ArrayList<IndexedToken<Line>>();
-
-		/*
-		TODO:
-			create or enhance tree structure parsing to incorporate recursive descent into the head for brackets parsing.
-			[({<>})]
-		 */
-		interface TToken extends Token{}
-		var headParser = new HeadParser();
-		var parser = Pipe.<Token$Char>nop()
-			.exclude(c -> c.value() == '\r')
-			.andThen(new LinesParser())
-			.exclude(Line::empty, sink::add)
-			.andThen(new IndentParser())
-			.andThen(new Pipe<IndentToken, TToken>(){
-				@Override
-				public TokenStream<TToken> parse(TokenStream<IndentToken> tokens){
-					return new TokenStream<TToken>(){
-						@Override
-						public TToken poll(){
-							var head = tokens.poll();
-							if(head instanceof IndentTree t){
-								headParser.parse(TokenStream.from(t.content())).poll();
-							}
-							throw new UnsupportedOperationException(head.getClass().getSimpleName());
-						}
-
-						@Override
-						public boolean empty(){
-							return tokens.empty();
-						}
-
-						@Override
-						public Mark mark(){
-							return tokens.mark();
-						}
-					};
-				}
-			});
-
-	}
-
-	@Override
-	public TokenStream<Line> parse(TokenStream<Token$Char> tokens){
-		/*
-		TODO:
-			Spilt stream at target token, return lazy evaluated result
-		 */
-		return new TokenStream<>(){
-			int lineNumber;
-			@Override
-			public Line peek(){
-				var mark = mark();
-				var rv = poll();
-				mark.reset();
-				return rv;
-			}
-
-			@Override
-			public Line poll(){
-				final var simple = TokenStream$Char.of(tokens);
-				final int indent;
-				{
-					int count = 0;
-					while(!simple.empty() && simple.peek() == '\t'){
-						simple.poll();
-						count++;
-					}
-					indent = count;
-				}
-				final var content = new StringBuilder();
-				while(!simple.empty() && simple.peek() != '\n'){
-					content.append(simple.poll());
-				}
-				final boolean newline;
-				if(simple.empty()){
-					newline = false;
-				}
-				else{
-					newline = true;
-					simple.read('\n');
-				}
-
-				return new Line(lineNumber++, indent, content.toString(), newline);
-
-			}
-
-			@Override
-			public boolean empty(){
-				return tokens.empty();
-			}
-
-			@Override
-			public Mark mark(){
-				int m0 = lineNumber;
-				var m1 = tokens.mark();
-
-				return () -> {
-					lineNumber = m0;
-					m1.reset();
-				};
-			}
-		};
 	}
 
 }

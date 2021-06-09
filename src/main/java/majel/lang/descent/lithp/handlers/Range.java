@@ -1,6 +1,7 @@
 package majel.lang.descent.lithp.handlers;
 
 import majel.lang.descent.CharHandler;
+import majel.lang.descent.context.NullContext;
 import majel.lang.descent.lithp.Lithp1;
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.descent.lithp.expressions.RangeExpression;
@@ -18,7 +19,7 @@ public class Range implements CharHandler<LithpExpression>{
 	}
 
 	@Override
-	public LithpExpression parse(TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
+	public LithpExpression parse(NullContext ignored, TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
 		checkHead(tokens);
 		var simple = TokenStream$Char.of(tokens);
 		char c0 = Lithp1.parseLiteral(simple);

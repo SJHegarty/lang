@@ -22,6 +22,7 @@ public interface TokenStream$Char{
 	}
 
 	char poll();
+	boolean touched();
 	boolean empty();
 	Mark mark();
 
@@ -50,6 +51,11 @@ public interface TokenStream$Char{
 			}
 
 			@Override
+			public boolean touched(){
+				return index != 0;
+			}
+
+			@Override
 			public boolean empty(){
 				return index >= tokens.length;
 			}
@@ -74,6 +80,11 @@ public interface TokenStream$Char{
 			@Override
 			public char poll(){
 				return tokens[index++];
+			}
+
+			@Override
+			public boolean touched(){
+				return index != 0;
 			}
 
 			@Override
@@ -111,11 +122,18 @@ public interface TokenStream$Char{
 				return next;
 			}
 
+			boolean touched;
 			@Override
 			public char poll(){
 				var rv = peek();
 				next = 0xffff;
+				touched = true;
 				return rv;
+			}
+
+			@Override
+			public boolean touched(){
+				return touched;
 			}
 
 			@Override
@@ -158,6 +176,11 @@ public interface TokenStream$Char{
 		}
 
 		@Override
+		public boolean touched(){
+			return wrapped.touched();
+		}
+
+		@Override
 		public boolean empty(){
 			return wrapped.empty();
 		}
@@ -183,6 +206,11 @@ public interface TokenStream$Char{
 		@Override
 		public char poll(){
 			return wrapped.poll().value();
+		}
+
+		@Override
+		public boolean touched(){
+			return wrapped.touched();
 		}
 
 		@Override
@@ -241,6 +269,7 @@ public interface TokenStream$Char{
 	default TokenStream$Char withHead(TokenStream$Char head){
 		return new TokenStream$Char(){
 
+			boolean touched;
 			@Override
 			public char poll(){
 				if(head.empty()){
@@ -250,7 +279,13 @@ public interface TokenStream$Char{
 				if(TokenStream$Char.this.peek() == target){
 					return TokenStream$Char.this.poll();
 				}
+				touched = true;
 				return target;
+			}
+
+			@Override
+			public boolean touched(){
+				return touched;
 			}
 
 			@Override
@@ -262,13 +297,16 @@ public interface TokenStream$Char{
 			public Mark mark(){
 				var m0 = TokenStream$Char.this.mark();
 				var m1 = head.mark();
+				var m2 = touched;
 				return () -> {
 					m0.reset();
 					m1.reset();
+					touched = m2;
 				};
 			}
 		};
 	}
+
 	default String[] split(char separator){
 		var results = new ArrayList<String>();
 		Consumer<StringBuilder> addOp = builder -> {
@@ -339,7 +377,14 @@ public interface TokenStream$Char{
 			public char poll(){
 				var rv = peek();
 				next = 0xffff;
+				touched = true;
 				return rv;
+			}
+
+			boolean touched;
+			@Override
+			public boolean touched(){
+				return touched;
 			}
 
 			@Override
@@ -350,11 +395,13 @@ public interface TokenStream$Char{
 			@Override
 			public Mark mark(){
 				var i = index;
+				var t = touched;
 				var m = TokenStream$Char.this.mark();
 
 				return () -> {
 					index = i;
 					m.reset();
+					touched = t;
 				};
 			}
 		};

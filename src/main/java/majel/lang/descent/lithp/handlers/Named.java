@@ -2,6 +2,7 @@ package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.StringProcessor;
 import majel.lang.descent.CharHandler;
+import majel.lang.descent.context.NullContext;
 import majel.lang.descent.lithp.Lithp1;
 import majel.lang.descent.lithp.Lithp2;
 import majel.lang.descent.lithp.LithpExpression;
@@ -20,7 +21,7 @@ public class Named implements CharHandler<LithpExpression>{
 	private transient StringProcessor processor;
 
 	@Override
-	public LithpExpression parse(TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
+	public LithpExpression parse(NullContext ignored, TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
 		if(processor == null){
 			var word = "(*[a...z]?[A...Z]?*[a...z])";
 			var expr = new StringBuilder()
@@ -31,7 +32,7 @@ public class Named implements CharHandler<LithpExpression>{
 
 			var parser = new Lithp1().andThen(new Lithp2());
 			processor = new StringProcessor(
-				parser.parse(TokenStream$Char.from(expr.toString()).wrap()).poll()
+				parser.parse(ignored, TokenStream$Char.from(expr.toString()).wrap()).poll()
 			);
 		}
 		checkHead(tokens);

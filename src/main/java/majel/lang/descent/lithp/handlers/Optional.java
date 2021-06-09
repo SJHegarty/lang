@@ -1,6 +1,7 @@
 package majel.lang.descent.lithp.handlers;
 
 import majel.lang.descent.CharHandler;
+import majel.lang.descent.context.NullContext;
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.descent.lithp.expressions.OptionalExpression;
 import majel.lang.util.TokenStream;
@@ -14,7 +15,11 @@ public class Optional implements CharHandler<LithpExpression>{
 	}
 
 	@Override
-	public LithpExpression parse(TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
+	public LithpExpression parse(
+		NullContext ignored,
+		TokenStream<Token$Char> tokens,
+		TokenStream<LithpExpression> parsed
+	){
 		checkHead(tokens);
 		return new OptionalExpression(parsed.poll());
 	}

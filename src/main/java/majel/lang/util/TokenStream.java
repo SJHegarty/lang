@@ -26,6 +26,11 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 			}
 
 			@Override
+			public boolean touched(){
+				return false;
+			}
+
+			@Override
 			public boolean empty(){
 				return true;
 			}
@@ -45,6 +50,7 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 	}
 
 	T poll();
+	boolean touched();
 	boolean empty();
 	Mark mark();
 
@@ -87,6 +93,7 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 	default TokenStream<T> concat(Supplier<TokenStream<T>> continuation){
 		final var wrapped = this;
 		return new TokenStream<T>(){
+			boolean touched;
 			TokenStream<T> built;
 
 			TokenStream<T> source(){
@@ -111,7 +118,13 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 
 			@Override
 			public T poll(){
+				touched = true;
 				return source().poll();
+			}
+
+			@Override
+			public boolean touched(){
+				return touched;
 			}
 
 			@Override
@@ -121,7 +134,12 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 
 			@Override
 			public Mark mark(){
-				return source().mark();
+				var m0 = source().mark();
+				var m1 = touched;
+				return () -> {
+					m0.reset();
+					touched = m1;
+				};
 			}
 		};
 	}
@@ -145,8 +163,15 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 			@Override
 			public T poll(){
 				T rv = next;
+				touched = true;
 				next = supplier.get();
 				return rv;
+			}
+
+			boolean touched;
+			@Override
+			public boolean touched(){
+				return touched;
 			}
 
 			@Override
@@ -171,6 +196,11 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 			@Override
 			public T poll(){
 				return tokens[index++];
+			}
+
+			@Override
+			public boolean touched(){
+				return index != 0;
 			}
 
 			@Override
@@ -216,6 +246,11 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 			}
 
 			@Override
+			public boolean touched(){
+				return TokenStream.this.touched();
+			}
+
+			@Override
 			public boolean empty(){
 				return TokenStream.this.empty();
 			}
@@ -245,6 +280,11 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 			}
 
 			@Override
+			public boolean touched(){
+				return wrapped.touched();
+			}
+
+			@Override
 			public boolean empty(){
 				return wrapped.empty();
 			}
@@ -266,6 +306,7 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 
 	default <D extends Token> TokenStream<D> unwrap(Function<T, TokenStream<D>> unwrapper){
 		return new TokenStream<D>(){
+			boolean touched;
 			TokenStream<D> current = emptyStream();
 
 			TokenStream<D> current(){
@@ -284,7 +325,13 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 
 			@Override
 			public D poll(){
+				touched = true;
 				return current().poll();
+			}
+
+			@Override
+			public boolean touched(){
+				return touched;
 			}
 
 			@Override
@@ -294,6 +341,7 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 
 			@Override
 			public Mark mark(){
+				final var touched = this.touched;
 				final var stream = current();
 				final var streamMark = stream.mark();
 				final var wrappedMark = TokenStream.this.mark();
@@ -301,6 +349,7 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 					current = stream;
 					streamMark.reset();
 					wrappedMark.reset();
+					this.touched = touched;
 				};
 			}
 		};
@@ -317,6 +366,11 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 			@Override
 			public T poll(){
 				return elements.get(index++);
+			}
+
+			@Override
+			public boolean touched(){
+				return index != 0;
 			}
 
 			@Override
@@ -363,6 +417,11 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 				}
 				index += 1;
 				return rv;
+			}
+
+			@Override
+			public boolean touched(){
+				return index != 0;
 			}
 
 			@Override
@@ -423,6 +482,11 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 			}
 
 			@Override
+			public boolean touched(){
+				return index != 0;
+			}
+
+			@Override
 			public boolean empty(){
 				findNext();
 				return TokenStream.this.empty();
@@ -446,6 +510,11 @@ public interface TokenStream<T extends Token> extends Iterable<T>{
 			@Override
 			public D poll(){
 				return mapper.apply(TokenStream.this);
+			}
+
+			@Override
+			public boolean touched(){
+				return TokenStream.this.touched();
 			}
 
 			@Override

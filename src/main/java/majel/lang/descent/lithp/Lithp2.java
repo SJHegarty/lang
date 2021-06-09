@@ -1,5 +1,6 @@
 package majel.lang.descent.lithp;
 
+import majel.lang.descent.context.NullContext;
 import majel.lang.util.Pipe;
 import majel.lang.automata.fsa.FSA;
 import majel.lang.descent.lithp.expressions.*;
@@ -12,7 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class Lithp2 implements Pipe<LithpExpression, FSA>{
+public class Lithp2 implements Pipe<NullContext, LithpExpression, FSA>{
 
 	final Map<Class<? extends LithpExpression>, Function<LithpExpression, FSA>> builders;
 	final Map<String, FSA> named;
@@ -21,12 +22,13 @@ public class Lithp2 implements Pipe<LithpExpression, FSA>{
 		named = new HashMap<>();
 		registerHandler(
 			AndExpression.class,
-			a -> FSA.and(parse(a.expressions()))
+			a -> FSA.and(parse(NullContext.instance, a.expressions()))
 		);
 		registerHandler(
 			AndNotExpression.class,
 			a -> {
 				var expressions = parse(
+					NullContext.instance,
 					Arrays.asList(
 						a.expr0(),
 						a.expr1()
@@ -40,7 +42,7 @@ public class Lithp2 implements Pipe<LithpExpression, FSA>{
 		);
 		registerHandler(
 			KleenExpression.class,
-			k -> parse(k.wrapped()).kleene()
+			k -> parse(NullContext.instance, k.wrapped()).kleene()
 		);
 		registerHandler(
 			LiteralExpression.class,
@@ -55,7 +57,7 @@ public class Lithp2 implements Pipe<LithpExpression, FSA>{
 			n -> {
 				var name = n.name();
 				var lower = name.toLowerCase();
-				var base = parse(n.wrapped());
+				var base = parse(NullContext.instance, n.wrapped());
 				var rv = base.named(lower);
 
 				var shortForm = new StringBuilder();
@@ -80,19 +82,19 @@ public class Lithp2 implements Pipe<LithpExpression, FSA>{
 		);
 		registerHandler(
 			NegationExpression.class,
-			n -> parse(n.wrapped()).negate()
+			n -> parse(NullContext.instance, n.wrapped()).negate()
 		);
 		registerHandler(
 			OptionalExpression.class,
-			o -> parse(o.wrapped()).optional()
+			o -> parse(NullContext.instance, o.wrapped()).optional()
 		);
 		registerHandler(
 			OrExpression.class,
-			o -> FSA.or(parse(o.elements()))
+			o -> FSA.or(parse(NullContext.instance, o.elements()))
 		);
 		registerHandler(
 			ParenthesisExpression.class,
-			p -> FSA.concatenate(parse(p.elements()))
+			p -> FSA.concatenate(parse(NullContext.instance, p.elements()))
 		);
 		registerHandler(
 			RangeExpression.class,
@@ -100,7 +102,7 @@ public class Lithp2 implements Pipe<LithpExpression, FSA>{
 		);
 		registerHandler(
 			RepetitionExpression.class,
-			r -> parse(r.base()).repeating(r.lower(), r.upper())
+			r -> parse(NullContext.instance, r.base()).repeating(r.lower(), r.upper())
 		);
 		registerHandler(
 			WildCardExpression.class,
@@ -108,7 +110,7 @@ public class Lithp2 implements Pipe<LithpExpression, FSA>{
 		);
 	}
 	@Override
-	public TokenStream<FSA> parse(TokenStream<LithpExpression> tokens){
+	public TokenStream<FSA> parse(NullContext ignored, TokenStream<LithpExpression> tokens){
 		return tokens.map(
 			expr ->
 				builders

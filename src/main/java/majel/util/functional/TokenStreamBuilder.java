@@ -77,8 +77,15 @@ public class TokenStreamBuilder implements CharGobbler, TokenStream$Char{
 	@Override
 	public char poll(){
 		char rv = peek();
+		touched = true;
 		bounds = bounds.shiftHead(1);
 		return rv;
+	}
+
+	private boolean touched;
+	@Override
+	public boolean touched(){
+		return touched;
 	}
 
 	@Override
@@ -89,7 +96,11 @@ public class TokenStreamBuilder implements CharGobbler, TokenStream$Char{
 	@Override
 	public Mark mark(){
 		final int head = bounds.head();
-		return () -> bounds = bounds.withHead(head);
+		final boolean touched = this.touched;
+		return () -> {
+			this.touched = touched;
+			bounds = bounds.withHead(head);
+		};
 	}
 
 	public TokenStream$Char immutableView(){
@@ -102,6 +113,11 @@ public class TokenStreamBuilder implements CharGobbler, TokenStream$Char{
 			@Override
 			public char poll(){
 				return TokenStreamBuilder.this.poll();
+			}
+
+			@Override
+			public boolean touched(){
+				return TokenStreamBuilder.this.touched();
 			}
 
 			@Override

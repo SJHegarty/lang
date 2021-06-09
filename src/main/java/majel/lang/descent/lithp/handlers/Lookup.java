@@ -2,6 +2,7 @@ package majel.lang.descent.lithp.handlers;
 
 import majel.lang.automata.fsa.StringProcessor;
 import majel.lang.descent.CharHandler;
+import majel.lang.descent.context.NullContext;
 import majel.lang.descent.lithp.Lithp1;
 import majel.lang.descent.lithp.Lithp2;
 import majel.lang.descent.lithp.LithpExpression;
@@ -24,7 +25,7 @@ public class Lookup implements CharHandler<LithpExpression>{
 	private transient StringProcessor processor;
 
 	@Override
-	public LithpExpression parse(TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
+	public LithpExpression parse(NullContext ignored, TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
 		checkHead(tokens);
 		var simple = TokenStream$Char.of(tokens);
 		/*if(simple.peek() == '.'){
@@ -45,7 +46,7 @@ public class Lookup implements CharHandler<LithpExpression>{
 			var expr = "+(" + exprLC + ", " + exprUC + ")";
 			var parser = new Lithp1().andThen(new Lithp2());
 			processor = new StringProcessor(
-				parser.parse(TokenStream$Char.from(expr).wrap()).poll()
+				parser.parse(ignored, TokenStream$Char.from(expr).wrap()).poll()
 			);
 		}
 		var name = processor.process(simple).value();

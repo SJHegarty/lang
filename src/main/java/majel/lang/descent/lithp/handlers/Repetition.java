@@ -1,6 +1,7 @@
 package majel.lang.descent.lithp.handlers;
 
 import majel.lang.descent.CharHandler;
+import majel.lang.descent.context.NullContext;
 import majel.lang.descent.lithp.LithpExpression;
 import majel.lang.descent.lithp.expressions.RepetitionExpression;
 import majel.lang.err.IllegalToken;
@@ -24,7 +25,7 @@ public class Repetition implements CharHandler<LithpExpression>{
 	}
 
 	@Override
-	public LithpExpression parse(TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
+	public LithpExpression parse(NullContext ignored, TokenStream<Token$Char> tokens, TokenStream<LithpExpression> parsed){
 		checkHead(tokens);
 		var simple = TokenStream$Char.of(tokens);
 		simple.read(LithpExpression.OPENING_PARENTHESIS);
