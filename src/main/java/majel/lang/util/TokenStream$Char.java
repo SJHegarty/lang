@@ -260,7 +260,12 @@ public interface TokenStream$Char{
 
 			@Override
 			public Mark mark(){
-				return TokenStream$Char.this.mark();
+				var m0 = TokenStream$Char.this.mark();
+				var m1 = head.mark();
+				return () -> {
+					m0.reset();
+					m1.reset();
+				};
 			}
 		};
 	}

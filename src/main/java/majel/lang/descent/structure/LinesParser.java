@@ -1,5 +1,6 @@
 package majel.lang.descent.structure;
 
+import majel.lang.automata.fsa.Dealiaser;
 import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
 import majel.lang.descent.lithp.Lithp1;
@@ -11,12 +12,14 @@ import majel.lang.util.IndexedToken;
 import majel.lang.util.Mark;
 import majel.lang.util.TokenStream$Char;
 import majel.lang.util.TokenStream;
+import majel.stream.StringToken;
 import majel.stream.Token$Char;
 import majel.stream.Token;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 public class LinesParser implements Pipe<Token$Char, Line>{
@@ -44,12 +47,20 @@ public class LinesParser implements Pipe<Token$Char, Line>{
 		var lithp = lithpPipe.parse(lithpSrc.wrap());
 		var all = FSA.or(lithp.collect(ArrayList::new));
 
-		var fooPipe = rootPipe.andThen(new StringProcessor(all));
+		List<IndexedToken<StringToken>> whitespace = new ArrayList<>();
+		var fooPipe = rootPipe
+			.andThen(new StringProcessor(all))
+			.andThen(new Dealiaser<>())
+			.exclude(t -> t.labels().contains("white-space"), whitespace::add);
+
+		System.err.println(TokenStream$Char.from("bceghijk").withHead(TokenStream$Char.from("abcdefg")).drain());
+		var foo = streams.apply(".bspl/Simple.bspl").withHead('\n');
 		fooPipe.parse(
-			streams.apply(".bspl/Simple.bspl").withHead('\n').wrap()
+			foo.wrap()
 		)
 		.forEach(System.err::println);
 
+		System.err.println(whitespace.size());
 		System.exit(0);
 		var resource = Thread.currentThread().getContextClassLoader().getResource(".bspl/Simple.bspl");
 

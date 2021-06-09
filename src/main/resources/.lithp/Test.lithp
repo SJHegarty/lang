@@ -12,7 +12,6 @@
 <(close-round, ')')
 <(open-angled, '<')
 <(minus, '-')
-
 <(close-angled, '>')
 <(fat-string, '"')
 <(skinny-string, '\'')
