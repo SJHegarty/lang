@@ -6,20 +6,25 @@ import majel.lang.automata.fsa.StringProcessor;
 import majel.lang.descent.context.NullContext;
 import majel.lang.descent.lithp.Lithp1;
 import majel.lang.descent.lithp.Lithp2;
-import majel.lang.descent.structure.indent2.LineParser;
-import majel.lang.util.Pipe;
-import majel.lang.util.IndexedToken;
-import majel.lang.util.TokenStream_Char;
+import majel.lang.descent.structure.indent2.FooToken;
+import majel.lang.descent.structure.indent2.Line;
+import majel.lang.descent.structure.indent2.SimpleTree;
+import majel.lang.descent.structure.indent2.UnclosedTreeParser;
+import majel.lang.err.IllegalToken;
+import majel.lang.util.*;
 import majel.stream.StringToken;
+import majel.stream.Token;
 import majel.stream.Token$Char;
+import majel.util.Opt;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-import static majel.lang.descent.structure.indent2.LineParser.LINE_HEAD;
+import static majel.lang.descent.structure.indent2.UnclosedTreeParser.*;
 
 public class LinesParser{
 	public static void main(String...args) throws IOException{
@@ -56,19 +61,106 @@ TODO: Nowish: Add filtering of empty lines.
   which can cause premature EOT (end-of-tree).
  */
 
-		List<IndexedToken<StringToken>> whitespace = new ArrayList<>();
+		List<IndexedToken<StringToken>> filtered = new ArrayList<>();
+		record ClosingContext(){}
+		interface BarToken extends Token{
+
+		}
+		class TreeCloser implements Pipe<NullContext, FooToken, BarToken>{
+
+			@Override
+			public TokenStream_Obj<BarToken> parse(NullContext context, TokenStream_Obj<FooToken> tokens){
+				return new TokenStream_Obj<BarToken>(){
+					@Override
+					public BarToken poll(){
+						final var head = tokens.poll();
+						final TokenStream_Obj<StringToken> headStream = TokenStream_Obj.from(
+							head.headTokens()
+						);
+
+						final List<BarToken> children = Opt.Gen.tryGet(((SimpleTree) head)::children)
+							.map(c -> parse(context, TokenStream_Obj.from(c)))
+							.orGet(TokenStream_Obj::emptyStream)
+							.collect(ArrayList::new);
+
+						final TokenStream_Obj<StringToken> tailStream = TokenStream_Obj.lazy(
+							() -> Opt.Gen
+								.when(!tokens.empty(), tokens::poll)
+								.tryMap(t -> TokenStream_Obj.from(((Line)t).headTokens()))
+								.orGet(TokenStream_Obj::emptyStream)
+						);
+
+						record BarTree(){
+
+						}
+						class Builder{
+							public BarToken build(){
+								var mark = headStream.mark();
+								var head = headStream.poll();
+								var labels = head.labels();
+								if(labels.contains(OPEN_BRACKETS)){
+									/*
+									Figure out the expected terminator
+									Scan through the head tokens until it is found
+									if it's unavailable in the head find it in the tail
+									If it's not in the tail, explode.
+									 */
+								}
+								else if(labels.contains(CLOSE_BRACKETS)){
+									mark.reset();
+									throw new IllegalToken(tokens);
+								}
+								else{
+
+								}
+								throw new UnsupportedOperationException();
+							}
+						}
+
+				/*
+				TODO:
+					Parse the head, if it's self closing it has no tail.
+					If it's not self-closing the next element must be a line, and must close the head.
+					Parse the children by opening the list as a indent stream parsing and collecting.
+				 */
+						return null;
+					}
+
+					@Override
+					public boolean touched(){
+						return tokens.touched();
+					}
+
+					@Override
+					public boolean empty(){
+						return tokens.empty();
+					}
+
+					@Override
+					public Mark mark(){
+						return tokens.mark();
+					}
+				};
+			}
+		}
 		var fooPipe = rootPipe
 			.andThen(new StringProcessor(all))
 			.andThen(new Dealiaser<>())
-			.exclude(t -> t.labels().contains("white-space"), whitespace::add)
-			.exclude(2, tokens -> {
-				var t = tokens.poll();
-				if(tokens.empty() || !t.labels().contains(LINE_HEAD)){
-					return false;
-				}
-				return tokens.poll().labels().contains(LINE_HEAD);
-			})
-			.andThen(new LineParser());
+			.exclude(
+				2,
+				tokens -> {
+					var labels = tokens.poll().labels();
+					if(labels.contains(WHITE_SPACE)){
+						return true;
+					}
+					if(tokens.empty() || !labels.contains(LINE_HEAD)){
+						return false;
+					}
+					return tokens.poll().labels().contains(LINE_HEAD);
+				},
+				filtered::add
+			)
+			.andThen(new UnclosedTreeParser());
 /*
 TODO:
 	At some point, buffering should be introduced.

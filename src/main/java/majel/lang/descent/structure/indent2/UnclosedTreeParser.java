@@ -6,15 +6,18 @@ import majel.lang.util.Mark;
 import majel.lang.util.Pipe;
 import majel.lang.util.TokenStream_Obj;
 import majel.stream.StringToken;
-import majel.util.LambdaUtils;
 import majel.util.Opt;
 
 import java.util.ArrayList;
 import java.util.function.Supplier;
 import java.util.function.ToIntFunction;
 
-public class LineParser implements Pipe<NullContext, StringToken, FooToken>{
+public class UnclosedTreeParser implements Pipe<NullContext, StringToken, FooToken>{
 	public static final String LINE_HEAD = "line-head";
+	public static final String WHITE_SPACE = "white-space";
+	public static final String OPEN_BRACKETS = "open-brackets";
+	public static final String CLOSE_BRACKETS = "close-brackets";
+
 	@Override
 	public TokenStream_Obj<FooToken> parse(NullContext context, TokenStream_Obj<StringToken> tokens){
 		return new TokenStream_Obj<>(){
@@ -43,7 +46,6 @@ public class LineParser implements Pipe<NullContext, StringToken, FooToken>{
 					.until(l -> l.labels().contains(LINE_HEAD))
 					.collect(ArrayList::new);
 
-
 				final int headLength = indentCounter.applyAsInt(head);
 				var children = parse(
 					NullContext.instance,
@@ -52,20 +54,6 @@ public class LineParser implements Pipe<NullContext, StringToken, FooToken>{
 				)
 				.collect(ArrayList::new);
 
-				final var tailstream = LambdaUtils.get(
-					() -> {
-						final var mark = tokens.mark();
-						final var tail = witchDoctor.get()
-							.retain(t -> indentCounter.applyAsInt(t) == headLength);
-
-						mark.reset();
-						return tail.map(t -> poll()).cast(Line.class);
-					}
-				);
-				/*
-				create the mark, get the tail, reset the mark
-				build the stream, by
-				 */
 				var line = new Line(head, elements);
 				return children.isEmpty() ? line : new SimpleTree(line, children);
 			}

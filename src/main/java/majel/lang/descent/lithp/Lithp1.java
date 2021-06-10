@@ -41,7 +41,7 @@ TODO:
 			Here it would be nice if within lithp, the line content was auto extracted to a value called "lines"
 
 		TODO:
-			A simpler mechanism is to allow for the tokeniser to read a token of a given type:
+			A simpler mechanism is to allow for the tokeniser to read a indent of a given type:
 				Lithp:
 					name :~ *[a...z]?*('-'*[a...z])
 					separator :~ ' :~ '

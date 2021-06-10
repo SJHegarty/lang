@@ -42,6 +42,38 @@ public interface TokenStream_Obj<T extends Token> extends TokenStream, Iterable<
 		};
 	}
 
+	static <T extends Token> TokenStream_Obj<T> lazy(Supplier<TokenStream_Obj<T>> source){
+		return new TokenStream_Obj<T>(){
+			TokenStream_Obj<T> wrapped;
+			@Override
+			public T poll(){
+				return wrapped.poll();
+			}
+
+			@Override
+			public boolean touched(){
+				return wrapped != null && wrapped.touched();
+			}
+
+			TokenStream_Obj<T> wrapped(){
+				if(wrapped == null){
+					wrapped = source.get();
+				}
+				return wrapped;
+			}
+
+			@Override
+			public boolean empty(){
+				return wrapped().empty();
+			}
+
+			@Override
+			public Mark mark(){
+				return wrapped().mark();
+			}
+		};
+	}
+
 	default T peek(){
 		var mark = mark();
 		var rv = poll();
