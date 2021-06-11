@@ -20,7 +20,7 @@ public class FSA implements Token{
 
 	final SimpleNode entryPoint;
 
-	private FSA(){
+	public FSA(){
 		this(new SimpleNode(false));
 	}
 

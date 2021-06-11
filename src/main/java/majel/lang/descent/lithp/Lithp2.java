@@ -62,7 +62,20 @@ public class Lithp2 implements Pipe<NullContext, LithpExpression, FSA>{
 				var name = n.name();
 				var lower = name.toLowerCase();
 				var base = parse(NullContext.instance, n.wrapped());
-				var rv = base.named(lower);
+
+				final FSA machine;
+				final FSA rv;
+
+				switch(n.headToken()){
+					case '<' -> {
+						machine = rv = base.named(lower);
+					}
+					case '~' -> {
+						machine = base;
+						rv = new FSA();
+					}
+					default ->  throw new IllegalStateException();
+				};
 
 				var shortForm = new StringBuilder();
 				for(String s: TokenStream_Char.from(name).split('-')){
@@ -79,8 +92,8 @@ public class Lithp2 implements Pipe<NullContext, LithpExpression, FSA>{
 					}
 					shortForm.append(segchar);
 				}
-				named.put(lower, rv);
-				named.put(shortForm.toString(), rv);
+				named.put(lower, machine);
+				named.put(shortForm.toString(), machine);
 				return rv;
 			}
 		);

@@ -98,7 +98,8 @@ TODO:
 					registerHandler(Kleene::new);
 					registerHandler(Literal::new);
 					registerHandler(Lookup::new);
-					registerHandler(Named::new);
+					registerHandler(() -> new Named('<'));
+					registerHandler(() -> new Named('~'));
 					registerHandler(Negation::new);
 					registerHandler(Optional::new);
 					registerHandler(Or::new);
@@ -125,6 +126,7 @@ TODO:
 					case 'n' -> '\n';
 					case '\'' -> '\'';
 					case '\\' -> '\\';
+					case '\"' -> '\"';
 					default -> throw new IllegalToken(tokens.wrap());
 				};
 			}

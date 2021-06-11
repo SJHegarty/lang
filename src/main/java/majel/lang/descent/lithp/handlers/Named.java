@@ -13,9 +13,17 @@ import majel.stream.Token$Char;
 
 public class Named implements CharHandler<LithpExpression>{
 
+	private final char headToken;
+	public Named(char headToken){
+		switch(headToken){
+			case '<', '~' -> {}
+			default -> throw new IllegalArgumentException("Unsupported head token: " + headToken);
+		}
+		this.headToken = headToken;
+	}
 	@Override
 	public char headToken(){
-		return NamedExpression.HEAD_TOKEN;
+		return headToken;
 	}
 
 	private transient StringProcessor processor;
@@ -43,6 +51,6 @@ public class Named implements CharHandler<LithpExpression>{
 		var base = parsed.poll();
 		simple.read(LithpExpression.CLOSING_PARENTHESIS);
 
-		return new NamedExpression(name, base);
+		return new NamedExpression(headToken, name, base);
 	}
 }

@@ -20,7 +20,8 @@
 
 <(minus, '-')
 
-<(fat-string, (\"?*!(\")\"))
+~(fat-token, !\")
+<(fat-string, (\"?*@FT;\"))
 <(skinny-string, (\'?*!(\')\'))
 
 <(at, '@')
