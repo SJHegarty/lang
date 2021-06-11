@@ -19,8 +19,10 @@
 <(close-brackets, +(@CC;, @CR;, @CA;, @CS;))
 
 <(minus, '-')
-<(fat-string, '"')
-<(skinny-string, '\'')
+
+<(fat-string, (\"?*!(\")\"))
+<(skinny-string, (\'?*!(\')\'))
+
 <(at, '@')
 <(switch-pattern, '?~')
 <(switch-equals, '?=')

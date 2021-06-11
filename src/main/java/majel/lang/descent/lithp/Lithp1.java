@@ -93,18 +93,19 @@ TODO:
 			new LA1Selector<>(){
 				{
 					registerHandler(And::new);
-					registerHandler(Literal::new);
-					registerHandler(Kleene::new);
-					registerHandler(Negation::new);
-					registerHandler(Parenthesis::new);
-					registerHandler(Or::new);
 					registerHandler(AndNot::new);
+					registerHandler(Escape::new);
+					registerHandler(Kleene::new);
+					registerHandler(Literal::new);
+					registerHandler(Lookup::new);
+					registerHandler(Named::new);
+					registerHandler(Negation::new);
 					registerHandler(Optional::new);
-					registerHandler(WildCard::new);
+					registerHandler(Or::new);
+					registerHandler(Parenthesis::new);
 					registerHandler(Range::new);
 					registerHandler(Repetition::new);
-					registerHandler(Named::new);
-					registerHandler(Lookup::new);
+					registerHandler(WildCard::new);
 				}
 			}
 		);

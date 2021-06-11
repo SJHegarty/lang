@@ -28,6 +28,11 @@ public class FSA implements Token{
 		this.entryPoint = entryPoint;
 	}
 
+	public FSA(char c){
+		this();
+		entryPoint.transitions(c).add(new SimpleNode(true));
+	}
+
 	public FSA(CharPredicate predicate) {
 		this();
 		final var node = new SimpleNode(true);

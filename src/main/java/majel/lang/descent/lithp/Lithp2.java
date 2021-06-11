@@ -41,6 +41,10 @@ public class Lithp2 implements Pipe<NullContext, LithpExpression, FSA>{
 			}
 		);
 		registerHandler(
+			EscapeExpression.class,
+			e -> new FSA(e.represented())
+		);
+		registerHandler(
 			KleenExpression.class,
 			k -> parse(NullContext.instance, k.wrapped()).kleene()
 		);
