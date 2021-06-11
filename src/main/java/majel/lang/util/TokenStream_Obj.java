@@ -579,10 +579,10 @@ public interface TokenStream_Obj<T extends Token> extends TokenStream, Iterable<
 			int sinkIndex;
 
 			private void findNext(){
-				if(TokenStream_Obj.this.empty()){
-					return;
-				}
 				for(;;){
+					if(TokenStream_Obj.this.empty()){
+						return;
+					}
 					var mark = TokenStream_Obj.this.mark();
 					var token = TokenStream_Obj.this.poll();
 					if(predicate.test(token)){

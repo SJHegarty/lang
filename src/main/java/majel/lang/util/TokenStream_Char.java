@@ -269,14 +269,17 @@ public interface TokenStream_Char extends TokenStream{
 			boolean touched;
 			@Override
 			public char poll(){
+				touched = true;
 				if(head.empty()){
 					return TokenStream_Char.this.poll();
 				}
 				char target = head.poll();
+				if(TokenStream_Char.this.empty()){
+					return target;
+				}
 				if(TokenStream_Char.this.peek() == target){
 					return TokenStream_Char.this.poll();
 				}
-				touched = true;
 				return target;
 			}
 
@@ -292,6 +295,7 @@ public interface TokenStream_Char extends TokenStream{
 
 			@Override
 			public Mark mark(){
+				boolean sanity = empty();
 				var m0 = TokenStream_Char.this.mark();
 				var m1 = head.mark();
 				var m2 = touched;
@@ -299,6 +303,9 @@ public interface TokenStream_Char extends TokenStream{
 					m0.reset();
 					m1.reset();
 					touched = m2;
+					if(sanity != empty()){
+						throw new IllegalStateException();
+					}
 				};
 			}
 		};

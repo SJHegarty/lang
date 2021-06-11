@@ -1,6 +1,5 @@
 package majel.lang.descent.structure;
 
-import majel.lang.automata.fsa.Dealiaser;
 import majel.lang.automata.fsa.FSA;
 import majel.lang.automata.fsa.StringProcessor;
 import majel.lang.descent.context.NullContext;
@@ -9,7 +8,6 @@ import majel.lang.descent.lithp.Lithp2;
 import majel.lang.descent.structure.indent2.FooToken;
 import majel.lang.descent.structure.indent2.Line;
 import majel.lang.descent.structure.indent2.SimpleTree;
-import majel.lang.descent.structure.indent2.UnclosedTreeParser;
 import majel.lang.err.IllegalToken;
 import majel.lang.util.*;
 import majel.stream.StringToken;
@@ -20,12 +18,18 @@ import majel.util.Opt;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-import static majel.lang.descent.structure.indent2.UnclosedTreeParser.*;
+import static majel.lang.descent.structure.indent2.UnclosedTreeParser.CLOSE_BRACKETS;
+import static majel.lang.descent.structure.indent2.UnclosedTreeParser.OPEN_BRACKETS;
 
+/*
+TODO:
+	Add expression regeneration to FSA class
+	There can be no guarantee that the returned expression will equal the parsed expression
+		However upon reparsing the XOR of the two machines should be the empty language.
+ */
 public class LinesParser{
 	public static void main(String...args) throws IOException{
 		Function<String, TokenStream_Char> streams = path -> {
@@ -145,7 +149,7 @@ TODO: Nowish: Add filtering of empty lines.
 		}
 		var fooPipe = rootPipe
 			.andThen(new StringProcessor(all))
-			.andThen(new Dealiaser<>())
+			/*.andThen(new Dealiaser<>())
 			.exclude(
 				2,
 				tokens -> {
@@ -160,7 +164,7 @@ TODO: Nowish: Add filtering of empty lines.
 				},
 				filtered::add
 			)
-			.andThen(new UnclosedTreeParser());
+			.andThen(new UnclosedTreeParser())*/;
 /*
 TODO:
 	At some point, buffering should be introduced.
@@ -204,7 +208,7 @@ TODO:
 			Simple Parsers.
 
  */
-		var foo = streams.apply(".bspl/Simple.bspl").withHead('\n');
+		var foo = streams.apply(".lithp/Test.txt").withHead('\n');
 		fooPipe.parse(
 			NullContext.instance,
 			foo.wrap()
