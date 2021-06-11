@@ -56,7 +56,6 @@ public class ObjectUtils{
 					case '\n' -> "\\n";
 					case '\t' -> "\\t";
 					case '\r' -> "\\r";
-					case ' ' -> "\\s";
 					default -> Character.toString(c);
 				}
 			);

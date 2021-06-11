@@ -16,6 +16,7 @@ public class WildCard implements CharHandler<LithpExpression>{
 
 	@Override
 	public LithpExpression parse(NullContext context, TokenStream_Obj<Token$Char> tokens, TokenStream_Obj<LithpExpression> parsed){
-		return new WildCardExpression();
+		checkHead(tokens);
+		return WildCardExpression.INSTANCE;
 	}
 }

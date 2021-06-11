@@ -37,7 +37,7 @@ public class FSA implements Token{
 		this();
 		final var node = new SimpleNode(true);
 		for (char c = 0; c < TABLE_SIZE; c++) {
-			if(predicate.test(c)){
+			if(c != LAMBDA && predicate.test(c)){
 				entryPoint.transitions(c).add(node);;
 			}
 		}

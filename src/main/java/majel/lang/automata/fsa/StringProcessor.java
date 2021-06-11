@@ -14,6 +14,9 @@ public class StringProcessor implements Pipe<NullContext, Token$Char, StringToke
 
 	public StringProcessor(FSA automaton){
 		this.automaton = automaton.dfa();
+		if(this.automaton.entryPoint.terminating()){
+			throw new IllegalStateException();
+		}
 	}
 
 	public Result process(TokenStream_Char tokens){

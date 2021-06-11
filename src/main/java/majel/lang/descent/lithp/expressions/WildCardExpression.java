@@ -7,7 +7,11 @@ import majel.stream.Token$Char;
 
 public class WildCardExpression implements LithpExpression{
 	public static final char TOKEN = '.';
+	public static final WildCardExpression INSTANCE = new WildCardExpression();
 
+	private WildCardExpression(){
+
+	}
 	public String reconstitute(){
 		return Character.toString(TOKEN);
 	}
