@@ -1,12 +1,12 @@
 package majel.lang.automata.fsa;
 
+import majel.lang.util.TokenStream_Obj;
 import majel.util.functional.CharPredicate;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.stream.IntStream;
 
 public interface Node{
 
@@ -21,12 +21,10 @@ public interface Node{
 	}
 
 	default Set<? extends Node> next(CharPredicate filter) {
-		final Set<Node> rv = new HashSet<>();
-		filter.toStream()
+		return filter.toStream()
 			.mapToObj(this::transitions)
-			.forEach(rv::addAll);
-
-		return rv;
+			.flatMap(TokenStream_Obj::from)
+			.collect(HashSet::new);
 	}
 
 	boolean terminating();

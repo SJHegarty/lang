@@ -13,6 +13,7 @@ import majel.lang.util.*;
 import majel.stream.StringToken;
 import majel.stream.Token;
 import majel.stream.Token$Char;
+import majel.util.LambdaUtils;
 import majel.util.Opt;
 
 import java.io.IOException;
@@ -20,6 +21,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static majel.lang.descent.structure.indent2.UnclosedTreeParser.CLOSE_BRACKETS;
 import static majel.lang.descent.structure.indent2.UnclosedTreeParser.OPEN_BRACKETS;
@@ -46,14 +48,15 @@ public class LinesParser{
 				throw new UncheckedIOException(e);
 			}
 		};
-		var rootPipe = Pipe.<NullContext, Token$Char>nop().retain(t -> t.value() != '\r');
-		var lithpPipe = rootPipe.retain(t -> t.value() != '\n')
+		var rootPipe = Pipe.<NullContext, Token$Char>nop().buffered();
+		var lithpPipe = rootPipe.retain(t -> !t.is('\n') && !t.is('\r'))
 			.andThen(new Lithp1())
 			.andThen(new Lithp2());
 
 		var lithpSrc = streams.apply(".lithp/Test.lithp");
-		var lithp = lithpPipe.parse(NullContext.instance, lithpSrc.wrap());
-		var all = FSA.or(lithp.collect(ArrayList::new));
+		var lithp = LambdaUtils.benchmark(() -> lithpPipe.parse(NullContext.instance, lithpSrc.wrap()));
+		System.err.println(lithp.time());
+		var all = FSA.or(lithp.result().collect(ArrayList::new));
 
 
 
@@ -209,12 +212,15 @@ TODO:
 
  */
 		var foo = streams.apply(".lithp/Test.txt").withHead('\n');
-		fooPipe.parse(
-			NullContext.instance,
-			foo.wrap()
-		)
-		.forEach(System.err::println);
-
+		var bench = LambdaUtils.benchmark(
+			() -> fooPipe.parse(
+				NullContext.instance,
+				foo.wrap()
+			)
+				.collect(ArrayList::new)
+		);
+		System.err.println(bench.time());
+		bench.result().forEach(System.err::println);
 		System.exit(0);
 	}
 

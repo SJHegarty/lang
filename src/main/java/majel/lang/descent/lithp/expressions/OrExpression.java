@@ -17,6 +17,6 @@ public record OrExpression(List<LithpExpression> elements) implements LithpExpre
 	@Override
 	public TokenStream_Obj<Token$Char> decompose(){
 		return TokenStream_Char.of(HEAD_TOKEN).wrap()
-			.concat(() -> LithpExpression.streamList(elements));
+			.andThen(() -> LithpExpression.streamList(elements));
 	}
 }

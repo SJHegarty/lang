@@ -1,8 +1,9 @@
 package majel.lang.util;
 
 import majel.lang.err.IllegalToken;
-import majel.stream.Token$Char;
 import majel.stream.Token;
+import majel.stream.Token$Char;
+import majel.util.MathUtils;
 
 import java.io.InputStream;
 import java.util.*;
@@ -13,7 +14,7 @@ import java.util.function.Supplier;
 
 public interface TokenStream_Obj<T> extends TokenStream, Iterable<T>{
 
-	static <T extends Token> TokenStream_Obj<T> emptyStream(){
+	static <T> TokenStream_Obj<T> emptyStream(){
 		return new TokenStream_Obj<T>(){
 			@Override
 			public T peek(){
@@ -42,7 +43,7 @@ public interface TokenStream_Obj<T> extends TokenStream, Iterable<T>{
 		};
 	}
 
-	static <T extends Token> TokenStream_Obj<T> lazy(Supplier<TokenStream_Obj<T>> source){
+	static <T> TokenStream_Obj<T> lazy(Supplier<TokenStream_Obj<T>> source){
 		return new TokenStream_Obj<T>(){
 			TokenStream_Obj<T> wrapped;
 			@Override
@@ -119,58 +120,13 @@ public interface TokenStream_Obj<T> extends TokenStream, Iterable<T>{
 		read(t -> t.equals(expected));
 	}
 
-	default TokenStream_Obj<T> concat(Supplier<TokenStream_Obj<T>> continuation){
-		final var wrapped = this;
-		return new TokenStream_Obj<T>(){
-			boolean touched;
-			TokenStream_Obj<T> built;
 
-			TokenStream_Obj<T> source(){
-				if(built == null){
-					if(wrapped.empty()){
-						built = continuation.get();
-						if(built == null){
-							throw new IllegalStateException();
-						}
-					}
-					else{
-						return wrapped;
-					}
-				}
-				return built;
-			}
+	default TokenStream_Obj<T> andThen(Supplier<TokenStream_Obj<T>> continuation){
+		return andThen(lazy(continuation));
+	}
 
-			@Override
-			public T peek(){
-				return source().peek();
-			}
-
-			@Override
-			public T poll(){
-				touched = true;
-				return source().poll();
-			}
-
-			@Override
-			public boolean touched(){
-				return touched;
-			}
-
-			@Override
-			public boolean empty(){
-				return source().empty();
-			}
-
-			@Override
-			public Mark mark(){
-				var m0 = source().mark();
-				var m1 = touched;
-				return () -> {
-					m0.reset();
-					touched = m1;
-				};
-			}
-		};
+	default TokenStream_Obj<T> andThen(TokenStream_Obj<T> continuation){
+		return concat(from(this, continuation));
 	}
 
 	static TokenStream_Obj<Token$Char> from(String s){
@@ -214,7 +170,7 @@ public interface TokenStream_Obj<T> extends TokenStream, Iterable<T>{
 			}
 		};
 	}
-	static <T extends Token> TokenStream_Obj<T> of(T... tokens){
+	static <T> TokenStream_Obj<T> from(T... tokens){
 		return new TokenStream_Obj<T>(){
 			int index;
 			@Override
@@ -384,7 +340,34 @@ public interface TokenStream_Obj<T> extends TokenStream, Iterable<T>{
 		};
 	}
 
-	static <T extends Token> TokenStream_Obj<T> from(List<T> elements){
+	static <T> TokenStream_Obj<T> from(Iterable<T> iterable){
+		var iterator = iterable.iterator();
+		return new TokenStream_Obj<T>(){
+			boolean touched = false;
+			@Override
+			public T poll(){
+				touched = true;
+				return iterator.next();
+			}
+
+			@Override
+			public boolean touched(){
+				return touched;
+			}
+
+			@Override
+			public boolean empty(){
+				return !iterator.hasNext();
+			}
+
+			@Override
+			public Mark mark(){
+				throw new UnsupportedOperationException();
+			}
+		};
+	}
+
+	static <T> TokenStream_Obj<T> from(List<T> elements){
 		return new TokenStream_Obj<T>(){
 			int index;
 			@Override
@@ -689,4 +672,124 @@ public interface TokenStream_Obj<T> extends TokenStream, Iterable<T>{
 		};
 	}
 
+	default TokenStream_Obj<T> buffered(){
+		return buffered(256);
+	}
+	default TokenStream_Obj<T> buffered(int maxBuffer){
+		class Buffer{
+			final T[] elements = (T[])new Object[MathUtils.nextPowerOfTwo(maxBuffer)];
+			int offset;
+			int size;
+
+			private void add(T t){
+				elements[offset] = t;
+				offset = offsetIndex(1);
+				if(size != elements.length){
+					size += 1;
+				}
+			}
+
+			public int capacity(){
+				return elements.length;
+			}
+
+			public T get(int index){
+				return elements[offsetIndex(index)];
+			}
+
+			private int offsetIndex(int index){
+				return (offset + index) & (elements.length - 1);
+			}
+		}
+		final var buffer = new Buffer();
+		return new TokenStream_Obj<T>(){
+			int srcIndex;
+			int index;
+
+			@Override
+			public T poll(){
+				final T rv;
+				if(index == srcIndex){
+					rv = TokenStream_Obj.this.poll();
+					buffer.add(rv);
+					srcIndex += 1;
+				}
+				else{
+					int delta = srcIndex - index;
+					int bufferIndex = buffer.capacity() - delta;
+					rv = buffer.get(bufferIndex);
+				}
+				index += 1;
+				return rv;
+			}
+
+			@Override
+			public boolean touched(){
+				return index != 0;
+			}
+
+			@Override
+			public boolean empty(){
+				return index == srcIndex && TokenStream_Obj.this.empty();
+			}
+
+			@Override
+			public Mark mark(){
+				int mark = index;
+				return () -> {
+					if(mark < srcIndex - buffer.capacity()){
+						throw new IllegalStateException();
+					}
+					index = mark;
+				};
+			}
+		};
+	}
+
+	default <D> TokenStream_Obj<D> flatMap(Function<T, TokenStream_Obj<D>> mapper){
+		return concat(map(mapper));
+	}
+
+	static <D> TokenStream_Obj<D> concat(TokenStream_Obj<TokenStream_Obj<D>> streams){
+
+		TokenStream_Obj<D> concat = new TokenStream_Obj<D>(){
+			TokenStream_Obj<D> current = next();
+			boolean touched;
+
+			TokenStream_Obj<D> next(){
+				while(!streams.empty()){
+					var stream = streams.poll();
+					if(!stream.empty()){
+						return stream;
+					}
+				}
+				return TokenStream_Obj.emptyStream();
+			};
+
+			@Override
+			public D poll(){
+				D rv = current.poll();
+				if(current.empty()){
+					current = next();
+				}
+				return rv;
+			}
+
+			@Override
+			public boolean touched(){
+				return touched;
+			}
+
+			@Override
+			public boolean empty(){
+				return current.empty();
+			}
+
+			@Override
+			public Mark mark(){
+				throw new UnsupportedOperationException();
+			}
+		};
+		return concat.buffered();
+	}
 }

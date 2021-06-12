@@ -89,4 +89,23 @@ public interface Pipe<Context, S extends Token, T extends Token>{
 			.parse(context, tokens)
 			.retain(filter, sink);
 	}
+
+	default Pipe<Context, S, T> buffered(){
+		return new Pipe<>(){
+			@Override
+			public TokenStream_Obj<T> parse(Context context, TokenStream_Obj<S> tokens){
+				return Pipe.this.parse(context, tokens.buffered());
+			}
+
+			@Override
+			public Pipe<Context, S, T> buffered(){
+				return this;
+			}
+
+			@Override
+			public <D extends Token> Pipe<Context, S, D> andThen(Pipe<Context, T, D> subsequent){
+				return Pipe.super.andThen(subsequent.buffered());
+			}
+		};
+	}
 }

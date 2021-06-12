@@ -13,6 +13,6 @@ public record AndExpression(List<LithpExpression> expressions) implements LithpE
 	@Override
 	public TokenStream_Obj<Token$Char> decompose(){
 		return TokenStream_Char.of(HEAD_TOKEN).wrap()
-			.concat(() -> LithpExpression.streamList(expressions));
+			.andThen(() -> LithpExpression.streamList(expressions));
 	}
 }

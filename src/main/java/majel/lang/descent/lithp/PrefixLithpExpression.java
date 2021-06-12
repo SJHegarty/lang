@@ -11,6 +11,6 @@ public interface PrefixLithpExpression extends LithpExpression{
 	default TokenStream_Obj<Token$Char> decompose(){
 		return TokenStream_Char.of(headToken())
 			.wrap()
-			.concat(wrapped()::decompose);
+			.andThen(wrapped()::decompose);
 	}
 }
