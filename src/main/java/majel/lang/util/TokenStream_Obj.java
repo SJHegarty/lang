@@ -253,7 +253,7 @@ public interface TokenStream_Obj<T> extends TokenStream, Iterable<T>{
 	}
 	default <D> TokenStream_Obj<D> map(Function<T, D> mapper){
 		var wrapped = this;
-		return new TokenStream_Obj<D>(){
+		return new TokenStream_Obj<>(){
 			@Override
 			public D peek(){
 				return mapper.apply(wrapped.peek());
@@ -289,27 +289,25 @@ public interface TokenStream_Obj<T> extends TokenStream, Iterable<T>{
 		return rv;
 	}
 
-	default <D extends Token> TokenStream_Obj<D> unwrap(Function<T, TokenStream_Obj<D>> unwrapper){
-		return new TokenStream_Obj<D>(){
+	static <T> TokenStream_Obj<T> concat(TokenStream_Obj<TokenStream_Obj<T>> elements){
+		var unbuffered = new TokenStream_Obj<T>(){
 			boolean touched;
-			TokenStream_Obj<D> current = emptyStream();
+			TokenStream_Obj<T> current = emptyStream();
 
-			TokenStream_Obj<D> current(){
-				if(current.empty()){
-					if(!TokenStream_Obj.this.empty()){
-						current = unwrapper.apply(TokenStream_Obj.this.poll());
-					}
+			TokenStream_Obj<T> current(){
+				while(!elements.empty() && current.empty()){
+					current = elements.poll();
 				}
 				return current;
 			}
 
 			@Override
-			public D peek(){
+			public T peek(){
 				return current().peek();
 			}
 
 			@Override
-			public D poll(){
+			public T poll(){
 				touched = true;
 				return current().poll();
 			}
@@ -326,18 +324,10 @@ public interface TokenStream_Obj<T> extends TokenStream, Iterable<T>{
 
 			@Override
 			public Mark mark(){
-				final var touched = this.touched;
-				final var stream = current();
-				final var streamMark = stream.mark();
-				final var wrappedMark = TokenStream_Obj.this.mark();
-				return () -> {
-					current = stream;
-					streamMark.reset();
-					wrappedMark.reset();
-					this.touched = touched;
-				};
+				throw new UnsupportedOperationException();
 			}
 		};
+		return unbuffered.buffered();
 	}
 
 	static <T> TokenStream_Obj<T> from(Iterable<T> iterable){
@@ -750,46 +740,4 @@ public interface TokenStream_Obj<T> extends TokenStream, Iterable<T>{
 		return concat(map(mapper));
 	}
 
-	static <D> TokenStream_Obj<D> concat(TokenStream_Obj<TokenStream_Obj<D>> streams){
-
-		TokenStream_Obj<D> concat = new TokenStream_Obj<D>(){
-			TokenStream_Obj<D> current = next();
-			boolean touched;
-
-			TokenStream_Obj<D> next(){
-				while(!streams.empty()){
-					var stream = streams.poll();
-					if(!stream.empty()){
-						return stream;
-					}
-				}
-				return TokenStream_Obj.emptyStream();
-			};
-
-			@Override
-			public D poll(){
-				D rv = current.poll();
-				if(current.empty()){
-					current = next();
-				}
-				return rv;
-			}
-
-			@Override
-			public boolean touched(){
-				return touched;
-			}
-
-			@Override
-			public boolean empty(){
-				return current.empty();
-			}
-
-			@Override
-			public Mark mark(){
-				throw new UnsupportedOperationException();
-			}
-		};
-		return concat.buffered();
-	}
 }
