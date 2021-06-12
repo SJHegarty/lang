@@ -2,6 +2,7 @@ package majel.lang.automata.fsa;
 
 import majel.stream.Token;
 import majel.util.ObjectUtils;
+import majel.util.Opt;
 import majel.util.functional.CharPredicate;
 import majel.util.functional.ObjectIntFunction;
 
@@ -14,8 +15,7 @@ import java.util.stream.Collectors;
 public class FSA implements Token{
 
 	public static final char LAMBDA = '^';
-	public static final int TABLE_SIZE = 0x100;
-
+	public static final CharPredicate NOT_LAMBDA = c -> c != LAMBDA;
 	final Node entryPoint;
 
 	public FSA(){
@@ -34,11 +34,9 @@ public class FSA implements Token{
 	public FSA(CharPredicate predicate) {
 		this();
 		final var node = new SimpleNode(true);
-		for (char c = 0; c < TABLE_SIZE; c++) {
-			if(c != LAMBDA && predicate.test(c)){
-				entryPoint.transitions(c).add(node);;
-			}
-		}
+		NOT_LAMBDA.and(predicate).forEach(
+			c -> entryPoint.transitions(c).add(node)
+		);
 	}
 
 	public static FSA literal(String value){
@@ -228,17 +226,11 @@ public class FSA implements Token{
 	private void complete(){
 		var sink = new SimpleNode(false);
 
-		Consumer<Node> nodeOp = node -> {
-			for(char c = 0; c < TABLE_SIZE; c++){
-				if(c != LAMBDA){
-					var transitions = node.transitions(c);
-					if(transitions.isEmpty()){
-						transitions.add(sink);
-					}
-				}
-			}
-		};
-
+		Consumer<Node> nodeOp = node -> NOT_LAMBDA.forEach(
+			c -> Opt.Gen.of(node.transitions(c))
+				.retain(Set::isEmpty)
+				.ifPresent(transitions -> transitions.add(sink))
+		);
 		nodes().forEach(nodeOp);
 		nodeOp.accept(sink);
 	}

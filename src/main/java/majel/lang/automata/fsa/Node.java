@@ -21,20 +21,12 @@ public interface Node{
 	}
 
 	default Set<? extends Node> next(CharPredicate filter) {
-		Set<Node> result = IntStream.range(0, FSA.TABLE_SIZE)
-			.filter(i -> filter.test((char)i))
-			.mapToObj(i -> (Set<Node>)transitions((char)i))
-			.reduce(
-				(s0, s1) -> {
-					var rv = new HashSet<Node>();
-					rv.addAll(s0);
-					rv.addAll(s1);
-					return rv;
-				}
-			)
-			.orElseGet(HashSet::new);
+		final Set<Node> rv = new HashSet<>();
+		filter.toStream()
+			.mapToObj(this::transitions)
+			.forEach(rv::addAll);
 
-		return result;
+		return rv;
 	}
 
 	boolean terminating();

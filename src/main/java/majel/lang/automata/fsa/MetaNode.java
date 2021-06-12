@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static majel.lang.automata.fsa.FSA.LAMBDA;
+import static majel.lang.automata.fsa.FSA.NOT_LAMBDA;
 
 public class MetaNode implements Node{
 	private final Set<Node> nodes = new HashSet<>();
@@ -45,7 +46,7 @@ public class MetaNode implements Node{
 
 	@Override
 	public CharPredicate alphabet(){
-		return c -> c != LAMBDA;
+		return NOT_LAMBDA;
 	}
 
 	public MetaNode transition(char c) {
@@ -61,7 +62,7 @@ public class MetaNode implements Node{
 
 	@Override
 	public Set<? extends Node> next(CharPredicate filter) {
-		return Node.super.next(filter.and(c -> c != LAMBDA));
+		return Node.super.next(NOT_LAMBDA.and(filter));
 	}
 
 	@Override

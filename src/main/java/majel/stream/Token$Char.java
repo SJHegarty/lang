@@ -1,5 +1,8 @@
 package majel.stream;
 
 public record Token$Char(char value) implements Token{
-static String s = "\f";
+
+	public boolean is(char c){
+		return c == value;
+	}
 }

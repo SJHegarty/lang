@@ -3,6 +3,7 @@ package majel.lang.util;
 import majel.lang.err.IllegalToken;
 import majel.stream.Token$Char;
 import majel.util.functional.CharConsumer;
+import majel.util.functional.CharFunction;
 import majel.util.functional.CharPredicate;
 
 import java.io.BufferedInputStream;
@@ -13,6 +14,33 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public interface TokenStream_Char extends TokenStream{
+
+	static TokenStream_Char exclusiveRange(char c0, int cL){
+
+		return new TokenStream_Char(){
+			char value = c0;
+			@Override
+			public char poll(){
+				return value++;
+			}
+
+			@Override
+			public boolean touched(){
+				return value != c0;
+			}
+
+			@Override
+			public boolean empty(){
+				return value >= cL;
+			}
+
+			@Override
+			public Mark mark(){
+				char v = value;
+				return () -> value = v;
+			}
+		};
+	}
 
 	default char peek(){
 		var mark = mark();
@@ -411,4 +439,7 @@ public interface TokenStream_Char extends TokenStream{
 		};
 	}
 
+	default <T> TokenStream_Obj<T> mapToObj(CharFunction<T> function){
+		return wrap().map(c -> function.apply(c.value()));
+	}
 }

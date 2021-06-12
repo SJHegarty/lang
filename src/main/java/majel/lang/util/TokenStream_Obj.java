@@ -11,7 +11,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public interface TokenStream_Obj<T extends Token> extends TokenStream, Iterable<T>{
+public interface TokenStream_Obj<T> extends TokenStream, Iterable<T>{
 
 	static <T extends Token> TokenStream_Obj<T> emptyStream(){
 		return new TokenStream_Obj<T>(){
@@ -295,7 +295,7 @@ public interface TokenStream_Obj<T extends Token> extends TokenStream, Iterable<
 			}
 		};
 	}
-	default <D extends Token> TokenStream_Obj<D> map(Function<T, D> mapper){
+	default <D> TokenStream_Obj<D> map(Function<T, D> mapper){
 		var wrapped = this;
 		return new TokenStream_Obj<D>(){
 			@Override
@@ -517,10 +517,10 @@ public interface TokenStream_Obj<T extends Token> extends TokenStream, Iterable<
 			int sinkIndex;
 
 			private void findNext(){
-				if(TokenStream_Obj.this.empty()){
-					return;
-				}
 				for(;;){
+					if(TokenStream_Obj.this.empty()){
+						return;
+					}
 					var mark = TokenStream_Obj.this.mark();
 					var substream = TokenStream_Obj.this.limit(lookahead);
 					boolean include = predicate.test(substream);

@@ -1,12 +1,11 @@
 package majel.util;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public interface Opt<T>{
-
-
 
 	static class Gen{
 		public static <T> Opt<T> when(boolean flag, Supplier<T> supplier){
@@ -70,6 +69,13 @@ public interface Opt<T>{
 			return Gen.empty();
 		}
 		return Gen.tryGet(() -> mapper.apply(value));
+	}
+
+	default void ifPresent(Consumer<T> op){
+		var value = unwrap();
+		if(value != null){
+			op.accept(value);
+		}
 	}
 
 	default T orGet(Supplier<T> source){
