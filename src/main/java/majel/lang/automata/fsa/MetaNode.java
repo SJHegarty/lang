@@ -1,16 +1,20 @@
 package majel.lang.automata.fsa;
 
+import majel.util.functional.CharPredicate;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class MetaNode implements Node{
-	private final Set<SimpleNode> nodes = new HashSet<>();
+import static majel.lang.automata.fsa.FSA.LAMBDA;
 
-	MetaNode(SimpleNode src){
+public class MetaNode implements Node{
+	private final Set<Node> nodes = new HashSet<>();
+
+	MetaNode(Node src){
 		this(new HashSet<>(Set.of(src)));
 	}
 
-	MetaNode(Set<SimpleNode> nodes){
+	MetaNode(Set<Node> nodes){
 		if(nodes.isEmpty()){
 			throw new IllegalArgumentException();
 		}
@@ -18,12 +22,12 @@ public class MetaNode implements Node{
 		while(!queue.isEmpty()){
 			var node = queue.poll();
 			if(this.nodes.add(node)){
-				queue.addAll(node.transitions(FSA.LAMBDA));
+				queue.addAll(node.transitions(LAMBDA));
 			}
 		}
 	}
 
-	Set<SimpleNode> nodes(){
+	Set<Node> nodes(){
 		return nodes;
 	}
 
@@ -39,8 +43,13 @@ public class MetaNode implements Node{
 			.collect(Collectors.toCollection(TreeSet::new));
 	}
 
+	@Override
+	public CharPredicate alphabet(){
+		return c -> c != LAMBDA;
+	}
+
 	public MetaNode transition(char c) {
-		if (c == FSA.LAMBDA) {
+		if (c == LAMBDA) {
 			throw new UnsupportedOperationException();
 		}
 		return new MetaNode(
@@ -51,7 +60,12 @@ public class MetaNode implements Node{
 	}
 
 	@Override
-	public Set<MetaNode> transitions(char c){
+	public Set<? extends Node> next(CharPredicate filter) {
+		return Node.super.next(filter.and(c -> c != LAMBDA));
+	}
+
+	@Override
+	public Set<Node> transitions(char c){
 		return Set.of(transition(c));
 	}
 

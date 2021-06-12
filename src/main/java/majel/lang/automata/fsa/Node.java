@@ -10,7 +10,7 @@ import java.util.stream.IntStream;
 
 public interface Node{
 
-	Set<? extends Node> transitions(char c);
+	Set<Node> transitions(char c);
 
 	default Set<? extends Node> next(){
 		return next(c -> true);
@@ -55,4 +55,6 @@ public interface Node{
 		}
 		return false;
 	}
+
+	CharPredicate alphabet();
 }

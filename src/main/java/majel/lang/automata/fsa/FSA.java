@@ -7,24 +7,22 @@ import majel.util.functional.ObjectIntFunction;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class FSA implements Token{
 
 	public static final char LAMBDA = '^';
 	public static final int TABLE_SIZE = 0x100;
 
-	final SimpleNode entryPoint;
+	final Node entryPoint;
 
 	public FSA(){
 		this(new SimpleNode(false));
 	}
 
-	private FSA(SimpleNode entryPoint){
+	private FSA(Node entryPoint){
 		this.entryPoint = entryPoint;
 	}
 
@@ -110,7 +108,7 @@ public class FSA implements Token{
 		final int limit = elements.length - 1;
 
 		//(Node src, int layer) -> (Node generated) nodeBuilder
-		ObjectIntFunction<SimpleNode, SimpleNode> nodeBuilder = (src, layer) -> {
+		ObjectIntFunction<Node, SimpleNode> nodeBuilder = (src, layer) -> {
 			boolean terminating = src.terminating() && elementTerminates.test(layer);
 			return terminating ? new SimpleNode(true) : new SimpleNode(false);
 		};
@@ -135,30 +133,31 @@ public class FSA implements Token{
 		return new FSA(elements[0].entryPoint);
 	}
 
-	private FSA process(UnaryOperator<SimpleNode> nodeProcessor){
+	private FSA process(UnaryOperator<Node> nodeProcessor){
 		final var nodes = nodes();
-		final Map<SimpleNode, SimpleNode> map = nodes.stream()
+		final Map<Node, Node> map = nodes.stream()
 			.collect(
 				Collectors.toMap(n -> n, nodeProcessor)
 			);
 
 		for(var src: nodes){
 			var dst = map.get(src);
+			src.alphabet().forEach(
+				c -> {
+					var srcTransitions = src.transitions(c);
+					var dstTransitions = dst.transitions(c);
 
-			for(char c = 0; c < 0x100; c++){
-				var srcTransitions = src.transitions(c);
-				var dstTransitions = dst.transitions(c);
-
-				for(var srcNext: srcTransitions){
-					dstTransitions.add(map.get(srcNext));
+					for(var srcNext: srcTransitions){
+						dstTransitions.add(map.get(srcNext));
+					}
 				}
-			}
+			);
 		}
 
 		return new FSA(map.get(entryPoint));
 
 	}
-	private Set<SimpleNode> terminating() {
+	private Set<Node> terminating() {
 		return nodes().stream()
 			.filter(Node::terminating)
 			.collect(Collectors.toSet());
@@ -180,7 +179,7 @@ public class FSA implements Token{
 	}
 
 	public FSA optional(){
-		var rv = clone();
+		var rv = copy();
 		rv.entryPoint
 			.transitions(LAMBDA)
 			.add(new SimpleNode(true));
@@ -189,7 +188,7 @@ public class FSA implements Token{
 	}
 
 	public FSA kleene(){
-		var rv = clone();
+		var rv = copy();
 		rv.terminating().forEach(
 			n -> n.transitions(LAMBDA).add(rv.entryPoint)
 		);
@@ -197,7 +196,7 @@ public class FSA implements Token{
 		return rv;
 	}
 
-	protected FSA clone(){
+	protected FSA copy(){
 		return process(
 			n -> new SimpleNode(n.labels(), n.terminating())
 		);
@@ -229,7 +228,7 @@ public class FSA implements Token{
 	private void complete(){
 		var sink = new SimpleNode(false);
 
-		Consumer<SimpleNode> nodeOp = node -> {
+		Consumer<Node> nodeOp = node -> {
 			for(char c = 0; c < TABLE_SIZE; c++){
 				if(c != LAMBDA){
 					var transitions = node.transitions(c);
@@ -244,58 +243,14 @@ public class FSA implements Token{
 		nodeOp.accept(sink);
 	}
 
-	/*
-	TODO:
-		Rename clone() as copy(),
-		Genericise FSA on <T extends Node>
-		Add a method .deterministic() returning an FSA<MetaNode>
-		Make copy() always return a FSA<SimpleNode>
-		this method should be implementable as:
-			return new FSA<>(new MetaNode(entryPoint))
-				.deterministic()
-				.copy()
-	 */
 	public FSA dfa(){
-		complete();
-		record Lookup(MetaNode meta, SimpleNode built){}
-		var lookup = new HashMap<MetaNode, Lookup>();
-
-		Function<MetaNode, Lookup> deAliaser = meta -> {
-			var rv = lookup.get(meta);
-			if(rv == null){
-				rv = new Lookup(meta, new SimpleNode(meta.labels(), meta.terminating()));
-				lookup.put(meta, rv);
-			}
-			return rv;
-		};
-		var root = deAliaser.apply(new MetaNode(entryPoint));
-		var rv = new FSA(root.built);
-		var queue = new ArrayDeque<MetaNode>();
-		var explored = new HashSet<MetaNode>();
-		queue.add(root.meta);
-
-		while(!queue.isEmpty()){
-			var meta = queue.poll();
-			if(explored.add(meta)) {
-				var simple = deAliaser.apply(meta).built;
-				for (char c = 0; c < TABLE_SIZE; c++) {
-					if (c != LAMBDA) {
-						var next = meta.transition(c);
-						queue.add(next);
-						simple.next(c).add(
-							deAliaser.apply(next).built
-						);
-					}
-				}
-			}
-		}
-
-		return rv;
+		this.complete();
+		return new FSA(new MetaNode(this.entryPoint)).copy();
 	}
 
-	public Set<SimpleNode> nodes(){
-		final var rv = new HashSet<SimpleNode>();
-		final var queue = new ArrayDeque<SimpleNode>();
+	public Set<Node> nodes(){
+		final var rv = new HashSet<Node>();
+		final var queue = new ArrayDeque<Node>();
 
 		rv.add(entryPoint);
 		queue.add(entryPoint);

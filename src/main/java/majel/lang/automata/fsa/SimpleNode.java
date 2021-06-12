@@ -47,17 +47,17 @@ public class SimpleNode implements Node{
 	}
 
 	@Override
-	public Set<SimpleNode> transitions(char c){
+	public Set<Node> transitions(char c){
 		if(transitions[c] == null){
-			return new MaskingSet<>(
+			return new MaskingSet<Node>(
 				() -> {
 					var rv = new HashSet<SimpleNode>();
 					transitions[c] = rv;
-					return rv;
+					return (Set)rv;
 				}
 			);
 		};
-		return transitions[c];
+		return (Set)transitions[c];
 	}
 
 	@Override
@@ -78,6 +78,11 @@ public class SimpleNode implements Node{
 	@Override
 	public SortedSet<String> labels(){
 		return Collections.unmodifiableSortedSet(labels);
+	}
+
+	@Override
+	public CharPredicate alphabet(){
+		return c -> true;
 	}
 
 }

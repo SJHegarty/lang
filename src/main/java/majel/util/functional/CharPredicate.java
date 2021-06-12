@@ -16,4 +16,16 @@ interface CharPredicate {
 	default CharPredicate negate(){
 		return c -> !CharPredicate.this.test(c);
 	}
+
+	default CharPredicate and(CharPredicate other){
+		return c -> test(c) && other.test(c);
+	}
+
+	default void forEach(CharConsumer op){
+		for(char c = 0; c < 0x100; c++){
+			if(test(c)){
+				op.consume(c);
+			}
+		}
+	}
 }
