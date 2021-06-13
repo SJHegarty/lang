@@ -1,4 +1,4 @@
-"this is a fat string \" do do de do\""
+"this is a fat string \" do do de do\""//Line comment
 'this is a skinny string \' la da de da\''
 ~"*[a...z]"
 ~'hello @insert;'

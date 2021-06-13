@@ -4,9 +4,12 @@
 ~(skinny-head, \')
 ~(fat-char, +(-(., @SR;, @FH;, \\), @EE;, (\\@FH;)))
 ~(skinny-char, +(-(., @SR;, @SH;, \\), @EE;, (\\@SH;)))
+~(line-coNtent, ?*-(., \t, \r, \n))
 
 <(indent, (?\r\n?*\t))
 <(fat-string, (@FH;?*@FC;@FH;))
 <(skinny-string, (@SH;?*@SC;@SH;))
 <(fsa-expression, ('~'@FS;))
 <(processed-string, ('~'@SS;))
+<(line-comment, ('//'@LN;))
+<(ignored, +(@LC;))
