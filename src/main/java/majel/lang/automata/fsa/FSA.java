@@ -175,6 +175,7 @@ public class FSA implements Token{
 	}
 
 	public FSA optional(){
+		//TODO: if there is a lambda transition from the entry-point to a terminating node, return this
 		var rv = copy();
 		rv.entryPoint
 			.transitions(LAMBDA)
@@ -184,6 +185,7 @@ public class FSA implements Token{
 	}
 
 	public FSA kleene(){
+		//TODO: if each of the terminating nodes has a lambda transition to the entry-point, return this
 		var rv = copy();
 		rv.terminating().forEach(
 			n -> n.transitions(LAMBDA).add(rv.entryPoint)
@@ -222,6 +224,7 @@ public class FSA implements Token{
 	}
 
 	private void complete(){
+		//TODO: if every node can already reach a sink via lambda transition, return this
 		var sink = new SimpleNode(false);
 
 		Consumer<Node> nodeOp = node -> NOT_LAMBDA.forEach(
