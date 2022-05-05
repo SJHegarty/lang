@@ -105,10 +105,8 @@ public class FSA implements Token{
 
 		final int limit = elements.length - 1;
 
-		//(Node src, int layer) -> (Node generated) nodeBuilder
 		ObjectIntFunction<Node, SimpleNode> nodeBuilder = (src, layer) -> {
-			boolean terminating = src.terminating() && elementTerminates.test(layer);
-			return terminating ? new SimpleNode(true) : new SimpleNode(false);
+			return new SimpleNode(src.terminating() && elementTerminates.test(layer));
 		};
 
 		elements[limit] = elements[limit].process(
