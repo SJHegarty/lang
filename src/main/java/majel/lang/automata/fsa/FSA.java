@@ -259,6 +259,18 @@ public class FSA implements Token{
 		return Collections.unmodifiableSet(rv);
 	}
 
+	/*
+	public boolean equals(Object o){
+		BinaryOperator<FSA> xor = (f0, f1) -> {
+			BinaryOperator<FSA> orNot = (fi, fu) -> FSA.or(fi, fu.negate());
+			return FSA.and(
+				orNot.apply(f0, f1),
+				orNot.apply(f1, f0)
+			);
+		}
+		return o instanceof FSA f && !xor.apply(this, f).isTerminable();
+	}
+	*/
 	public FSA named(String name){
 		var rv = process(
 			n -> {
