@@ -9,6 +9,8 @@ public record AndNotExpression(LithpExpression expr0, LithpExpression expr1) imp
 
 	@Override
 	public TokenStream_Obj<Token$Char> decompose(){
-		return null;
+		return TokenStream_Char.of(HEAD_TOKEN).wrap()
+			.andThen(() -> LithpExpression.streamList(expr0, expr1));
 	}
+
 }
