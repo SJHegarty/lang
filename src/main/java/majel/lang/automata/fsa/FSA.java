@@ -175,7 +175,9 @@ public class FSA implements Token{
 	}
 
 	public FSA optional(){
-		//TODO: if there is a lambda transition from the entry-point to a terminating node, return this
+		if(new MetaNode(entryPoint).terminating()){
+			return this;
+		}
 		var rv = copy();
 		rv.entryPoint
 			.transitions(LAMBDA)
