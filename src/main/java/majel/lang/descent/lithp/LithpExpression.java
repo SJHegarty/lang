@@ -58,6 +58,10 @@ public interface LithpExpression extends Decomposable<Token$Char>{
 		return TokenStream_Char.of(expression.decompose()).remaining();
 	}
 
+	static TokenStream_Obj<Token$Char> streamList(Decomposable<Token$Char>...elements){
+		return streamList(List.of(elements));
+	}
+	
 	static TokenStream_Obj<Token$Char> streamList(List<? extends Decomposable<Token$Char>> elements){
 		var builder = new TokenStreamBuilder();
 		builder
