@@ -25,15 +25,33 @@ public class StringProcessor implements Pipe<NullContext, Token$Char, StringToke
 		var builder = new StringBuilder();
 		var buffer = new StringBuilder();
 		var mark = tokens.mark();
-		while(!tokens.empty() && node.terminable()){
+		loop: while(!tokens.empty() && node.terminable()){
 			char c = tokens.poll();
 			buffer.append(c);
 			var next = node.next(c);
-			if(next.size() != 1){
-				throw new IllegalStateException("Unreachable? The automaton is deterministic and complete.");
-			}
-			for(var n: next){
-				node = n;
+
+			switch(next.size()){
+				case 0:{
+					//break loop;
+					throw new IllegalStateException("Unreachable? The automaton is deterministic and complete.");
+				}
+				case 1:{
+					for(var n: next){
+						node = n;
+						break;
+					}
+				}
+				case 2:{
+					/*
+						Implement code for non-deterministic execution,
+						despite the fact it never actually happens.
+
+						I'm pretty sure that this "should" work, unless something is using the identity of the Node somehow
+						I was tired and stupid when I wrote some of that code, and I don't have and IDE to properly navigate this shit
+					*/
+					node = new MetaNode(next);//Wrong. Probably misses the Lambda transitions from the source.
+					throw new IllegalStateException("Unreachable? The automaton is deterministic and complete.");
+				}
 			}
 			if(node.terminating()){
 				builder.append(buffer);
@@ -41,6 +59,7 @@ public class StringProcessor implements Pipe<NullContext, Token$Char, StringToke
 				mark = tokens.mark();
 				last = node;
 			}
+			
 		}
 		mark.reset();
 		return new Result(builder.toString(), last);
