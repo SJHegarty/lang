@@ -4,6 +4,14 @@ $[private statefull type] Blah ~ [ParentZero, ParentOne] {
 	$[private type] Inner{
 	
 	}
+	$do {
+		$for-all(i : elements){
+			//do things
+		}
+		..$else{
+			//if the loop never executed 
+		}
+	}
 }
 
 
